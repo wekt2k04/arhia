@@ -1,0 +1,134 @@
+LE TOP 100 DES RÈGLES DE CONCEPTION PPT POUR UNE SOUTENANCE PFA (INGÉNIEUR)
+-------------------------------------------------------------------------
+
+PARTIE 1 : STRUCTURE ET NAVIGATION TECHNIQUE
+✅ À FAIRE :
+1. Créer une diapositive de titre équilibrée avec les logos de l'école (à gauche) et de l'entreprise (à droite).
+2. Ajouter un fil d'Ariane (breadcrumb) en haut ou en bas de chaque diapositive pour situer le jury dans le plan.
+3. Structurer le PPT selon le cycle en V ou Agile : Contexte > Problématique > Architecture > Implémentation > Bilan.
+4. Dédier une diapositive visuelle spécifique pour cartographier l'écosystème technique existant de l'entreprise.
+5. Utiliser une diapositive de transition claire (intercalaire) avant chaque nouvelle grande phase du projet.
+6. Prévoir une diapositive "Perspectives/Améliorations futures" pour montrer la scalabilité de votre projet.
+7. Aligner le nom du tuteur école et du tuteur entreprise de manière symétrique sur la page de garde.
+8. Scinder un processus métier complexe en plusieurs diapositives plutôt que de tout condenser.
+9. Numéroter les diapositives (ex: 4/25) pour faciliter les questions techniques du jury à la fin.
+10. Utiliser le "Masque des diapositives" pour figer les titres, le fil d'Ariane et les numéros de page.
+
+❌ À NE PAS FAIRE :
+11. Ne pas copier-coller le sommaire de votre rapport Word ; le plan du PPT doit être plus synthétique.
+12. Ne pas répéter les logos de l'école et de l'entreprise en grand sur toutes les diapositives.
+13. Ne pas fusionner la présentation de l'entreprise et la problématique technique sur la même slide.
+14. Ne pas oublier de mentionner votre filière ou spécialité d'ingénierie sur la slide de titre.
+15. Ne pas mettre un titre de diapositive générique (ex: "Développement") ; soyez précis (ex: "Implémentation de l'API REST").
+16. Ne pas créer un fil d'Ariane qui prend plus de 10% de la hauteur de l'écran.
+17. Ne pas omettre la diapositive d'architecture globale, même si vous n'avez travaillé que sur un module.
+18. Ne pas terminer la présentation de manière abrupte sans slide de conclusion technique résumant les livrables.
+19. Ne pas inclure des annexes techniques directement dans le flux principal de la présentation (gardez-les masquées à la fin).
+20. Ne pas laisser les titres sauter de quelques millimètres d'une diapositive à l'autre (utilisez la grille).
+
+
+PARTIE 2 : GRILLES, ESPACEMENTS ET CHARTE GRAPHIQUE
+✅ À FAIRE :
+21. Appliquer une marge de "sécurité" (gouttière) d'au moins 5% sur les 4 bords de chaque diapositive.
+22. Utiliser la charte graphique de l'entreprise d'accueil ou de l'école (3 couleurs dominantes maximum).
+23. Exploiter les repères intelligents et la grille de PowerPoint pour aligner mathématiquement vos blocs.
+24. Laisser de l'espace blanc (ou négatif) autour de vos maquettes UI/UX pour les mettre en valeur.
+25. Homogénéiser les espacements entre les paragraphes (ex: toujours 12pt après un paragraphe).
+26. Utiliser un fond uni ou avec un motif très subtil (ex: maillage géométrique 5% d'opacité) pour le côté tech.
+27. Assurer un contraste minimal de 4.5:1 (norme WCAG) pour garantir la lisibilité des textes par le jury.
+28. Garder la même zone de placement pour les titres sur 100% des diapositives de contenu.
+29. Harmoniser l'arrondi de vos formes (soit tous les rectangles ont des coins carrés, soit tous ont un rayon de 10px).
+30. Grouper les éléments logiques (Ctrl+G) pour conserver leurs proportions lors du redimensionnement.
+
+❌ À NE PAS FAIRE :
+31. Ne pas étirer ou écraser les captures d'écran des interfaces web ou mobiles.
+32. Ne pas utiliser de gradients de couleurs fantaisistes ou de motifs WordArt des années 2000.
+33. Ne pas placer du texte bord-à-bord avec les limites de la diapositive.
+34. Ne pas modifier la couleur de fond en plein milieu de la présentation sans raison structurelle.
+35. Ne pas utiliser un fond noir si votre PFA n'a pas de charte "Dark Mode" (le blanc/gris clair est plus sûr en salle éclairée).
+36. Ne pas surcharger l'espace avec des cadres décoratifs lourds autour de vos données.
+37. Ne pas laisser des éléments se chevaucher involontairement (utilisez la gestion du premier/arrière-plan).
+38. Ne pas mélanger un design "Flat" (plat) avec du "Skeuomorphisme" (boutons 3D réalistes).
+39. Ne pas insérer de filigranes ou de bordures épaisses sur chaque diapositive.
+40. Ne pas justifier le texte (le fer à gauche garantit un espacement régulier des mots et un look plus propre).
+
+
+PARTIE 3 : SCHÉMAS, UML ET ILLUSTRATIONS
+✅ À FAIRE :
+41. Redessiner les diagrammes UML (classes, séquences) avec les outils de formes PPT pour une résolution parfaite.
+42. Simplifier les diagrammes d'architecture complexes pour ne montrer que ce qui est utile à la soutenance.
+43. Utiliser un code couleur sémantique dans les schémas (ex: Vert = module OK, Rouge = goulot d'étranglement).
+44. Mettre en surbrillance (effet de glow ou bordure épaisse) le microservice ou le composant que vous avez codé.
+45. Utiliser des icônes vectorielles (SVG) unifiées (même épaisseur de trait) pour représenter bases de données, serveurs, API.
+46. Exporter les modèles conceptuels de données (MCD) en haute définition (PNG sans fond) depuis votre outil de modélisation.
+47. Insérer des maquettes (mockups) d'appareils réels (écran de PC, smartphone) pour présenter l'interface utilisateur finalisée.
+48. Utiliser des flèches directionnelles de même style et même épaisseur pour tous vos flux de données.
+49. S'assurer que le texte à l'intérieur des boîtes d'architecture est à l'horizontale et lisible.
+50. Remplacer les photos génériques (poignées de main) par des captures réelles du matériel ou logiciel utilisé.
+
+❌ À NE PAS FAIRE :
+51. Ne pas faire de capture d'écran pixelisée d'un énorme schéma StarUML ou Workbench illisible de loin.
+52. Ne pas conserver un arrière-plan blanc sur un schéma si le fond de votre présentation est gris ou coloré (détourez).
+53. Ne pas mélanger des icônes 3D, des icônes pleines et des icônes filaires (outline) sur un même schéma.
+54. Ne pas insérer 100% de la structure de votre base de données s'il y a 50 tables.
+55. Ne pas utiliser des formes PowerPoint par défaut sans modifier leurs couleurs/bordures de base (le fameux bleu PPT).
+56. Ne pas tordre les flèches de flux de données dans tous les sens ; privilégiez les tracés à angles droits.
+57. Ne pas mettre de légendes microscopiques sur les axes de vos graphiques techniques.
+58. Ne pas illustrer un concept algorithmique avec des cliparts humoristiques hors de propos pour un ingénieur.
+59. Ne pas surcharger l'architecture globale avec les ports IP, les mots de passe ou des détails de bas niveau inutiles.
+60. Ne pas laisser de "Lorem Ipsum" dans les maquettes UI présentées au jury.
+
+
+PARTIE 4 : CODE, DONNÉES ET TYPOGRAPHIE
+✅ À FAIRE :
+61. Utiliser une police à chasse fixe (Monospace comme Consolas, Fira Code, Courier New) pour tout extrait de code.
+62. Appliquer une coloration syntaxique fidèle à votre IDE (VSCode, IntelliJ) pour les extraits de code.
+63. Limiter l'affichage du code aux 5 à 10 lignes cruciales (le cœur de l'algorithme ou la requête critique).
+64. Traduire les données de performance brute (Excel) en graphiques clairs (courbes, histogrammes).
+65. Utiliser des polices Sans-Serif modernes et lisibles (Montserrat, Roboto, Open Sans) pour le contenu classique.
+66. Accentuer les KPI (Temps de réponse, Taux de réussite) avec une typographie de grande taille (ex: "75ms").
+67. Encadrer les requêtes SQL, scripts Bash ou commandes de terminal dans des encarts imitant un fond de console (gris foncé/noir).
+68. Mettre en gras les noms des frameworks, langages et bibliothèques dans les listes à puces.
+69. Remplacer les longs paragraphes d'explications par des listes à puces synthétiques (6 lignes max, 6 mots par ligne).
+70. Définir la taille de police minimale à 20pt, même pour le texte dans les schémas, pour garantir la lisibilité au fond de la salle.
+
+❌ À NE PAS FAIRE :
+71. Ne pas copier-coller des classes Java ou des composants React de 200 lignes.
+72. Ne pas utiliser des polices à empattements (Serif comme Times New Roman) peu adaptées aux présentations techniques.
+73. Ne pas écrire des paragraphes entiers pour décrire une fonctionnalité technique.
+74. Ne pas présenter un tableau brut de 10 colonnes et 20 lignes issu de vos tests de charge.
+75. Ne pas utiliser 4 polices de caractères différentes sur la même diapositive.
+76. Ne pas insérer de texte en italique pour du code (l'italique pixelise souvent sur les projecteurs).
+77. Ne pas souligner les mots pour insister (utilisez le gras ou une couleur d'accentuation).
+78. Ne pas écrire tout un titre technique EN LETTRES MAJUSCULES si c'est une longue phrase.
+79. Ne pas afficher le JSON entier d'une réponse API, ciblez uniquement les 3 attributs pertinents.
+80. Ne pas utiliser d'ombres portées (drop shadows) floues derrière du texte technique, cela réduit la lisibilité.
+
+
+PARTIE 5 : ANIMATIONS TECHNIQUES ET TRANSITIONS DE FLUX
+✅ À FAIRE :
+81. Animer les diagrammes de séquence étape par étape (apparition des messages un par un) pour expliquer la logique.
+82. Utiliser l'animation "Apparaître" ou "Fondu" très rapide (0.2s) pour ne pas ralentir le rythme technique.
+83. Utiliser la transition "Morphose" (Morph) pour faire un effet de zoom d'une macro-architecture vers un micro-composant.
+84. Animer les graphiques de résultats série par série (ou catégorie par catégorie) pour analyser l'évolution.
+85. Créer des animations de trajectoire simples si besoin de montrer le mouvement d'un paquet de données d'un point A à un point B.
+86. Grouper correctement les éléments (Boîte + Texte) avant d'appliquer l'animation pour qu'ils apparaissent ensemble.
+87. Utiliser l'animation de couleur de surbrillance pour pointer le problème exact dans un extrait de code.
+88. Régler le déclenchement des animations "Au clic" uniquement pour les étapes majeures, et "Avec la précédente" pour les éléments dépendants.
+89. Afficher la barre de progression (fil d'Ariane) avec une animation discrète à chaque changement de section.
+90. Tester systématiquement le volet d'animation pour s'assurer que le chemin de la donnée suit l'ordre chronologique de l'explication.
+
+❌ À NE PAS FAIRE :
+91. Ne pas utiliser d'animations farfelues (Rebond, Damier, Rotation 3D) qui décrédibilisent le sérieux du travail d'ingénieur.
+92. Ne pas animer le code source lettre par lettre (effet machine à écrire).
+93. Ne pas mettre des transitions "Origami" ou "Cube" chronophages entre vos diapositives.
+94. Ne pas animer tous les points d'une simple liste à puces si cela ne nécessite pas d'explication incrémentale.
+95. Ne pas laisser une animation automatique se déclencher avant que vous n'ayez fini votre phrase précédente.
+96. Ne pas créer d'animations qui font clignoter les textes frénétiquement.
+97. Ne pas animer les éléments du "Masque des diapositives" (le numéro de page ou le logo doivent rester fixes).
+98. Ne pas ajouter d'effets sonores à l'apparition de vos résultats de tests.
+99. Ne pas utiliser l'animation "Entrée brusque" avec une trajectoire aléatoire pour les composants de votre diagramme de classe.
+100. Ne pas oublier de désactiver toutes les animations complexes si vous exportez le rendu en PDF pour le jury.
+```eof
+
+Ce document TXT regroupe la quintessence des règles de design, d'intégration de code, d'architecture de l'information et de mise en page exigées par les jurys lors d'une soutenance de fin d'études en ingénierie. Bonne préparation pour votre présentation !

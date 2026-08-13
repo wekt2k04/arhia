@@ -1,0 +1,29 @@
+{
+  "projet": "AGIRH",
+  "conformite": "bonnes_pratique_rédaction_ppt.txt",
+  "note_sur_100": 100.0,
+  "seuil_validation": 90.0,
+  "valide": true,
+  "detail": {
+    "linter_40": {
+      "pts": 40.0,
+      "issues": 0
+    },
+    "structure_25": {
+      "pts": 25.0,
+      "issues": 0
+    },
+    "typo_20": {
+      "pts": 20.0,
+      "issues": 0
+    },
+    "animations_15": {
+      "pts": 15.0,
+      "issues": 0
+    }
+  },
+  "linter_issues": [],
+  "structure_issues": [],
+  "typo_issues": [],
+  "anim_issues": []
+}

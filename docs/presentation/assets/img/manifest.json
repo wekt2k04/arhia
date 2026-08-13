@@ -1,0 +1,192 @@
+{
+  "logos": {
+    "ecole": {
+      "present": true,
+      "path": "assets/img/ensa_white_rgba.png",
+      "note": "variante _rgba (fond transparent, logos blancs)"
+    },
+    "entreprise": {
+      "present": true,
+      "path": "assets/img/agirh_white_rgba.png",
+      "note": "variante _rgba (fond transparent, logos blancs)"
+    }
+  },
+  "icones": {
+    "bleu": {
+      "db": {
+        "png": "assets/img/icons/db.png",
+        "svg": "assets/img/icons/db.svg",
+        "couleur": "#659ED4"
+      },
+      "server": {
+        "png": "assets/img/icons/server.png",
+        "svg": "assets/img/icons/server.svg",
+        "couleur": "#659ED4"
+      },
+      "api": {
+        "png": "assets/img/icons/api.png",
+        "svg": "assets/img/icons/api.svg",
+        "couleur": "#659ED4"
+      },
+      "ai": {
+        "png": "assets/img/icons/ai.png",
+        "svg": "assets/img/icons/ai.svg",
+        "couleur": "#659ED4"
+      },
+      "lock": {
+        "png": "assets/img/icons/lock.png",
+        "svg": "assets/img/icons/lock.svg",
+        "couleur": "#659ED4"
+      },
+      "shield": {
+        "png": "assets/img/icons/shield.png",
+        "svg": "assets/img/icons/shield.svg",
+        "couleur": "#659ED4"
+      },
+      "chat": {
+        "png": "assets/img/icons/chat.png",
+        "svg": "assets/img/icons/chat.svg",
+        "couleur": "#659ED4"
+      },
+      "users": {
+        "png": "assets/img/icons/users.png",
+        "svg": "assets/img/icons/users.svg",
+        "couleur": "#659ED4"
+      },
+      "check": {
+        "png": "assets/img/icons/check.png",
+        "svg": "assets/img/icons/check.svg",
+        "couleur": "#659ED4"
+      },
+      "warning": {
+        "png": "assets/img/icons/warning.png",
+        "svg": "assets/img/icons/warning.svg",
+        "couleur": "#659ED4"
+      },
+      "bolt": {
+        "png": "assets/img/icons/bolt.png",
+        "svg": "assets/img/icons/bolt.svg",
+        "couleur": "#659ED4"
+      },
+      "layers": {
+        "png": "assets/img/icons/layers.png",
+        "svg": "assets/img/icons/layers.svg",
+        "couleur": "#659ED4"
+      }
+    },
+    "blanc": {
+      "db": {
+        "png": "assets/img/icons/white/db.png",
+        "svg": "assets/img/icons/white/db.svg",
+        "couleur": "#FFFFFF"
+      },
+      "server": {
+        "png": "assets/img/icons/white/server.png",
+        "svg": "assets/img/icons/white/server.svg",
+        "couleur": "#FFFFFF"
+      },
+      "api": {
+        "png": "assets/img/icons/white/api.png",
+        "svg": "assets/img/icons/white/api.svg",
+        "couleur": "#FFFFFF"
+      },
+      "ai": {
+        "png": "assets/img/icons/white/ai.png",
+        "svg": "assets/img/icons/white/ai.svg",
+        "couleur": "#FFFFFF"
+      },
+      "lock": {
+        "png": "assets/img/icons/white/lock.png",
+        "svg": "assets/img/icons/white/lock.svg",
+        "couleur": "#FFFFFF"
+      },
+      "shield": {
+        "png": "assets/img/icons/white/shield.png",
+        "svg": "assets/img/icons/white/shield.svg",
+        "couleur": "#FFFFFF"
+      },
+      "chat": {
+        "png": "assets/img/icons/white/chat.png",
+        "svg": "assets/img/icons/white/chat.svg",
+        "couleur": "#FFFFFF"
+      },
+      "users": {
+        "png": "assets/img/icons/white/users.png",
+        "svg": "assets/img/icons/white/users.svg",
+        "couleur": "#FFFFFF"
+      },
+      "check": {
+        "png": "assets/img/icons/white/check.png",
+        "svg": "assets/img/icons/white/check.svg",
+        "couleur": "#FFFFFF"
+      },
+      "warning": {
+        "png": "assets/img/icons/white/warning.png",
+        "svg": "assets/img/icons/white/warning.svg",
+        "couleur": "#FFFFFF"
+      },
+      "bolt": {
+        "png": "assets/img/icons/white/bolt.png",
+        "svg": "assets/img/icons/white/bolt.svg",
+        "couleur": "#FFFFFF"
+      },
+      "layers": {
+        "png": "assets/img/icons/white/layers.png",
+        "svg": "assets/img/icons/white/layers.svg",
+        "couleur": "#FFFFFF"
+      }
+    },
+    "orange": {
+      "lock": {
+        "png": "assets/img/icons/lock.png",
+        "svg": "assets/img/icons/lock.svg",
+        "couleur": "#B55927"
+      },
+      "shield": {
+        "png": "assets/img/icons/shield.png",
+        "svg": "assets/img/icons/shield.svg",
+        "couleur": "#B55927"
+      },
+      "check": {
+        "png": "assets/img/icons/check.png",
+        "svg": "assets/img/icons/check.svg",
+        "couleur": "#B55927"
+      },
+      "warning": {
+        "png": "assets/img/icons/warning.png",
+        "svg": "assets/img/icons/warning.svg",
+        "couleur": "#B55927"
+      },
+      "bolt": {
+        "png": "assets/img/icons/bolt.png",
+        "svg": "assets/img/icons/bolt.svg",
+        "couleur": "#B55927"
+      }
+    }
+  },
+  "diagrammes": {
+    "D1_Topologie_V6.png": "assets/img/detoure/D1_Topologie_V6.png",
+    "D2_Pipeline_SSE.png": "assets/img/detoure/D2_Pipeline_SSE.png",
+    "D3_Securite_TOCTOU.png": "assets/img/detoure/D3_Securite_TOCTOU.png",
+    "D4_Modele_Donnees.png": "assets/img/detoure/D4_Modele_Donnees.png"
+  },
+  "captures": {
+    "capture_chat.png": {
+      "present": false,
+      "path": null,
+      "note": "a deposer par l'utilisateur"
+    },
+    "capture_widget.png": {
+      "present": false,
+      "path": null,
+      "note": "a deposer par l'utilisateur"
+    },
+    "capture_login.png": {
+      "present": false,
+      "path": null,
+      "note": "a deposer par l'utilisateur"
+    }
+  },
+  "stack_strip": "assets/img/stack_strip.png",
+  "note": "Le chemin detoure (assets/img/detoure/) est prioritaire sur l'original pour le theme sombre (regle 52)."
+}

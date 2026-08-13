@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(docker:*)",
+      "Bash(curl.exe:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(Get-Content:*)",
+      "Read(src/**)",
+      "Read(tests/**)",
+      "Read(frontend/**)",
+      "Read(docs/**)",
+      "Read(*.md)",
+      "Read(*.json)",
+      "Read(*.http)"
+    ],
+    "deny": [
+      "Bash(git push*)",
+      "Bash(rm -rf*)"
+    ]
+  }
+}
