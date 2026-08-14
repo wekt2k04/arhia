@@ -1,4 +1,0 @@
-Supprimer la partie de salutation et intégrer plutôt un modèle. Résumer un peu mieux les steps.
-https://www.keycloak.org/
-llm visualizor
-transformer pour l'extraction de données
