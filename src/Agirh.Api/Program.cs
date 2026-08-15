@@ -110,8 +110,15 @@ builder.Services.AddHttpClient<OllamaClient>(client =>
     client.BaseAddress = new Uri(builder.Configuration["Ollama:BaseUrl"] ?? "http://localhost:11434");
     client.Timeout = TimeSpan.FromSeconds(120);
 });
-builder.Services.AddScoped<ILlmRouterPort, OllamaRouterAdapter>();
-builder.Services.AddScoped<ILlmGeneratorPort, OllamaGeneratorAdapter>();
+// Modeles configurables independamment de l'URL (Ollama:RouterModele / Ollama:GeneratorModele) :
+// permet de basculer vers un serveur Ollama d'entreprise (URL différente ET modèles différents,
+// pas seulement une autre URL avec le même modèle) sans recompiler.
+builder.Services.AddScoped<ILlmRouterPort>(sp => new OllamaRouterAdapter(
+    sp.GetRequiredService<OllamaClient>(),
+    builder.Configuration["Ollama:RouterModele"] ?? "phi4-mini:3.8b"));
+builder.Services.AddScoped<ILlmGeneratorPort>(sp => new OllamaGeneratorAdapter(
+    sp.GetRequiredService<OllamaClient>(),
+    builder.Configuration["Ollama:GeneratorModele"] ?? "phi4-mini:3.8b"));
 
 builder.Services.AddScoped<RepondreConversationUseCase>();
 
@@ -134,6 +141,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+// Idempotent (no-op si le schema est deja a jour) : applique automatiquement les migrations en
+// attente au demarrage. Necessaire pour qu'un `docker compose up` sur une base SQL Server
+// fraiche fonctionne sans etape manuelle (`dotnet ef database update`) - et supprime cette etape
+// manuelle aussi pour le developpement local courant.
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<AgirhDbContext>().Database.Migrate();
+}
 
 if (app.Environment.IsDevelopment())
 {

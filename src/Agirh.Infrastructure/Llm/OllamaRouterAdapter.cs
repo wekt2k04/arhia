@@ -11,7 +11,11 @@ namespace Agirh.Infrastructure.Llm;
 /// </summary>
 public sealed class OllamaRouterAdapter : ILlmRouterPort
 {
-    private const string Modele = "phi4-mini:3.8b";
+    // Configurable (Ollama:RouterModele, Program.cs) pour permettre de basculer entre un profil
+    // local (petits modeles) et un profil entreprise (serveur Ollama distant, modeles plus
+    // capables) sans recompiler - le porteur du projet a acces a un serveur Ollama d'entreprise
+    // en plus de son Ollama local. Defaut inchange si non configure.
+    private readonly string _modele;
 
     private const string SystemPrompt = """
         Tu es un classifieur d'intention pour un assistant RH interne. Classe la question dans EXACTEMENT une categorie parmi les trois suivantes. Reponds UNIQUEMENT par un de ces 3 mots exacts, en majuscules, rien d'autre : DOCUMENTAIRE, STATUT_DOSSIER, HORS_PERIMETRE.
@@ -38,14 +42,15 @@ public sealed class OllamaRouterAdapter : ILlmRouterPort
 
     private readonly OllamaClient _client;
 
-    public OllamaRouterAdapter(OllamaClient client)
+    public OllamaRouterAdapter(OllamaClient client, string modele = "phi4-mini:3.8b")
     {
         _client = client;
+        _modele = modele;
     }
 
     public async Task<IntentionConversation> ClassifierAsync(string question, CancellationToken ct = default)
     {
-        var reponse = await _client.GenererAsync(Modele, SystemPrompt, question, ct);
+        var reponse = await _client.GenererAsync(_modele, SystemPrompt, question, ct);
         return ParserIntention(reponse);
     }
 
