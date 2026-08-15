@@ -203,3 +203,24 @@
 - Endpoints de lecture/liste, cas particuliers §8, `docker-compose.yml`, suite de tests .NET complète à reconfirmer d'un seul tenant — tous des chantiers séparés, aucun bloquant.
 
 **Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-15 (suite 10) — Poste de travail (Windows)
+
+**Fait :**
+- **Modèle Ollama configurable indépendamment de l'URL** (`Ollama:RouterModele`/`Ollama:GeneratorModele`, défaut `phi4-mini:3.8b` inchangé). Contexte : le porteur du projet a accès, dans le cadre de son stage, à un second serveur Ollama d'entreprise avec des modèles plus capables — jusqu'ici seule l'URL était configurable, pas le nom du modèle, ce qui bloquait la bascule. `appsettings.Entreprise.json.example` documente le mécanisme ; IP donnée par le porteur du projet non confirmée ("je crois 192.168.100.220:11434", injoignable depuis ce poste) et noms de modèles pas encore communiqués — juste le mécanisme pour l'instant.
+- **`docker-compose.yml` complet et vérifié en conditions réelles** : Dockerfile pour Agirh.Api (multi-stage, migrations EF Core désormais auto-appliquées au démarrage — ajouté dans `Program.cs`, idempotent) et pour `frontend/` (multi-stage Node 20, Next 15/Tailwind v3 inchangés). Décision actée avec le porteur du projet en cours de route : pas de service Ollama conteneurisé (il préfère garder son installation native, déjà utilisée) — l'Api le rejoint via `host.docker.internal`.
+- Un premier essai avait conteneurisé Ollama par défaut (`ollama/ollama`, >1 Go téléchargé) avant que le porteur du projet ne questionne cette approche — téléchargement arrêté, compose corrigé pour utiliser l'Ollama natif à la place. Bonne question à se poser avant d'agir la prochaine fois : est-ce que ce qui existe déjà suffit, plutôt que de dupliquer par réflexe.
+- Vérification complète en conditions réelles : `docker compose up -d --build` sur base fraîche → migration EF Core appliquée automatiquement (confirmé dans les logs) → inscription/connexion via le frontend conteneurisé → `/chat` protégée affiche le bon utilisateur → l'Api conteneurisée joint réellement l'Ollama natif de l'hôte via `host.docker.internal` (confirmé dans les logs, réponse 200 après démarrage à froid) → après bootstrap du premier compte Admin/Qualité et réindexation du corpus (mêmes étapes déjà nécessaires en dev, pas spécifiques à Docker) → question documentaire streamée correctement avec la bonne source citée, de bout en bout, à travers toute la pile conteneurisée.
+- Un bug transitoire Docker rencontré et résolu par un simple retry (NuGet/analyseur Roslyn introuvable au publish malgré un restore annoncé réussi — cache Docker déjà chaud pour les couches lentes, retry rapide).
+- Conteneurs de dev manuels (`agirh-sql`, `agirh-qdrant`) mis en pause puis restaurés proprement autour du test compose (jamais recréés/supprimés) pour éviter le conflit de ports.
+- `CHECKLIST.md` (milestone 11 → ✅) et `HANDOFF/NEXT_SESSION.md` mis à jour.
+
+**Reste :**
+- Profil Ollama entreprise à compléter dès que l'IP/les modèles sont confirmés par le porteur du projet.
+- Routeur conversationnel (~27% de mauvais routage) — toujours mis de côté volontairement.
+- Reconfirmer le jeu de Q/R gold complet (48 questions) d'un seul tenant.
+- Endpoints de lecture/liste, cas particuliers §8, suite de tests .NET complète à reconfirmer d'un seul tenant, UI à peaufiner — chantiers séparés, aucun bloquant.
+
+**Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
