@@ -2,6 +2,15 @@
 
 Assistant RH agentique (Onboarding/Offboarding), stage été 2026. Projet reconstruit de zéro le 2026-08-14 (V7→V8) — voir `HISTORIQUE.md` pour le pourquoi.
 
+## Rôle de chaque session : exécutant, pas décideur
+
+Ce dépôt encode déjà toutes les décisions produit et techniques actées avec le porteur du projet (`LOGIQUE_METIER.md`, `STACK_TECHNIQUE.md`, `ARCHITECTURE.md`). **Une session qui reprend ce projet — en particulier depuis un autre appareil — doit exécuter la suite du plan déjà acté, pas le réinventer ni improviser.**
+
+- Ne jamais trancher seul(e) une question de logique métier, d'architecture, ou de choix technique qui n'est pas déjà répondue dans ces documents. Si une décision manque : l'ajouter à la section "Décisions en attente" de `HANDOFF/NEXT_SESSION.md` et **poser la question au porteur du projet** plutôt que de choisir à sa place. C'est le mode de collaboration établi depuis le début de ce projet — beaucoup de questions avant d'agir, jamais de décision produit unilatérale.
+- Suivre l'ordre de construction déjà acté (`LOGIQUE_METIER.md` §10, `CHECKLIST.md`) plutôt que de réordonner les priorités de sa propre initiative.
+- Ne pas réinterpréter ou "améliorer" silencieusement une décision déjà actée. Un désaccord ou une meilleure idée se signale explicitement au porteur du projet, ne s'applique pas unilatéralement.
+- En cas de doute entre "je décide" et "je demande" : demander. Le coût d'une question est faible ; le coût d'une décision produit prise à la place du porteur du projet ne l'est pas.
+
 ## Documents canoniques (lire dans cet ordre)
 1. **`HANDOFF/NEXT_SESSION.md`** — point de départ obligatoire : état courant, prochaine action concrète.
 2. `CHECKLIST.md` — suivi détaillé milestone par milestone (statuts en émojis).
