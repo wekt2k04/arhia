@@ -6,6 +6,7 @@ using Agirh.Infrastructure.Llm;
 using Agirh.Infrastructure.Persistence;
 using Agirh.Infrastructure.Persistence.Repositories;
 using Agirh.Infrastructure.Rag;
+using Agirh.Infrastructure.Realtime;
 using Agirh.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -73,6 +74,8 @@ builder.Services.AddScoped<VerifierTemplateUseCase>();
 builder.Services.AddScoped<ApprouverTemplateUseCase>();
 builder.Services.AddScoped<RejeterTemplateUseCase>();
 builder.Services.AddScoped<ArchiverDossierUseCase>();
+builder.Services.AddScoped<ObtenirNotificationsUseCase>();
+builder.Services.AddSingleton<SseNotificationBroadcaster>();
 
 builder.Services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
 

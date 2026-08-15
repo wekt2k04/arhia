@@ -30,6 +30,12 @@ public class WorkflowTemplateRepository : IWorkflowTemplateRepository
             .OrderByDescending(t => t.DateCreation)
             .FirstOrDefaultAsync(ct);
 
+    public async Task<IReadOnlyList<WorkflowTemplate>> ListerParStatutAsync(TemplateStatut statut, CancellationToken ct = default) =>
+        await _db.WorkflowTemplates
+            .Where(t => t.Statut == statut)
+            .OrderBy(t => t.DateCreation)
+            .ToListAsync(ct);
+
     public async Task AjouterAsync(WorkflowTemplate template, CancellationToken ct = default)
     {
         await _db.WorkflowTemplates.AddAsync(template, ct);

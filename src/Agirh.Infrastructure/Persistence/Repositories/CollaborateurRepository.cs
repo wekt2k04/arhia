@@ -25,6 +25,9 @@ public class CollaborateurRepository : ICollaborateurRepository
     public async Task<Collaborateur?> ObtenirParCompteUtilisateurIdAsync(Guid compteUtilisateurId, CancellationToken ct = default) =>
         await _db.Collaborateurs.FirstOrDefaultAsync(c => c.CompteUtilisateurId == compteUtilisateurId, ct);
 
+    public async Task<IReadOnlyList<Collaborateur>> ListerParPoleAsync(Guid poleId, CancellationToken ct = default) =>
+        await _db.Collaborateurs.Where(c => c.PoleId == poleId).ToListAsync(ct);
+
     public async Task AjouterAsync(Collaborateur collaborateur, CancellationToken ct = default)
     {
         await _db.Collaborateurs.AddAsync(collaborateur, ct);

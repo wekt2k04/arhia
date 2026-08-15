@@ -9,6 +9,7 @@ public interface IWorkflowTemplateRepository
 {
     Task<WorkflowTemplate?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
     Task<WorkflowTemplate?> ObtenirDernierApprouveAsync(WorkflowType type, CancellationToken ct = default);
+    Task<IReadOnlyList<WorkflowTemplate>> ListerParStatutAsync(TemplateStatut statut, CancellationToken ct = default);
     Task AjouterAsync(WorkflowTemplate template, CancellationToken ct = default);
     Task MettreAJourAsync(WorkflowTemplate template, CancellationToken ct = default);
 }
