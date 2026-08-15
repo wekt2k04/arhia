@@ -3,7 +3,10 @@
 *Dernière mise à jour : 2026-08-15, poste de travail (Windows). Ce fichier est **réécrit** à chaque checkpoint (pas un journal) — pour l'historique complet, voir `HANDOFF/LOG.md`.*
 
 ## En une phrase
-Milestones 0-5, 7, 8 terminés. Milestone 9 (Q/R gold) avancé avec des trouvailles réelles corrigées, routeur conversationnel avec une limitation connue non résolue (~27% de mauvais routage, mise de côté volontairement). Milestone 6 (frontend) : **le backend API est maintenant entièrement prêt, y compris le chat en streaming SSE réel** — il ne reste que l'application Next.js elle-même, rien côté backend.
+Milestones 0-5, 7, 8 terminés. Milestone 9 (Q/R gold) avancé avec des trouvailles réelles corrigées, routeur conversationnel avec une limitation connue non résolue (~27% de mauvais routage, mise de côté volontairement). Milestone 6 (frontend) : backend API entièrement prêt (SSE chat + notifications). **`frontend/` scaffoldé (Next.js 15, Tailwind v3, TypeScript) et vérifié (build + dev server fonctionnent réellement)** — reste à construire les vraies pages (page de garde, chat, BFF/auth).
+
+## Important — Node.js de cette machine (18.20.0) trop ancien pour les defaults actuels
+`create-next-app@latest` installe par défaut Next.js 16 (exige Node ≥20) et Tailwind v4 (son moteur natif `@tailwindcss/oxide` exige aussi Node ≥20 — a réellement fait planter le build, pas juste un warning). **Épinglé à Next.js 15.5.23 + Tailwind v3** (aucune dépendance native, pas de contrainte Node ≥20), les deux testés et fonctionnels sur cette machine. Si `npm install`/`npm run build` échoue bizarrement dans `frontend/` plus tard, vérifier `node --version` avant de chercher ailleurs — soit la machine a changé, soit une dépendance a été mise à jour vers une version qui redemande Node 20+.
 
 ## Ce qui marche déjà (vérifié, pas juste écrit)
 - `dotnet build Agirh.sln -c Release` → 0 erreur, 0 warning
@@ -15,7 +18,7 @@ Milestones 0-5, 7, 8 terminés. Milestone 9 (Q/R gold) avancé avec des trouvail
 
 ## Ce qui reste ouvert
 1. **Routeur conversationnel** (~27% de mauvais routage) — mis de côté volontairement par le porteur du projet ("peut être traité plus tard, isolé"). Confirmé isolé : `OllamaRouterAdapter` est seul derrière `ILlmRouterPort`, le corriger plus tard ne touche qu'un fichier. Pistes non tentées listées plus bas.
-2. **L'application Next.js elle-même** — rien commencé, c'est tout ce qui reste avant un frontend fonctionnel. Cible (`ARCHITECTURE.md`) : `frontend/app/(public)/` (page de garde), `frontend/app/chat/` (chat + barre de notifications, interface post-connexion), `frontend/lib/api/` (BFF, cookie httpOnly, le JWT n'est jamais exposé au client). TailwindCSS + react-markdown. Le chat consomme `EventSource` côté navigateur (GET natif, pas de fetch+ReadableStream à hand-rouler) ; parser les événements `event: fragment` / `event: termine` (voir `ChatController.cs`).
+2. **Les vraies pages de l'application Next.js** — le scaffold existe (`frontend/`, Next 15 + Tailwind v3 + TypeScript, vérifié fonctionnel) mais ne contient que le boilerplate par défaut de `create-next-app`. Reste à construire, cible (`ARCHITECTURE.md`) : `frontend/app/(public)/` (page de garde), `frontend/app/chat/` (chat + barre de notifications, interface post-connexion), `frontend/lib/api/` (BFF, cookie httpOnly, le JWT n'est jamais exposé au client). react-markdown pas encore installé. Le chat consomme `EventSource` côté navigateur (GET natif, pas de fetch+ReadableStream à hand-rouler) ; parser les événements `event: fragment` / `event: termine` (voir `ChatController.cs`).
 3. Endpoints de lecture/liste (ex. "mes collaborateurs", "dossiers de mon pôle") — aucun n'existe encore, seuls les use cases d'écriture étaient prêts. Le frontend en aura besoin dès qu'une vue autre que le chat sera construite — à concevoir avec le besoin d'écran concret, pas à l'avance.
 4. **Suite de tests complète pas reconfirmée d'un seul tenant** après le dernier changement (chat SSE) — instabilité d'environnement en fin de session (voir plus bas). Sous-ensembles ciblés tous verts (87 Domain/Security/Persistence, 58 UseCases, 22 Conversation/Llm dont les nouveaux tests streaming) ; le dossier Rag (chunking/tokenizer/reranker), non touché par ce changement, était déjà vert à 206/206 juste avant.
 
@@ -26,7 +29,12 @@ Tentative déjà faite et abandonnée : plus d'exemples/règles dans le prompt (
 - Accepter le taux d'erreur actuel comme limite connue du prototype — le mode de défaillance reste "gracieusement faux" (jamais d'invention, jamais de contournement RBAC).
 
 ## Prochaine action concrète
-Le backend est maintenant complet. Suite naturelle du milestone 6 : scaffolder l'app Next.js (`frontend/`) — page de garde publique, puis chat + notifications, câblées contre l'Api existante (BFF, cookie httpOnly). Avant de commencer, reconfirmer la suite de tests complète (194+ tests) d'un seul tenant si l'environnement le permet ce jour-là — ça n'a pas pu être fait en fin de session précédente (voir pièges ci-dessous), pas bloquant pour démarrer le frontend mais à ne pas oublier.
+Backend complet, scaffold frontend en place et vérifié. Suite naturelle du milestone 6 :
+1. Page de garde publique (`frontend/app/(public)/`).
+2. Flux d'authentification côté BFF : Route Handler Next.js qui appelle `POST api/auth/login`, stocke le JWT dans un cookie httpOnly, jamais exposé au client.
+3. Page chat (`frontend/app/chat/`) : `EventSource` contre le BFF (qui relaie vers `GET api/chat/demander`), rendu markdown des réponses (react-markdown à installer), barre de notifications (`EventSource` contre `api/notifications/stream`).
+
+Reconfirmer la suite de tests .NET complète (200+ tests) d'un seul tenant si l'environnement le permet ce jour-là — pas fait depuis plusieurs checkpoints (voir pièges ci-dessous), pas bloquant mais à ne pas oublier.
 
 ## Comment reprendre concrètement
 1. Lire ce fichier en entier, puis `CHECKLIST.md` pour le détail milestone par milestone.
