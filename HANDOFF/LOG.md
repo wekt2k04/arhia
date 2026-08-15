@@ -106,3 +106,26 @@
 - Choix de la prochaine étape (milestone 6, reprise du routeur, ou endpoints Api restants) — en attente du porteur du projet.
 
 **Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-15 (suite 5) — Poste de travail (Windows)
+
+**Fait :**
+- Décision actée avec le porteur du projet : routeur mis de côté pour plus tard (confirmé isolé derrière `ILlmRouterPort`, sans impact sur le reste), priorité au milestone 6 (frontend) en n'oubliant pas les endpoints Api restants.
+- `EmployeeController`, `WorkflowController`, `TemplateController` créés — exposent en HTTP les use cases Core prêts depuis le milestone 3 (seuls Auth/Chat/Admin avaient un Controller jusqu'ici).
+- Trou trouvé en câblant `WorkflowController` : rien n'appelait jamais `WorkflowInstance.Cloturer()` — `ArchiverDossierUseCase` exige déjà le statut Clôturé, donc un dossier ne pouvait jamais être clos en pratique. RBAC déjà présent (`WorkflowInstanceCloturer` → RH), seul le use case manquait. Ajouté `CloturerDossierUseCase`.
+- Deux seuils métier non spécifiés (item "en attente depuis trop longtemps", échéance de départ "approchante") actés avec le porteur du projet : 3 jours pour les deux.
+- Sous-système de notifications construit : `ObtenirNotificationsUseCase` (calcul à la demande à partir des données déjà persistées, pas de nouvelle table), `NotificationController` (`GET api/notifications/stream`, SSE), `SseNotificationBroadcaster` (rafraîchissement toutes les 10s). Portée volontairement limitée à ce que `03_guide_referent_pole.md` §3 décrit (RH : items en attente + échéances de son pôle ; Admin/Qualité : file de validation des templates ; Collaborateur : aucune notification, non décrit dans le corpus).
+- Bug de test trouvé et corrigé en écrivant les tests : `CompteUtilisateur` garantit déjà qu'un RH a toujours un `PoleId` (invariant du constructeur) — un test couvrant le cas contraire testait un état impossible ; supprimé, et la vérification défensive correspondante retirée du use case comme code mort plutôt que conservée par prudence.
+- Vérifié en HTTP réel : les 3 nouveaux controllers CRUD (401 sans auth sur les 4 nouvelles routes), et le flux SSE de notifications (2 frames `data: []` reçues à l'intervalle de 10s attendu via `curl -N`).
+- 206/206 tests verts (194 + 4 CloturerDossierUseCase + 7 ObtenirNotificationsUseCase, en tenant compte des recomptages).
+- `CHECKLIST.md` mis à jour (milestone 5 → ✅ avec endpoint, milestone 6 → 🔄 avec le détail de ce qui est prêt côté backend et ce qui reste).
+
+**Reste :**
+- `ChatController` toujours en JSON synchrone, pas en SSE — nécessite de faire streamer `OllamaClient`/`OllamaGeneratorAdapter` (actuellement `stream: false`), pas juste un changement de Controller.
+- L'application Next.js elle-même — rien commencé (page de garde, page chat, BFF/cookie httpOnly, TailwindCSS, react-markdown).
+- Endpoints de lecture/liste (ex. "mes collaborateurs") — pas encore nécessaires, à construire avec le besoin d'écran concret plutôt qu'à l'avance.
+- Routeur conversationnel (~27% de mauvais routage) — mis de côté volontairement, pistes listées dans `HANDOFF/NEXT_SESSION.md`.
+
+**Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
