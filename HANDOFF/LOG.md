@@ -167,3 +167,21 @@
 - Routeur conversationnel — toujours mis de côté volontairement.
 
 **Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-15 (suite 8) — Poste de travail (Windows)
+
+**Fait :**
+- Page de garde publique (`frontend/app/(public)/page.tsx`) et flux d'authentification BFF complet : `lib/api/session.ts` (cookie httpOnly/secure/sameSite, JWT jamais exposé au client), `lib/api/current-user.ts` (helper partagé), routes `app/api/auth/{login,register,logout,me}`, pages `/login` et `/register`, page `/chat` protégée (redirige vers `/login` sans session).
+- Vérifié en HTTP réel de bout en bout via curl avec cookie jar (Api .NET + serveur Next.js réellement démarrés, pas de mock) : inscription → cookie posé sans fuite du token dans la réponse → `/chat` affiche le bon utilisateur/rôle → `/chat` sans cookie redirige vers `/login` → déconnexion efface le cookie → nouvelle redirection → mauvais mot de passe rejeté (401) → bon mot de passe accepté.
+- Piège trouvé et corrigé pendant la même session : `.env.example` était ignoré à tort par le pattern générique `.env*` du `.gitignore` généré par `create-next-app` — exception `!.env.example` ajoutée (même logique que `appsettings.json.example` côté backend).
+- Deux nouveaux pièges d'environnement confirmés et documentés : `TaskStop` sur une tâche `npm run dev/start` ne tue pas toujours le process `node` enfant sur Windows (vérifié deux fois, symptôme : build suivant bloqué indéfiniment sur "Creating an optimized production build..." sans planter) ; le dépôt vit sous `OneDrive\Bureau\...`, piste sérieuse mais pas confirmée pour expliquer une partie de l'instabilité de build rencontrée ce soir (MSBuild et Next.js).
+- `CHECKLIST.md` et `HANDOFF/NEXT_SESSION.md` mis à jour.
+
+**Reste :**
+- La vraie interface de chat : route BFF de streaming (`app/api/chat/demander/route.ts`, doit proxier le SSE, pas juste du JSON), composant client `EventSource`, rendu markdown (`react-markdown` à installer), barre de notifications.
+- Reconfirmer la suite de tests .NET complète d'un seul tenant (toujours pas fait).
+- Routeur conversationnel — toujours mis de côté volontairement.
+
+**Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
