@@ -1,0 +1,9 @@
+**/bin
+**/obj
+frontend/node_modules
+frontend/.next
+models
+qdrant_storage
+.git
+HANDOFF
+*.md
