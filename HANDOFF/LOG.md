@@ -185,3 +185,21 @@
 - Routeur conversationnel — toujours mis de côté volontairement.
 
 **Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-15 (suite 9) — Poste de travail (Windows)
+
+**Fait :**
+- **Interface de chat réelle terminée — milestone 6 (frontend) marqué FAIT.** Routes BFF `app/api/chat/demander` et `app/api/notifications/stream` (proxy SSE pur, `response.body` transmis tel quel). `ChatWidget` (client) : `EventSource`, fragments accumulés en direct dans le message assistant, rendu markdown (`react-markdown` + `@tailwindcss/typography`), sources affichées à réception de `event: termine`. `NotificationBar` : même pattern côté notifications.
+- Bug réel trouvé et corrigé en testant en HTTP réel (pas juste au build) : le proxy Next.js ne renvoyait rien au client avant la fin complète du flux côté Agirh.Api (0 octet reçu en 40s, alors que l'appel direct à l'Api streamait normalement en ~25-27s pour le premier fragment). Cause : la compression intégrée de `next start` bufferise les réponses. Corrigé avec `compress: false` dans `next.config.ts` — revérifié après coup : fragments bien progressifs à travers le proxy (~40 reçus avant une coupure volontaire à 30s, contre 0 avant le fix).
+- Vérifié en HTTP réel de bout en bout, Api .NET + serveur Next.js réellement démarrés : question documentaire streamée token par token avec la bonne source citée à travers le proxy, question hors-périmètre (branche courte, sans génération) également correcte. Au passage, une question de test a reproduit exactement un cas déjà documenté du routeur mal calibré (RBAC/permissions mal routé) — cohérent avec les trouvailles du milestone 9, pas un nouveau bug.
+- Troisième occurrence confirmée du piège `TaskStop`/process `node` zombie sur Windows — nettoyage manuel systématique désormais appliqué après chaque arrêt de serveur npm.
+- `CHECKLIST.md` (milestone 6 → ✅) et `HANDOFF/NEXT_SESSION.md` (réécriture complète, l'application fonctionne de bout en bout) mis à jour.
+
+**Reste :**
+- Routeur conversationnel (~27% de mauvais routage) — toujours mis de côté volontairement, pistes listées dans `HANDOFF/NEXT_SESSION.md`.
+- Reconfirmer le jeu de Q/R gold complet (48 questions, un seul run obtenu jusqu'ici) d'un seul tenant.
+- Endpoints de lecture/liste, cas particuliers §8, `docker-compose.yml`, suite de tests .NET complète à reconfirmer d'un seul tenant — tous des chantiers séparés, aucun bloquant.
+
+**Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
