@@ -1,0 +1,11 @@
+{
+  "ConnectionStrings": {
+    "AgirhDb": "Server=localhost,1433;Database=AgirhDb;User Id=sa;Password=<mot-de-passe-sa-local>;TrustServerCertificate=True;"
+  },
+  "Jwt": {
+    "Issuer": "Agirh",
+    "Audience": "Agirh.Clients",
+    "SigningKey": "<clé secrète locale, 32 caractères minimum, jamais committée>",
+    "DureeValiditeMinutes": 60
+  }
+}

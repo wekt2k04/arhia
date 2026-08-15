@@ -1,3 +1,3 @@
-Invoke the qa-executioner agent to mandate and write tests for the following code. The agent must: identify all missing test scenarios (happy path, edge cases, IDOR, fail-closed, business invariants), write the complete xUnit/Moq/FluentAssertions test code, and run `dotnet test -c Release` to verify the suite stays at 122/122 (or N/N if tests were added). Do not declare coverage without running the suite.
+Invoke the qa-executioner agent to mandate and write tests for the following code. The agent must: identify all missing test scenarios (happy path, edge cases, IDOR, fail-closed, business invariants — see LOGIQUE_METIER.md for the current V8 business rules), write the complete xUnit/Moq/FluentAssertions test code, and run `dotnet test -c Release` to verify the full suite is green (N/N). Do not declare coverage without running the suite.
 
 $ARGUMENTS

@@ -1,0 +1,24 @@
+# Checklist de suivi — AGIRH V8
+
+*Mis à jour à la fin de chaque milestone. Statuts : ✅ **FAIT** · 🔄 **EN COURS** · 🔁 **EN CONTINU** · ⬜ **À FAIRE** · 🚧 **BLOQUÉ**. Observations concises — ce qui a été livré, ce qui manque, tout écart par rapport à `LOGIQUE_METIER.md`/`STACK_TECHNIQUE.md`/`ARCHITECTURE.md`.*
+
+| # | Milestone | Statut | Livré | Reste à faire | Observations |
+|---|---|---|---|---|---|
+| 0 | Cadrage — Logique métier | ✅ | `LOGIQUE_METIER.md` : rôles, workflows Onboarding/Offboarding, RBAC, garde-fous IA | — | Basé sur les 2 checklists SMSI réelles (anonymisées). 3 cas particuliers (§8) restent des propositions à valider en pratique. |
+| 1 | Cadrage — Stack technique | ✅ | `STACK_TECHNIQUE.md` : .NET+Next.js, JWT+Identity, SQL Server+Qdrant, SSE, Docker Compose local, logs technique+audit séparés, pipeline RAG 4 phases (ONNX embedding/reranking), Ollama 2 modèles (routeur+générateur) | — | Noms/tailles précis des modèles Ollama et schéma exact des logs restent ouverts (§10 du document). |
+| 2 | Cadrage — Architecture (hexagonal, dossiers, diagrammes) | ✅ | `ARCHITECTURE.md` : arborescence cible, 4 diagrammes Mermaid (couches, création onboarding, circuit de validation, RAG+chat, RBAC) | — | Structure de dossiers pas encore créée sur le disque — c'est la cible du milestone 3. |
+| 3 | Socle métier (modèle de données, workflow engine, RBAC 3 rôles) | ✅ | `Agirh.Domain` (Pole, CompteUtilisateur, Collaborateur, WorkflowTemplate/Section/Item, WorkflowInstance/ChecklistItemStatus, Matricule VO), `Agirh.Core` (7 ports, RbacMatrix, PoleScopeGuard, AccesRefuseException, 11 use cases) | — | Circuit de validation de template, portée RH=pôle, archivage lecture seule tous testés. Les 3 cas particuliers (§8 LOGIQUE_METIER) ont des primitives (Annuler/Suspendre/Reprendre, ChangerDePole) mais pas de use case dédié — comportement encore "à valider". |
+| 4 | Authentification (JWT + ASP.NET Identity) | ✅ | `Agirh.Infrastructure` (AgirhDbContext + 5 configs EF + 5 repositories + AspNetIdentityPasswordHasher + JwtTokenGenerator), `Agirh.Api` (Program.cs, AuthController : register/login/me/elever-role, CurrentUserAccessor). Migration `InitialCreate` **appliquée sur SQL Server réel** (conteneur `agirh-sql` remis à zéro), flux register→login→me→mauvais-mot-de-passe **vérifié en HTTP réel** (200/200/200/401) | — | Auto-inscription → rôle Collaborateur forcé (jamais élevé à l'inscription). Élévation de rôle réservée à Admin/Qualité (RBAC vérifié). `role` sérialisé en entier JSON (0=Collaborateur) — lisibilité à améliorer plus tard (`JsonStringEnumConverter`), non bloquant. |
+| 5 | Circuit qualité de validation des templates | ✅ (logique+persistance) | Use cases + EF mapping couverts par les milestones 3-4 (Proposer/Vérifier/Approuver/Rejeter, versioning T0→T1, contrainte unique Type+Version) | Endpoint Api dédié (TemplateController) — pas encore créé, testé uniquement via use case direct | Pas un jalon isolé au final — absorbé par 3 et 4. |
+| 6 | Frontend agent-first (page de garde, chat, notifications SSE) | ⬜ | — | Page publique, interface post-connexion chat + barre de notifications par pôle | — |
+| 7 | Pipeline RAG (chunking → embedding ONNX → Qdrant → reranking ONNX) | ⬜ | — | 4 phases complètes, reranking obligatoire | Priorité absolue si le temps manque en fin de stage. |
+| 8 | Orchestration conversationnelle (Router + Generator) | ⬜ | — | Classification d'intention (documentaire vs statut dossier), garde-fous anti-hallucination | Idem — priorité haute. |
+| 9 | Corpus RAG + jeu de Q/R gold + évaluation | ⬜ | — | Rédaction des documents sources, ~30-50 paires Q/R, mesure retrieval + fidélité | — |
+| 10 | Tests (xUnit/Moq/FluentAssertions) | 🔁 | **121/121 tests verts**, 0 warning au build (101 Domain/Core/Security/UseCases + 20 Persistence EF InMemory + Auth use cases) | Couverture sur chaque milestone livré, cible N/N | Transversal — pas un jalon isolé, qa-executioner mobilisé à chaque étape. |
+| 11 | Déploiement démo (Docker Compose local) | 🔄 | Conteneur `agirh-sql` (SQL Server developer, port 1433) opérationnel et remis à zéro pour V8 | Qdrant, Ollama, Api et front à ajouter au Compose ; pas encore de fichier `docker-compose.yml` — pour l'instant conteneur lancé/géré manuellement | Pour la soutenance. |
+
+## Ouvert / en attente
+- Temps restant sur le stage et livrables attendus (rapport, soutenance, dépôt, démo live) — jamais communiqué.
+- Comportements précis des 3 cas particuliers (LOGIQUE_METIER.md §8).
+- Contenu exact du corpus RAG et du jeu de questions/réponses gold.
+- Noms définitifs des ~5 pôles/départements.

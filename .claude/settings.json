@@ -4,21 +4,30 @@
       "Bash(dotnet:*)",
       "Bash(npm:*)",
       "Bash(npx:*)",
+      "Bash(pnpm:*)",
       "Bash(docker:*)",
       "Bash(curl.exe:*)",
       "Bash(ls:*)",
       "Bash(mkdir:*)",
       "Bash(Get-Content:*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add*)",
       "Read(src/**)",
       "Read(tests/**)",
       "Read(frontend/**)",
       "Read(docs/**)",
       "Read(*.md)",
       "Read(*.json)",
-      "Read(*.http)"
+      "Read(*.http)",
+      "Write(**)",
+      "Edit(**)"
     ],
     "deny": [
       "Bash(git push*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean*)",
       "Bash(rm -rf*)"
     ]
   }

@@ -1,0 +1,45 @@
+# AGIRH V8 — Contexte projet
+
+Assistant RH agentique (Onboarding/Offboarding), stage été 2026. Projet reconstruit de zéro le 2026-08-14 (V7→V8) — voir `HISTORIQUE.md` pour le pourquoi.
+
+## Documents canoniques (lire dans cet ordre)
+1. **`HANDOFF/NEXT_SESSION.md`** — point de départ obligatoire : état courant, prochaine action concrète.
+2. `CHECKLIST.md` — suivi détaillé milestone par milestone (statuts en émojis).
+3. `LOGIQUE_METIER.md` — rôles, workflows, RBAC, garde-fous IA.
+4. `STACK_TECHNIQUE.md` — stack backend/frontend/données/IA.
+5. `ARCHITECTURE.md` — hexagonal, arborescence, diagrammes.
+6. `.claude/context/PROJECT_STATE.md` — pointeur pour les agents custom (`.claude/agents/`).
+
+## Protocole de continuité entre sessions (PC ↔ mobile)
+
+Ce projet est travaillé depuis plusieurs appareils (poste de travail + Claude Code mobile). Chaque session doit repartir du bon état ET laisser une trace exploitable par la suivante.
+
+**En début de session** : lire `HANDOFF/NEXT_SESSION.md` en premier. Il donne l'état courant et l'action suivante concrète — pas besoin de deviner ou de relire tout l'historique de conversation (qui n'existe pas d'une session à l'autre).
+
+**En fin de session, ou après un changement significatif** (jalon terminé, décision produit/technique actée, bug important corrigé) :
+1. Réécrire `HANDOFF/NEXT_SESSION.md` — c'est un instantané de l'état courant, pas un journal (ne pas y accumuler l'historique).
+2. Ajouter une entrée en fin de `HANDOFF/LOG.md` (date, appareil/session, ce qui a été fait, ce qui reste) — ne jamais modifier une entrée existante.
+3. Mettre à jour `CHECKLIST.md` si un milestone a changé de statut.
+4. `git add`, `git commit`, `git push origin master`.
+
+**Ne pas sauter cette étape**, même pour une session courte — c'est le seul mécanisme qui permet à l'autre appareil de savoir ce qui a été fait. Sans push, le travail reste invisible ailleurs.
+
+## Granularité du travail — protocole tout-ou-rien
+
+Les sessions (notamment mobile) peuvent planter en cours de route. Pour qu'un plantage ne laisse jamais un état ambigu pour la session suivante :
+
+- **Découper le travail en incréments indépendamment vérifiables** (un jalon, une fonctionnalité testée, un fix) plutôt que d'accumuler beaucoup de changements avant un seul gros commit final.
+- **Après CHAQUE incrément vérifié** (build vert + tests verts, ou vérification manuelle explicite) : committer, pousser (`git push origin master`), et ajouter l'entrée à `HANDOFF/LOG.md` **immédiatement** — ne pas attendre la fin de la session pour tout regrouper en un seul checkpoint.
+- **Ne jamais logger comme "fait" un travail non vérifié.** Si la vérification échoue ou que la session s'arrête avant de vérifier, une éventuelle entrée de log doit dire "en cours" / "interrompu", jamais "fait".
+- **Marqueur de travail en cours** : avant de commencer un incrément qui prendra plus de quelques minutes, créer `HANDOFF/.in_progress` (une ligne texte décrivant ce qui est en cours). Le supprimer juste après le commit+push réussi de cet incrément.
+- **Si une nouvelle session trouve `HANDOFF/.in_progress` présent** : la session précédente a probablement planté en cours de route. Vérifier `git status` et `git diff` avant de faire confiance à quoi que ce soit de non commité — décider explicitement de garder, corriger, ou annuler ce travail interrompu, puis supprimer le marqueur une fois la situation clarifiée. Ne jamais ignorer ce fichier silencieusement.
+
+Un commit poussé est la seule preuve de travail qui compte réellement. `HANDOFF/NEXT_SESSION.md` et `HANDOFF/LOG.md` ne sont que des résumés lisibles de ce que l'historique git contient déjà — en cas de doute ou de contradiction, l'historique git fait foi.
+
+## Commandes de développement
+```
+dotnet build Agirh.sln -c Release
+dotnet test Agirh.sln -c Release
+```
+
+Base de données locale : conteneur Docker `agirh-sql` (SQL Server, port 1433). Démarrer avec `docker start agirh-sql` si arrêté — **ne pas le recréer**, il contient déjà le schéma V8 à jour. Identifiants et clé JWT dans `src/Agirh.Api/appsettings.Development.json` (non commité — voir `appsettings.json.example` pour la structure attendue).
