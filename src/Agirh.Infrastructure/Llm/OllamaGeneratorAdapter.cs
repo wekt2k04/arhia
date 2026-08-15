@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Agirh.Core.Ports;
 
 namespace Agirh.Infrastructure.Llm;
@@ -26,5 +27,20 @@ public sealed class OllamaGeneratorAdapter : ILlmGeneratorPort
     {
         var reponse = await _client.GenererAsync(Modele, systemPrompt, question, ct);
         return string.IsNullOrWhiteSpace(reponse) ? MessageIndisponible : reponse.Trim();
+    }
+
+    public async IAsyncEnumerable<string> GenererReponseEnStreamingAsync(
+        string systemPrompt, string question, [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        var recuAuMoinsUnFragment = false;
+
+        await foreach (var fragment in _client.GenererStreamAsync(Modele, systemPrompt, question, ct))
+        {
+            recuAuMoinsUnFragment = true;
+            yield return fragment;
+        }
+
+        if (!recuAuMoinsUnFragment)
+            yield return MessageIndisponible;
     }
 }

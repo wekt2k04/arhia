@@ -49,4 +49,37 @@ public class OllamaGeneratorAdapterTests
 
         reponse.Should().Contain("problème technique");
     }
+
+    [Fact]
+    public async Task GenererReponseEnStreamingAsync_ContexteFourni_ProduitAuMoinsUnFragmentEtReconstitueUneReponseNonVide()
+    {
+        if (!await OllamaDisponibleAsync()) return;
+
+        var adapter = new OllamaGeneratorAdapter(new OllamaClient(
+            new HttpClient { BaseAddress = new Uri("http://localhost:11434"), Timeout = TimeSpan.FromSeconds(60) }));
+
+        var systemPrompt =
+            "Réponds uniquement à partir de ce contexte : « La politique de mot de passe exige au moins 10 caractères. » " +
+            "Si l'information n'y est pas, dis que tu ne l'as pas trouvée.";
+
+        var fragments = new List<string>();
+        await foreach (var fragment in adapter.GenererReponseEnStreamingAsync(systemPrompt, "Quelle est la longueur minimale du mot de passe ?"))
+            fragments.Add(fragment);
+
+        fragments.Should().NotBeEmpty();
+        string.Concat(fragments).Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task GenererReponseEnStreamingAsync_ServiceIndisponible_RetourneUnSeulFragmentDeReplilGracieux()
+    {
+        var adapter = new OllamaGeneratorAdapter(new OllamaClient(
+            new HttpClient { BaseAddress = new Uri("http://localhost:1"), Timeout = TimeSpan.FromSeconds(2) }));
+
+        var fragments = new List<string>();
+        await foreach (var fragment in adapter.GenererReponseEnStreamingAsync("system", "question"))
+            fragments.Add(fragment);
+
+        fragments.Should().ContainSingle(f => f.Contains("problème technique"));
+    }
 }

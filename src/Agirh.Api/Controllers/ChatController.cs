@@ -1,4 +1,7 @@
+using System.Text;
+using System.Text.Json;
 using Agirh.Api.Auth;
+using Agirh.Core.Ports;
 using Agirh.Core.Security;
 using Agirh.Core.UseCases;
 using Microsoft.AspNetCore.Authorization;
@@ -7,13 +10,14 @@ using Microsoft.AspNetCore.Mvc;
 namespace Agirh.Api.Controllers;
 
 public record DemanderRequest(string Question, Guid? CollaborateurCibleId);
-public record DemanderResponse(string Texte, bool Sourcee, IReadOnlyList<string> Sources);
 
 [ApiController]
 [Route("api/chat")]
 [Authorize]
 public class ChatController : ControllerBase
 {
+    private static readonly JsonSerializerOptions OptionsJson = new(JsonSerializerDefaults.Web);
+
     private readonly RepondreConversationUseCase _repondreConversation;
     private readonly ICurrentUserAccessor _currentUser;
 
@@ -23,28 +27,57 @@ public class ChatController : ControllerBase
         _currentUser = currentUser;
     }
 
-    [HttpPost("demander")]
-    public async Task<ActionResult<DemanderResponse>> Demander(DemanderRequest request, CancellationToken ct)
+    /// <summary>
+    /// SSE (STACK_TECHNIQUE.md §1) : un événement "fragment" par morceau de texte reçu du
+    /// générateur au fur et à mesure de sa génération, puis exactement un événement "termine"
+    /// portant sourcee/sources. Un refus RBAC (AccesRefuseException) se traduit en message
+    /// conversationnel plutôt qu'une erreur HTTP au milieu du flux — même choix de design que la
+    /// version JSON qu'elle remplace (LOGIQUE_METIER.md §9 : l'agent est conversationnel, pas une
+    /// API technique brute).
+    /// </summary>
+    [HttpGet("demander")]
+    public async Task Demander([FromQuery] string question, [FromQuery] Guid? collaborateurCibleId, CancellationToken ct)
     {
         var acteur = await _currentUser.ObtenirActeurAsync(ct);
 
+        Response.Headers.Append("Content-Type", "text/event-stream");
+        Response.Headers.Append("Cache-Control", "no-cache");
+        Response.Headers.Append("X-Accel-Buffering", "no");
+
         try
         {
-            var reponse = await _repondreConversation.ExecuterAsync(acteur, request.Question, request.CollaborateurCibleId, ct);
-            return Ok(new DemanderResponse(reponse.Texte, reponse.Sourcee, reponse.DocumentsSources));
+            await foreach (var evenement in _repondreConversation.ExecuterEnStreamingAsync(acteur, question, collaborateurCibleId, ct))
+                await EcrireEvenementAsync(evenement, ct);
         }
         catch (AccesRefuseException)
         {
-            // L'agent est conversationnel (LOGIQUE_METIER.md §9) : un refus RBAC se dit dans la
-            // reponse plutot que de casser la conversation avec un 403 muet.
-            return Ok(new DemanderResponse(
-                "Vous n'avez pas accès à ce dossier. Contactez le RH de votre pôle si besoin.",
-                Sourcee: false,
-                Array.Empty<string>()));
+            await EcrireEvenementAsync(new FragmentTexte("Vous n'avez pas accès à ce dossier. Contactez le RH de votre pôle si besoin."), ct);
+            await EcrireEvenementAsync(new ReponseTerminee(Sourcee: false, Array.Empty<string>()), ct);
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ex.Message);
+            Response.StatusCode = StatusCodes.Status400BadRequest;
+            await Response.WriteAsync(ex.Message, ct);
         }
+        catch (OperationCanceledException)
+        {
+            // Client déconnecté (fermeture d'onglet, navigation) — fin normale du flux SSE.
+        }
+    }
+
+    private async Task EcrireEvenementAsync(EvenementConversation evenement, CancellationToken ct)
+    {
+        var (type, donnees) = evenement switch
+        {
+            FragmentTexte f => ("fragment", (object)new { texte = f.Texte }),
+            ReponseTerminee r => ("termine", new { sourcee = r.Sourcee, sources = r.DocumentsSources }),
+            _ => throw new InvalidOperationException($"Type d'événement conversation non géré : {evenement.GetType().Name}")
+        };
+
+        var json = JsonSerializer.Serialize(donnees, OptionsJson);
+        var frame = Encoding.UTF8.GetBytes($"event: {type}\ndata: {json}\n\n");
+
+        await Response.Body.WriteAsync(frame, ct);
+        await Response.Body.FlushAsync(ct);
     }
 }

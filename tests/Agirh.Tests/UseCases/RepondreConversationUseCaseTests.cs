@@ -226,6 +226,91 @@ public class RepondreConversationUseCaseTests
         await act.Should().ThrowAsync<AccesRefuseException>();
     }
 
+    private static async IAsyncEnumerable<string> FragmentsAsync(params string[] fragments)
+    {
+        foreach (var fragment in fragments)
+        {
+            await Task.Yield();
+            yield return fragment;
+        }
+    }
+
+    [Fact]
+    public async Task ExecuterEnStreamingAsync_IntentionHorsPerimetre_UnSeulFragmentPuisTermineNonSourcee()
+    {
+        var (router, generateur, _, _, _, _, _, useCase) = CreerUseCase();
+        var acteur = CreerCollaborateurActeur(Guid.NewGuid());
+        router.Setup(r => r.ClassifierAsync("Quel temps fait-il ?", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(IntentionConversation.HorsPerimetre);
+
+        var evenements = new List<EvenementConversation>();
+        await foreach (var ev in useCase.ExecuterEnStreamingAsync(acteur, "Quel temps fait-il ?", null))
+            evenements.Add(ev);
+
+        evenements.Should().HaveCount(2);
+        evenements[0].Should().BeOfType<FragmentTexte>().Which.Texte.Should().Contain("RH");
+        evenements[1].Should().BeOfType<ReponseTerminee>().Which.Sourcee.Should().BeFalse();
+        generateur.Verify(g => g.GenererReponseEnStreamingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ExecuterEnStreamingAsync_QuestionDocumentaire_CandidatPertinent_StreamLesFragmentsPuisTermineSourcee()
+    {
+        var (router, generateur, embedding, rechercheVectorielle, reranker, _, _, useCase) = CreerUseCase();
+        var acteur = CreerCollaborateurActeur(Guid.NewGuid());
+        var candidat = new ChunkDocumentaire(Guid.NewGuid(), "01_politique_onboarding.md", 0, "Onboarding", "Le RH crée la fiche.", Score: 0.9f);
+
+        router.Setup(r => r.ClassifierAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(IntentionConversation.QuestionDocumentaire);
+        embedding.Setup(e => e.GenererEmbeddingAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new float[768]);
+        rechercheVectorielle.Setup(r => r.RechercherAsync(It.IsAny<float[]>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { candidat });
+        reranker.Setup(r => r.RerankAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<ChunkDocumentaire>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { candidat });
+        generateur.Setup(g => g.GenererReponseEnStreamingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns(FragmentsAsync("Le RH ", "de votre pôle ", "crée votre fiche."));
+
+        var evenements = new List<EvenementConversation>();
+        await foreach (var ev in useCase.ExecuterEnStreamingAsync(acteur, "Qui crée ma fiche collaborateur ?", null))
+            evenements.Add(ev);
+
+        var fragments = evenements.OfType<FragmentTexte>().ToList();
+        fragments.Should().HaveCount(3);
+        string.Concat(fragments.Select(f => f.Texte)).Should().Be("Le RH de votre pôle crée votre fiche.");
+
+        var terminee = evenements.OfType<ReponseTerminee>().Should().ContainSingle().Which;
+        terminee.Sourcee.Should().BeTrue();
+        terminee.DocumentsSources.Should().Contain("01_politique_onboarding.md");
+    }
+
+    [Fact]
+    public async Task ExecuterEnStreamingAsync_GenerateurRefuseMalgreCandidat_TermineNonSourceeSansSources()
+    {
+        var (router, generateur, embedding, rechercheVectorielle, reranker, _, _, useCase) = CreerUseCase();
+        var acteur = CreerCollaborateurActeur(Guid.NewGuid());
+        var candidat = new ChunkDocumentaire(Guid.NewGuid(), "doc.md", 0, "Titre", "Contexte du bon sujet mais muet sur le detail.", Score: 0.75f);
+
+        router.Setup(r => r.ClassifierAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(IntentionConversation.QuestionDocumentaire);
+        embedding.Setup(e => e.GenererEmbeddingAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new float[768]);
+        rechercheVectorielle.Setup(r => r.RechercherAsync(It.IsAny<float[]>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { candidat });
+        reranker.Setup(r => r.RerankAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<ChunkDocumentaire>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { candidat });
+        generateur.Setup(g => g.GenererReponseEnStreamingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns(FragmentsAsync("Je n'ai pas trouvé cette information."));
+
+        var evenements = new List<EvenementConversation>();
+        await foreach (var ev in useCase.ExecuterEnStreamingAsync(acteur, "Question précise hors du contexte fourni ?", null))
+            evenements.Add(ev);
+
+        var terminee = evenements.OfType<ReponseTerminee>().Should().ContainSingle().Which;
+        terminee.Sourcee.Should().BeFalse();
+        terminee.DocumentsSources.Should().BeEmpty();
+    }
+
     [Fact]
     public async Task ExecuterAsync_StatutDossier_RHCiblantCollaborateurDeSonPole_EstAutorise()
     {

@@ -6,4 +6,6 @@ namespace Agirh.Core.Ports;
 public interface ILlmGeneratorPort
 {
     Task<string> GenererReponseAsync(string systemPrompt, string question, CancellationToken ct = default);
+
+    IAsyncEnumerable<string> GenererReponseEnStreamingAsync(string systemPrompt, string question, CancellationToken ct = default);
 }
