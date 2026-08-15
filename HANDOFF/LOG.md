@@ -27,3 +27,22 @@
 - Décisions produit en attente : voir `HANDOFF/NEXT_SESSION.md`.
 
 **Prochaine session :** voir `HANDOFF/NEXT_SESSION.md` pour l'état courant et l'action concrète suivante.
+
+---
+
+## 2026-08-15 (suite) — Poste de travail (Windows)
+
+**Fait :**
+- Corpus RAG rédigé : `corpus/` (renommé depuis `knowledge_base/`, terme IR/NLP standard), 6 documents professionnels ancrés sur les checklists SMSI réelles et `LOGIQUE_METIER.md`, anonymisés.
+- Recherche et validation des sources de modèles ONNX : `Xenova/paraphrase-multilingual-mpnet-base-v2` (embedding, confirmé conforme à STACK_TECHNIQUE.md) et `onnx-community/bge-reranker-v2-m3-ONNX` (reranking) — ONNX déjà publié comme prévu, pas de conversion Python nécessaire.
+- `scripts/download-models.ps1` : téléchargement reproductible et idempotent des ~850 Mo de modèles (jamais commités).
+- Conteneur Docker `agirh-qdrant` mis en place (image officielle, volume nommé persistant).
+- Pipeline RAG phases 1-3 implémentées et **vérifiées contre de vraies infrastructures** (pas de mocks) : `MarkdownChunker`, `XlmRobertaTokenizer` (avec correction d'offset SentencePiece→Hugging Face vérifiée empiriquement — bug silencieux évité), `OnnxEmbeddingAdapter`, `QdrantVectorSearchAdapter`. Un vrai bug de découpage (paragraphe unique surdimensionné dupliqué) trouvé et corrigé grâce à un test boundary.
+- 139/139 tests verts, 0 warning, incluant des tests d'intégration réels contre ONNX Runtime et Qdrant.
+- Deux commits poussés sur `origin/master` pendant cette session (corpus, puis pipeline phases 1-3).
+
+**Reste :**
+- Phase 4 du pipeline RAG (reranking) — modèle en cours de téléchargement à la fin de cette entrée de journal, code pas encore écrit.
+- Orchestration conversationnelle (Router/Generator), frontend, jeu de Q/R gold, endpoints Api Collaborateur/Workflow/Template — inchangé depuis l'entrée précédente.
+
+**Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
