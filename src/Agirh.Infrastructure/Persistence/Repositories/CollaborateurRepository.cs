@@ -22,6 +22,9 @@ public class CollaborateurRepository : ICollaborateurRepository
     public async Task<Collaborateur?> ObtenirParMatriculeAsync(Matricule matricule, CancellationToken ct = default) =>
         await _db.Collaborateurs.FirstOrDefaultAsync(c => c.Matricule == matricule, ct);
 
+    public async Task<Collaborateur?> ObtenirParCompteUtilisateurIdAsync(Guid compteUtilisateurId, CancellationToken ct = default) =>
+        await _db.Collaborateurs.FirstOrDefaultAsync(c => c.CompteUtilisateurId == compteUtilisateurId, ct);
+
     public async Task AjouterAsync(Collaborateur collaborateur, CancellationToken ct = default)
     {
         await _db.Collaborateurs.AddAsync(collaborateur, ct);

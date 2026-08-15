@@ -47,9 +47,10 @@ Router (Ollama, petit modèle)  → intention : documentaire | statut de dossier
 Generator (Ollama, modèle plus capable) → réponse finale, sourcée si RAG utilisé
 ```
 
-- **Ollama local, 2 modèles distincts** : un modèle rapide/léger pour le routeur (classification d'intention), un modèle plus capable pour le générateur. Réutilise l'infrastructure Ollama déjà opérationnelle (profils `Agirh_Bureau`/`Agirh_Maison` de V7).
+- **Ollama local, `phi4-mini:3.8b` pour le routeur ET le générateur** — écart mesuré par rapport à l'intention initiale (2 modèles distincts) : `gemma4:12b` (candidat "modèle plus capable") a été testé en réel sur cette machine et met **plus de 2 minutes sans produire de réponse**, même pour une question courte — pas de GPU adapté ici, CPU-only inefficace pour un modèle 12B. `phi4-mini:3.8b` répond en quelques secondes et reste la seule option praticable sur cette infra pour les deux rôles. Réutilise l'infrastructure Ollama déjà opérationnelle et déjà peuplée (`phi4-mini:3.8b`, `gemma4:12b`, `embeddinggemma`, `all-minilm` présents localement).
+- Le prompt du routeur nécessite des règles explicites + exemples few-shot pour classifier correctement (testé empiriquement : un prompt minimal classe à tort une question générale — "qui signe la fiche de décharge ?" — comme une question de statut personnel). La sortie du routeur n'est jamais utilisée telle quelle : elle est validée contre un enum fermé, tout ce qui ne matche pas exactement `DOCUMENTAIRE`/`STATUT_DOSSIER` (y compris une sortie vide, un timeout, ou un mot inventé par le modèle) retombe sur `HORS_PERIMETRE` par défaut — fail-safe, pas fail-open.
 - L'agent reste **informatif uniquement** (LOGIQUE_METIER.md §9) : le Router/Generator ne déclenchent jamais d'action destructrice — une question de statut de dossier passe par un port de lecture seule vers `WorkflowInstance`, jamais par une écriture.
-- Modèles précis (noms/tailles) à figer à l'implémentation selon ce qui tourne correctement sur l'infra disponible — non bloquant pour le cadrage.
+- Si du matériel avec GPU devient disponible, `gemma4:12b` (ou un modèle intermédiaire) redevient un candidat raisonnable pour le générateur seul — pas pour le routeur, où la latence doit rester courte.
 
 ## 6. Observabilité
 

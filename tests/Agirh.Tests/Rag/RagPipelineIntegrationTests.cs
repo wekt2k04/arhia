@@ -55,10 +55,14 @@ public class RagPipelineIntegrationTests
         await Task.Delay(500);
 
         var vecteurRequete = await embedder.GenererEmbeddingAsync("Comment un nouveau collaborateur est-il intégré ?");
-        var resultats = await vectorSearch.RechercherAsync(vecteurRequete, topK: 2);
+        // topK large + filtre sur nos propres chunks : la collection Qdrant est persistante
+        // (volume nomme) et accumule les donnees d'autres tests/executions - ne jamais supposer
+        // que nos deux chunks sont les seuls presents.
+        var resultats = (await vectorSearch.RechercherAsync(vecteurRequete, topK: 20))
+            .Where(r => r.DocumentSource == "test-integration.md")
+            .ToList();
 
         resultats.Should().NotBeEmpty();
-        resultats[0].DocumentSource.Should().Be("test-integration.md");
         resultats[0].ChunkIndex.Should().Be(0);
     }
 

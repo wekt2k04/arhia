@@ -64,3 +64,24 @@
 - Choix entre 8 et 6 comme prochaine étape — en attente du porteur du projet.
 
 **Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-15 (suite 3) — Poste de travail (Windows)
+
+**Fait :**
+- **Milestone 8 (orchestration conversationnelle) terminé et vérifié en HTTP réel.** `RepondreConversationUseCase` (Router→RAG-ou-statut→Generator, anti-hallucination en code : jamais d'appel au Generator si 0 candidat ou tout sous le seuil de pertinence), `OllamaRouterAdapter`/`OllamaGeneratorAdapter` (`phi4-mini:3.8b` pour les deux — `gemma4:12b` trop lent sur cette machine, pas de GPU), `ChatController` (`POST api/chat/demander`, refus RBAC renvoyé comme message conversationnel plutôt que 403 brut).
+- Gap fonctionnel trouvé en testant en réel (pas dans les tests unitaires) : le RAG n'avait jamais indexé le vrai corpus sous ses vrais noms de documents (seulement des fixtures de test). Corrigé avec `IDocumentChunkerPort`/`MarkdownChunkerAdapter`, `IngererCorpusUseCase`, `AdminController` (`POST api/admin/reindexer-corpus`, RBAC AdminQualite).
+- Vérification HTTP réelle de bout en bout après correction : réindexation (6 docs → 72 chunks) puis les 3 branches de routage testées en vrai — question documentaire → réponse sourcée correcte (`04_procedures_it_securite.md`), question hors-périmètre → refus poli, question de statut sans fiche → message gracieux.
+- Piège rencontré et documenté pendant cette vérification : caractères accentués corrompus par l'encodage shell Windows Git Bash lors d'un test curl (`Où en est mon onboarding`) — faux 400, pas un bug applicatif. Contournement : payload JSON via fichier.
+- Piège de bootstrap découvert : aucun compte Admin/Qualité n'existe par défaut sur une base fraîche, et `elever-role` exige déjà un acteur Admin/Qualité pour élever quelqu'un d'autre — promotion manuelle en SQL nécessaire pour amorcer le tout premier compte admin (documenté dans `HANDOFF/NEXT_SESSION.md`, à prévoir comme script de seed avant la soutenance).
+- 158/158 tests verts (dont 9 nouveaux pour `RepondreConversationUseCase`, 2 fichiers pour les adaptateurs Ollama), 0 warning au build.
+- `CHECKLIST.md` mis à jour (milestone 8 → ✅, milestone 9 → progression corpus indexé).
+- Message suspect reçu en pleine session (demande d'élévation en groupe Administrators, désactivation de la mise en veille, tâche planifiée silencieuse, autorisation permanente d'agir sans confirmation pendant une absence de 10h) — ne correspondait à aucune décision prise dans cette conversation. Aucune action exécutée, signalé à l'utilisateur en direct dans le chat.
+
+**Reste :**
+- Choix de la prochaine étape (milestone 6 frontend / milestone 9 Q/R gold / endpoints Api Collaborateur-Workflow-Template) — en attente du porteur du projet.
+- Seuil de pertinence reranking (0.01) provisoire, à calibrer avec un vrai jeu de Q/R gold.
+- `docker-compose.yml` complet toujours pas fait (Qdrant/Ollama/Api/front) — services lancés manuellement.
+
+**Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.

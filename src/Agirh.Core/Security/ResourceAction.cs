@@ -12,5 +12,6 @@ public enum ResourceAction
     TemplateVerifier,
     TemplateApprouver,
     TemplateRejeter,
-    CompteElevRole
+    CompteElevRole,
+    CorpusIngerer
 }
