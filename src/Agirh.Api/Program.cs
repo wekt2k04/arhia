@@ -67,6 +67,7 @@ builder.Services.AddScoped<ElevRoleUseCase>();
 builder.Services.AddScoped<CreerFicheCollaborateurUseCase>();
 builder.Services.AddScoped<InstancierWorkflowUseCase>();
 builder.Services.AddScoped<CocherItemUseCase>();
+builder.Services.AddScoped<CloturerDossierUseCase>();
 builder.Services.AddScoped<ProposerTemplateUseCase>();
 builder.Services.AddScoped<VerifierTemplateUseCase>();
 builder.Services.AddScoped<ApprouverTemplateUseCase>();
