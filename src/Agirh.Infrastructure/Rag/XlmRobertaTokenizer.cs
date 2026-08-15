@@ -55,6 +55,27 @@ public sealed class XlmRobertaTokenizer
         return resultat;
     }
 
+    /// <summary>
+    /// Encodage de paire (requete, document) pour un cross-encoder de reranking, au format
+    /// standard RoBERTa/XLM-RoBERTa : &lt;s&gt; requete &lt;/s&gt;&lt;/s&gt; document &lt;/s&gt;
+    /// (double separateur EOS entre les deux textes, convention de la famille RoBERTa —
+    /// pas un choix specifique a ce modele).
+    /// </summary>
+    public long[] EncoderPaireEnIdsHuggingFace(string texteA, string texteB)
+    {
+        var idsA = _tokenizer.EncodeToIds(texteA, addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: true, considerPreTokenization: true);
+        var idsB = _tokenizer.EncodeToIds(texteB, addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: true, considerPreTokenization: true);
+
+        var resultat = new List<long> { BosHuggingFace };
+        resultat.AddRange(idsA.Select(CorrigerVersEspaceHuggingFace));
+        resultat.Add(EosHuggingFace);
+        resultat.Add(EosHuggingFace);
+        resultat.AddRange(idsB.Select(CorrigerVersEspaceHuggingFace));
+        resultat.Add(EosHuggingFace);
+
+        return resultat.ToArray();
+    }
+
     private static long CorrigerVersEspaceHuggingFace(int idBrutSentencePiece) => idBrutSentencePiece switch
     {
         0 => UnkHuggingFace,

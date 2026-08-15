@@ -46,3 +46,21 @@
 - Orchestration conversationnelle (Router/Generator), frontend, jeu de Q/R gold, endpoints Api Collaborateur/Workflow/Template — inchangé depuis l'entrée précédente.
 
 **Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-15 (suite 2) — Poste de travail (Windows)
+
+**Fait :**
+- Phase 4 du pipeline RAG (reranking) terminée : `OnnxRerankerAdapter` (cross-encoder ONNX, format de paire RoBERTa `<s>requête</s></s>document</s>`, sigmoïde), méthode `EncoderPaireEnIdsHuggingFace` ajoutée à `XlmRobertaTokenizer`.
+- Test capstone `PipelineCompletCorpusReelTests` : chaîne les 4 phases sur un vrai document (`corpus/01_politique_onboarding.md`) — chunking → embedding → indexation Qdrant → recherche → reranking → la bonne réponse ressort en tête. **Milestone 7 (pipeline RAG) marqué FAIT.**
+- 142/142 tests verts, 0 warning.
+- Incident opérationnel : `ScheduleWakeup({stop:true})` a tué par effet de bord la tâche `run_in_background` du téléchargement du modèle de reranking (non liée à un `/loop`). Le fichier ONNX (570 Mo) avait déjà fini de télécharger avant l'incident ; seuls 3 petits fichiers de config manquaient, récupérés en relançant le script (idempotent). Noté dans `HANDOFF/NEXT_SESSION.md` pour ne pas reproduire.
+- Deux commits supplémentaires poussés sur `origin/master`.
+
+**Reste :**
+- Milestone 8 (orchestration conversationnelle Router/Generator) — le pipeline RAG existe mais n'est câblé dans aucun use case Core ni aucun endpoint Api pour l'instant.
+- Milestone 6 (frontend), milestone 9 (jeu de Q/R gold formel) — inchangé.
+- Choix entre 8 et 6 comme prochaine étape — en attente du porteur du projet.
+
+**Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
