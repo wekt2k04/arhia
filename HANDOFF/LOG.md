@@ -129,3 +129,23 @@
 - Routeur conversationnel (~27% de mauvais routage) — mis de côté volontairement, pistes listées dans `HANDOFF/NEXT_SESSION.md`.
 
 **Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-15 (suite 6) — Poste de travail (Windows)
+
+**Fait :**
+- Chat converti en SSE, streaming réel token par token depuis Ollama. `OllamaClient.GenererStreamAsync` consomme le NDJSON `stream=true` d'Ollama avec `HttpCompletionOption.ResponseHeadersRead` (sans ça, `HttpClient` bufferise toute la réponse avant de la rendre disponible — le streaming n'aurait servi à rien). `OllamaGeneratorAdapter.GenererReponseEnStreamingAsync` ajouté, même repli gracieux que la version non-streaming.
+- `RepondreConversationUseCase` refactorée : logique de récupération RAG partagée (`PreparerContexteDocumentaireAsync`) entre la version synchrone existante (inchangée pour l'évaluation gold et les consommateurs existants) et la nouvelle `ExecuterEnStreamingAsync`, qui émet des fragments de texte au fil de la génération puis un événement terminal avec les métadonnées (sourcée/sources) une fois le texte complet accumulé — nécessaire car la détection de refus du générateur s'applique au texte complet, pas fragment par fragment.
+- `ChatController` passé de `POST` (JSON) à `GET` (SSE, query string) — contrainte de l'API `EventSource` du navigateur qui ne fait que du GET ; sémantiquement cohérent aussi (lecture pure, sans mutation). Refus RBAC toujours traduit en message conversationnel, pas une erreur HTTP en milieu de flux.
+- Vérifié en HTTP réel : fragments de texte reçus progressivement (`curl -N`), accents français correctement échappés en JSON, comportement de streaming authentique confirmé (pas un buffer complet redécoupé après coup).
+- Nouveau problème d'environnement trouvé et partiellement outillé : des `dotnet test` tués en arrière-plan laissent parfois des process `dotnet`/MSBuild zombies qui bloquent des runs suivants (`MSBUILD : error MSB4166` dès le démarrage). Nettoyage via `Stop-Process` tenté — a aidé une fois mais l'instabilité n'a pas été totalement résolue le reste de la session.
+- Vérification par lots ciblés faute de pouvoir relancer la suite complète de façon fiable ce soir : 87/87 (Domain/Security/Persistence), 58/58 (UseCases), 22/22 (Conversation/Llm, dont les nouveaux tests streaming). Le dossier Rag (non touché par ce changement) était déjà vert à 206/206 juste avant ce travail.
+- `CHECKLIST.md` et `HANDOFF/NEXT_SESSION.md` mis à jour : le backend du milestone 6 est maintenant complet, il ne reste que l'application Next.js elle-même.
+
+**Reste :**
+- L'application Next.js — rien commencé, c'est le seul morceau restant avant un frontend fonctionnel.
+- Reconfirmer la suite de tests complète d'un seul tenant quand l'environnement le permettra (pas bloquant, sous-ensembles déjà tous verts).
+- Routeur conversationnel (~27% de mauvais routage) — toujours mis de côté volontairement.
+
+**Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
