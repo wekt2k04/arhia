@@ -18,7 +18,24 @@ public sealed class RepondreConversationUseCase
 {
     private const int TopKRecherche = 5;
     private const int TopKApresReranking = 3;
-    private const float SeuilPertinenceMinimum = 0.01f; // filtre le bruit ; a affiner avec le jeu de Q/R gold (milestone 9)
+    private const float SeuilPertinenceMinimum = 0.01f; // filtre le bruit evident ; affine par IndicateursRefusGenerateur (voir RepondreDocumentaireAsync)
+    private const string PhraseRefusGenerateur = "Je n'ai pas trouvé cette information";
+
+    // Le generateur ne reprend pas toujours la formule exacte imposee par le prompt malgre la
+    // consigne explicite (constate empiriquement, milestone 9 : "le contexte fourni n'indique
+    // pas..." / "ne specifie pas..." en pratique aussi frequent que la phrase canonique) - liste
+    // volontairement plus large qu'une seule phrase pour rester fiable face a la variabilite
+    // d'un modele 3.8B.
+    private static readonly string[] IndicateursRefusGenerateur =
+    {
+        PhraseRefusGenerateur,
+        "ne spécifie pas",
+        "n'indique pas",
+        "ne précise pas",
+        "ne mentionne pas",
+        "ne contient pas cette information",
+        "ne traite pas de"
+    };
 
     private readonly ILlmRouterPort _router;
     private readonly ILlmGeneratorPort _generateur;
@@ -87,14 +104,28 @@ public sealed class RepondreConversationUseCase
             meilleurs.Select(c => $"[Source: {c.DocumentSource} — {c.CheminTitres}]\n{c.Contenu}"));
 
         var systemPrompt =
-            "Tu es l'assistant RH d'AGIRH. Réponds à la question UNIQUEMENT à partir du contexte ci-dessous, " +
-            "en français, de façon concise. Si le contexte ne contient pas la réponse, dis explicitement " +
-            "« Je n'ai pas trouvé cette information » plutôt que d'inventer une réponse.\n\n" +
+            "Tu es l'assistant RH d'AGIRH. Le contexte ci-dessous contient des extraits de la documentation " +
+            "interne déjà sélectionnés comme pertinents pour cette question. Lis-le attentivement en entier " +
+            "avant de répondre : la réponse s'y trouve généralement, parfois formulée différemment de la " +
+            "question. Réponds en français, de façon concise et complète, UNIQUEMENT à partir de ce contexte. " +
+            $"Dis explicitement « {PhraseRefusGenerateur} » UNIQUEMENT si le contexte ne traite " +
+            "vraiment pas du sujet de la question — pas simplement parce que la formulation diffère.\n\n" +
             $"Contexte :\n{contexte}";
 
         var texte = await _generateur.GenererReponseAsync(systemPrompt, question, ct);
-        var sources = meilleurs.Select(c => c.DocumentSource).Distinct().ToList();
 
+        // Le score de reranking mesure la proximité thématique, pas "la réponse est présente" :
+        // vérifié empiriquement (milestone 9, jeu de Q/R gold) qu'un chunk du bon sujet mais
+        // muet sur le fait précis demandé peut scorer aussi haut qu'une vraie réponse (ex.
+        // 0.70-0.78, proche de vrais positifs). Remonter le seuil pénaliserait autant de bonnes
+        // réponses qu'il n'en filtrerait. Le signal fiable est le générateur lui-même : le
+        // prompt ci-dessus lui impose la formule exacte de refus quand le contexte ne traite
+        // pas du sujet — on la relit ici plutôt que de sourcer une réponse qui est en fait un
+        // refus.
+        if (IndicateursRefusGenerateur.Any(indicateur => texte.Contains(indicateur, StringComparison.OrdinalIgnoreCase)))
+            return new ReponseConversation(texte, Sourcee: false, Array.Empty<string>());
+
+        var sources = meilleurs.Select(c => c.DocumentSource).Distinct().ToList();
         return new ReponseConversation(texte, Sourcee: true, sources);
     }
 

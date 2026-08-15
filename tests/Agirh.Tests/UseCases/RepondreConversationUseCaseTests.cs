@@ -135,6 +135,35 @@ public class RepondreConversationUseCaseTests
     }
 
     [Fact]
+    public async Task ExecuterAsync_QuestionDocumentaire_ScoreAuDessusDuSeuilMaisGenerateurRefuse_NePasSourcerLaReponse()
+    {
+        // Le score de reranking mesure la proximité thématique, pas "la réponse est présente"
+        // (constaté empiriquement, milestone 9) : un chunk du bon sujet peut passer le seuil
+        // sans que la question précise y soit vraiment traitée. Le générateur reste alors le
+        // seul signal fiable — s'il rend la phrase de refus imposée par le prompt, la réponse
+        // ne doit pas être annoncée comme sourcée malgré un candidat retenu.
+        var (router, generateur, embedding, rechercheVectorielle, reranker, _, _, useCase) = CreerUseCase();
+        var acteur = CreerCollaborateurActeur(Guid.NewGuid());
+        var candidat = new ChunkDocumentaire(Guid.NewGuid(), "01_politique_onboarding.md", 0, "Onboarding", "Contexte du bon sujet mais muet sur le detail precis demande.", Score: 0.75f);
+
+        router.Setup(r => r.ClassifierAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(IntentionConversation.QuestionDocumentaire);
+        embedding.Setup(e => e.GenererEmbeddingAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new float[768]);
+        rechercheVectorielle.Setup(r => r.RechercherAsync(It.IsAny<float[]>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { candidat });
+        reranker.Setup(r => r.RerankAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<ChunkDocumentaire>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { candidat });
+        generateur.Setup(g => g.GenererReponseAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("Je n'ai pas trouvé cette information sur ce point précis.");
+
+        var reponse = await useCase.ExecuterAsync(acteur, "Quel est le délai exact pour X ?", null);
+
+        reponse.Sourcee.Should().BeFalse();
+        reponse.DocumentsSources.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task ExecuterAsync_StatutDossier_CollaborateurSansFicheLiee_RetourneReponseDossierIntrouvable()
     {
         var (router, _, _, _, _, collaborateurs, _, useCase) = CreerUseCase();

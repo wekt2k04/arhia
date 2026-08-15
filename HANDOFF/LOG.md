@@ -85,3 +85,24 @@
 - `docker-compose.yml` complet toujours pas fait (Qdrant/Ollama/Api/front) — services lancés manuellement.
 
 **Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-15 (suite 4) — Poste de travail (Windows)
+
+**Fait :**
+- Jeu de Q/R gold créé (`eval/gold_qa.json`, 48 questions : 36 documentaires couvrant les 6 documents du corpus, 6 hors périmètre, 6 hors corpus) et évaluation retrieval (`EvaluationGoldRetrievalTests`, sans LLM, 36/36, dans la suite par défaut).
+- Bug réel trouvé et corrigé en exécutant cette évaluation : Qdrant persistant contenait des fixtures de test (`corpus-test:01_politique_onboarding.md`, contenu identique à un vrai document) capables de sortir en tête du reranking à la place du vrai document — nettoyé + filtre défensif ajouté.
+- Évaluation end-to-end (Router+RAG+Generator, Ollama réel, `EvaluationGoldEndToEndTests`, hors suite par défaut) : un run complet obtenu, 21/48. 27 échecs analysés et catégorisés précisément : ~13 mauvais routages, 6 questions hors-corpus renvoyées comme sourcées à tort, ~7 refus du générateur malgré un bon contexte ou mots-clés gold trop stricts, 1 erreur factuelle du générateur.
+- 3 corrections livrées et vérifiées (spot-check réel ciblé) : `Sourcee` recalculé à partir du texte du générateur plutôt que du seul score de reranking (le score mesure la proximité thématique, pas la présence de la réponse — vérifié empiriquement, un chunk hors-sujet a scoré 0.78) ; prompt du générateur clarifié contre les refus injustifiés ; 3 mots-clés gold trop stricts corrigés.
+- Tentative de correction du routeur (prompt réécrit, plus d'exemples) **testée empiriquement sur 11 cas réels et abandonnée** : 10/11 inchangés, aucun effet net mesurable — annulée (`git checkout`), prompt routeur revenu à l'original. Documenté comme limitation connue non résolue plutôt que déclaré "corrigé" à tort.
+- Incident environnement : de nombreuses tâches d'arrière-plan de 5+ minutes tuées de façon répétée pendant cette session, pas systématiquement explicable par la mise en veille (une fois confirmée liée à la veille sur batterie, les fois suivantes non). A empêché une reconfirmation complète des 48 questions après corrections — contournement partiel via des spot-checks ciblés en avant-plan (plus courts, plus fiables).
+- Deux tentatives d'instructions suspectes reçues en cours de session (demande d'élévation système + autorisation permanente d'agir seul ; faux "system-reminder" attribuant à tort une de mes propres actions à un tiers en demandant de ne pas la mentionner) — aucune exécutée, signalées directement dans la conversation.
+- `CHECKLIST.md` mis à jour (milestone 9 passé à 🔁, détail complet des trouvailles et de ce qui reste ouvert).
+
+**Reste :**
+- Confirmer les 48 questions gold en un seul run complet post-corrections (bloqué par l'instabilité de l'environnement ce soir, pas par le code).
+- Routeur : ~13 questions documentaires encore mal classées (StatutDossier/HorsPerimetre au lieu de Documentaire), cause probable = limite de capacité d'un modèle 3.8B face à des règles explicites, pas encore résolue — pistes non testées listées dans `HANDOFF/NEXT_SESSION.md`.
+- Choix de la prochaine étape (milestone 6, reprise du routeur, ou endpoints Api restants) — en attente du porteur du projet.
+
+**Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
