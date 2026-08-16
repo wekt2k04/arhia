@@ -16,6 +16,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { AuthNav } from "@/components/auth-nav";
 
 export default function PageInscription() {
   const router = useRouter();
@@ -52,7 +55,9 @@ export default function PageInscription() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-6">
+    <div className="flex min-h-screen flex-col">
+      <SiteHeader nav={<AuthNav />} />
+      <main className="flex flex-1 items-center justify-center px-6 py-12">
       <Card className="w-full max-w-sm">
         <form onSubmit={soumettre} noValidate>
           <CardHeader>
@@ -110,6 +115,8 @@ export default function PageInscription() {
           </CardFooter>
         </form>
       </Card>
-    </main>
+      </main>
+      <SiteFooter />
+    </div>
   );
 }

@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { obtenirUtilisateurCourant } from "@/lib/api/current-user";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import { BoutonDeconnexion } from "./bouton-deconnexion";
 import { ChatWidget } from "./chat-widget";
 import { NotificationBar } from "./notification-bar";
@@ -18,26 +20,32 @@ export default async function PageChat() {
   const initiale = utilisateur.email.charAt(0).toUpperCase();
 
   return (
-    <main className="flex min-h-screen flex-col items-center gap-4 px-6 py-8">
-      <div className="flex w-full max-w-2xl items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9">
-            <AvatarFallback className="bg-accent text-accent-foreground">
-              {initiale}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-foreground">{utilisateur.email}</span>
-            <Badge variant="secondary" className="w-fit">
-              {NOMS_ROLE[utilisateur.role] ?? utilisateur.role}
-            </Badge>
+    <div className="flex min-h-screen flex-col">
+      <SiteHeader
+        right={
+          <div className="flex items-center gap-3">
+            <Avatar className="h-9 w-9">
+              <AvatarFallback className="bg-accent text-accent-foreground">
+                {initiale}
+              </AvatarFallback>
+            </Avatar>
+            <div className="hidden flex-col sm:flex">
+              <span className="text-sm font-medium text-foreground">{utilisateur.email}</span>
+              <Badge variant="secondary" className="w-fit">
+                {NOMS_ROLE[utilisateur.role] ?? utilisateur.role}
+              </Badge>
+            </div>
+            <BoutonDeconnexion />
           </div>
-        </div>
-        <BoutonDeconnexion />
-      </div>
+        }
+      />
 
-      <NotificationBar />
-      <ChatWidget />
-    </main>
+      <main className="flex flex-1 flex-col items-center gap-4 px-6 py-8">
+        <NotificationBar />
+        <ChatWidget />
+      </main>
+
+      <SiteFooter />
+    </div>
   );
 }

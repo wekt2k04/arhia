@@ -248,4 +248,9 @@
 - Endpoints de lecture/liste, cas particuliers §8, suite de tests .NET complète à reconfirmer d'un seul tenant.
 - Vérification visuelle réelle du chat (voir limite ci-dessus).
 
+**Suite immédiate, même session :** le porteur du projet a demandé des composants réutilisables (header, footer, nav, placeholder pour l'image AGIRH) et a proposé de fournir l'image du logo.
+- `frontend/components/site-header.tsx` (logo cliquable + slots `nav`/`right` contextuels), `frontend/components/site-footer.tsx` (minimal, copyright + tagline), `frontend/components/auth-nav.tsx` (liens Se connecter/Créer un compte, état actif via `usePathname`) — intégrés sur les 4 pages (landing, login, register, chat ; sur chat, le `right` slot reprend l'avatar/rôle/déconnexion qui étaient auparavant codés en dur dans la page).
+- `frontend/components/agirh-mark.tsx` : `AgirhMark`/`AgirhLogo`, **placeholder du logo/image AGIRH** (icône `UsersRound` sur fond indigo), en attendant l'image réelle promise par le porteur du projet (pas encore reçue en fin de session). Un seul fichier à modifier pour la brancher — le reste de l'app consomme `AgirhLogo`, jamais le placeholder directement.
+- Revérifié après ce refactor : `npx tsc --noEmit`, `npm run build`, `npm run lint` verts ; Playwright (desktop 1280×800 + mobile 390×844) sur page de garde/login/register — header/footer/nav cohérents, nav met bien en évidence la page active, pas de débordement mobile.
+
 **Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
