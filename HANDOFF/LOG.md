@@ -273,3 +273,22 @@
 - Routeur conversationnel, jeu de Q/R gold à reconfirmer d'un seul tenant, endpoints de lecture/liste, cas particuliers §8 — inchangé, toujours mis de côté volontairement ou en attente d'un besoin concret.
 
 **Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-16 (suite 2) — Poste de travail (Windows)
+
+**Fait :**
+- **Profil Ollama entreprise complété**, sur demande explicite du porteur du projet : 2 profils de lancement nommés dans `src/Agirh.Api/Properties/launchSettings.json` — `Maison` (localhost, `phi4-mini:3.8b`/`phi4-mini:3.8b`, comportement inchangé) et `Entreprise` (IP réelle fournie et confirmée par le porteur du projet — accessible uniquement depuis le réseau de l'entreprise, pas depuis ce poste — `phi4-mini:3.8b`/`qwen3.5:9b`). Sélection via `dotnet run --launch-profile <nom>` ou le menu déroulant de l'IDE.
+- Choix du modèle Generator entreprise fait avec le porteur du projet à partir d'un vrai `tags.json` du serveur entreprise (12 modèles disponibles, fourni par le porteur du projet) : `qwen3.5:9b` retenu (9.7B, contexte 262k, bon compromis qualité/vitesse) parmi 3 options présentées (`qwen3.5:9b`, `qwen3:14b`, `gemma4:e4b`). Router laissé identique au profil Maison (`phi4-mini:3.8b`) — décision délibérée pour ne pas mélanger ce changement avec le chantier séparé et déjà mis de côté du routeur mal calibré.
+- **Détour sécurité corrigé en cours de route** : une première version avait écrit l'IP réelle directement dans `launchSettings.json`, un fichier suivi par Git — repéré avant tout commit, question posée explicitly au porteur du projet (dépôt confirmé privé entre-temps, IP non routable donc risque réel faible, mais decision laissée au porteur du projet). Réponse : garder l'IP hors Git. `launchSettings.json` réel déplacé dans `.gitignore` (même traitement que `appsettings.Development.json`), `launchSettings.json.example` commité à la place avec un placeholder. `appsettings.Entreprise.json.example` mis à jour en cohérence.
+- Vérifié réellement : les deux profils démarrent sans erreur de configuration (port 5080 répond dans les deux cas) ; `Maison` revérifié via un vrai flux HTTP (401 attendu sans auth, cohérent avec le comportement déjà connu) ; `Entreprise` non testable en connectivité Ollama réelle depuis ce poste (hors réseau entreprise par construction), seul le démarrage propre du processus a pu être confirmé.
+- **Trouvaille non liée, signalée mais pas traitée** : les 2 fichiers checklist SMSI source (présents depuis le tout premier commit) sont absents du disque sans qu'aucun commit ne les ait supprimés — cause inconnue, ni restaurés ni formellement supprimés en attendant une décision du porteur du projet.
+- `HANDOFF/NEXT_SESSION.md` réécrit (section profils détaillée, dont la conséquence pratique pour les autres appareils : `launchSettings.json` va disparaître du disque au prochain `git pull` ailleurs, `launchSettings.json.example` à copier manuellement une fois).
+
+**Reste :**
+- Les 2 fichiers checklist manquants — décision du porteur du projet à recueillir.
+- Contrôle visuel pixel de `/chat`, routeur conversationnel, jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8 — inchangé.
+- Nouvelle demande reçue en fin de session, pas encore traitée : le porteur du projet trouve qu'il y a beaucoup de fichiers à la racine du dépôt et demande une restructuration.
+
+**Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.

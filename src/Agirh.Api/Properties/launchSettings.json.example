@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "http://json.schemastore.org/launchsettings.json",
   "iisSettings": {
     "windowsAuthentication": false,
@@ -9,14 +9,30 @@
     }
   },
   "profiles": {
-    "http": {
+    "Maison": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "swagger",
-      "applicationUrl": "http://localhost:5067",
+      "applicationUrl": "http://localhost:5080",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Ollama__BaseUrl": "http://localhost:11434",
+        "Ollama__RouterModele": "phi4-mini:3.8b",
+        "Ollama__GeneratorModele": "phi4-mini:3.8b"
+      }
+    },
+    "Entreprise": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "http://localhost:5080",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Ollama__BaseUrl": "http://<ip-serveur-entreprise>:11434",
+        "Ollama__RouterModele": "phi4-mini:3.8b",
+        "Ollama__GeneratorModele": "qwen3.5:9b"
       }
     },
     "https": {

@@ -3,6 +3,8 @@
 .env*.local
 appsettings.*.json
 !appsettings.json.example
+launchSettings.json
+!launchSettings.json.example
 
 # ── Build artifacts (.NET / Node, si réintroduits plus tard) ──
 bin/

@@ -1,8 +1,8 @@
 {
-  "_comment": "Profil pour utiliser le serveur Ollama de l'entreprise (modeles plus capables que le profil local phi4-mini:3.8b). Deux facons d'appliquer ces 3 valeurs, au choix : (1) copier ce fichier en appsettings.Entreprise.json (jamais committe, deja couvert par .gitignore via appsettings.*.json) puis lancer avec ASPNETCORE_ENVIRONMENT=Entreprise - mais Development ne sera alors plus charge, donc ConnectionStrings/Jwt devront aussi etre dupliques ici depuis appsettings.Development.json ; (2) plus simple, ne rien dupliquer et juste surcharger ces 3 variables d'environnement (Ollama__BaseUrl, Ollama__RouterModele, Ollama__GeneratorModele) au lancement, en gardant ASPNETCORE_ENVIRONMENT=Development. Valeurs reelles (URL, noms de modeles) pas encore connues - IP fournie par le porteur du projet non confirmee, noms de modeles du serveur entreprise pas encore communiques.",
+  "_comment": "Pour le dev local via l'IDE/dotnet run, le moyen recommande est desormais les profils nommes Maison/Entreprise dans Properties/launchSettings.json (voir launchSettings.json.example) - selection via --launch-profile Entreprise ou le menu deroulant de l'IDE. Ce fichier-ci reste utile en dehors de ce cas (ex. lancement sans launchSettings.json, script, CI) : copier en appsettings.Entreprise.json (jamais committe, deja couvert par .gitignore via appsettings.*.json) puis lancer avec ASPNETCORE_ENVIRONMENT=Entreprise - mais Development ne sera alors plus charge, donc ConnectionStrings/Jwt devront aussi etre dupliques ici depuis appsettings.Development.json. Noms de modeles retenus (voir tags.json du serveur entreprise, 2026-08-16) : phi4-mini:3.8b pour le routeur (identique au profil local, comportement de classification deja calibre) et qwen3.5:9b pour le generateur (9.7B, contexte 262k, meilleure qualite de redaction attendue que phi4-mini). IP reelle non committee (info reseau entreprise) - a renseigner localement, jamais dans un fichier suivi par Git.",
   "Ollama": {
-    "BaseUrl": "http://<ip-ou-hote-serveur-entreprise>:11434",
-    "RouterModele": "<nom-du-modele-routeur-disponible-sur-le-serveur-entreprise>",
-    "GeneratorModele": "<nom-du-modele-generateur-disponible-sur-le-serveur-entreprise>"
+    "BaseUrl": "http://<ip-serveur-entreprise>:11434",
+    "RouterModele": "phi4-mini:3.8b",
+    "GeneratorModele": "qwen3.5:9b"
   }
 }
