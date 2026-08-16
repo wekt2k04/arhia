@@ -254,3 +254,22 @@
 - Revérifié après ce refactor : `npx tsc --noEmit`, `npm run build`, `npm run lint` verts ; Playwright (desktop 1280×800 + mobile 390×844) sur page de garde/login/register — header/footer/nav cohérents, nav met bien en évidence la page active, pas de débordement mobile.
 
 **Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-16 (suite) — Poste de travail (Windows)
+
+**Contexte :** reprise après une interruption prolongée de la session précédente sur ce poste (machine en veille, Docker Desktop retrouvé arrêté puis relancé, agirh-sql/agirh-qdrant redémarrés — voir décisions/actions déjà prises juste avant cette entrée). Sur demande explicite du porteur du projet ("Fais un pull des dernières modifs"), vérification de l'état distant : `git status -sb` a confirmé 6 commits de retard sur `origin/master`.
+
+**Fait :**
+- `git pull origin master` — fast-forward propre, aucun conflit (arbre de travail local déjà propre). Les 6 commits tirés viennent d'une session cloud (claude.ai/code) du même jour : refonte UX/UI complète du frontend (shadcn/ui, identité visuelle indigo, accessibilité), composants transverses `SiteHeader`/`SiteFooter`/`AuthNav`, placeholder de logo `AgirhMark`, et documentation nouvelle (`README.md`, `docs/notebooklm/*`, `APPRENTISSAGE/principal.md`).
+- Reconfirmation sur ce poste de ce que le sandbox cloud (sans Docker) n'avait pas pu vérifier : `npm install` nécessaire (nouvelles dépendances shadcn/ui absentes du `node_modules` local), `npx tsc --noEmit`/`npm run build` verts sur Node 18.20 (différent du sandbox cloud), et surtout **`/chat` atteint avec une vraie session** (Api .NET + SQL Server + Qdrant + Ollama réellement démarrés, compte de test `chattest@agirh.test`) : HTTP 200, HTML contient les marqueurs des nouveaux composants (`lang="fr"`, `ChatWidget`, `ScrollArea`, `SiteHeader`, notifications). Confirme l'absence de crash et le bon chargement des composants — pas un contrôle visuel pixel (aucun outil de capture d'écran/navigateur automatisé disponible dans cette session non plus).
+- Piège Windows déjà documenté re-rencontré à l'identique pendant cette vérification : `EPERM` sur `.next/trace` (ancien process `node.exe` du serveur dev, lancé avant l'interruption de session, encore accroché au dossier `.next`) — résolu par le fix déjà connu, pas une régression.
+- `CHECKLIST.md` (milestone 6) et `HANDOFF/NEXT_SESSION.md` mis à jour pour refléter cette vérification fonctionnelle et clarifier ce qui reste réellement ouvert (le contrôle visuel pixel, pas la fonction).
+
+**Reste :**
+- Contrôle visuel pixel réel de `/chat` (avatars, streaming, badges de sources, auto-scroll) — les deux serveurs tournent (`http://localhost:3000/chat`, compte `chattest@agirh.test`), il suffit au porteur du projet d'ouvrir son navigateur.
+- Si l'image AGIRH a été fournie entre-temps : la brancher dans `frontend/components/agirh-mark.tsx`.
+- Routeur conversationnel, jeu de Q/R gold à reconfirmer d'un seul tenant, endpoints de lecture/liste, cas particuliers §8 — inchangé, toujours mis de côté volontairement ou en attente d'un besoin concret.
+
+**Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
