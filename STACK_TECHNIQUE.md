@@ -19,6 +19,7 @@ Les choix de framework (backend/frontend) sont conservés de V7 — expertise d�
 - **Next.js** (BFF pattern, cookie httpOnly — le frontend ne détient jamais le JWT en clair côté client).
 - Interface **agent-first** (LOGIQUE_METIER.md §9) : page de garde publique, puis après connexion chat + barre de notifications comme point d'entrée principal ; pas de dashboard structuré séparé dans la première itération.
 - TailwindCSS, react-markdown pour le rendu des réponses de l'agent.
+- **shadcn/ui** (composants copiés dans `frontend/components/ui/`, pas une dépendance npm classique) bâti sur **Radix UI** pour les primitives accessibles, décidé le 2026-08-16 pour l'amélioration UX/UI (branding, chat, accessibilité). Style "new-york", palette indigo via CSS variables (`app/globals.css`).
 
 ## 3. Données
 
@@ -73,7 +74,7 @@ Même rigueur que V7 : **xUnit + Moq + FluentAssertions**, `qa-executioner` mobi
 | Composant | Choix |
 |---|---|
 | Backend | .NET 8 (SDK installé ; .NET 10 visé initialement, à réévaluer), ASP.NET Core, EF Core |
-| Frontend | Next.js (BFF, cookie httpOnly), TailwindCSS, react-markdown |
+| Frontend | Next.js (BFF, cookie httpOnly), TailwindCSS, shadcn/ui (Radix), react-markdown |
 | Auth | JWT + ASP.NET Identity |
 | Temps réel | SSE |
 | Base relationnelle | SQL Server (Docker) |

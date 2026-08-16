@@ -224,3 +224,28 @@
 - Endpoints de lecture/liste, cas particuliers §8, suite de tests .NET complète à reconfirmer d'un seul tenant, UI à peaufiner — chantiers séparés, aucun bloquant.
 
 **Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-16 — Session cloud (claude.ai/code)
+
+**Contexte :** session ouverte via une tâche vague ("Get in touch with the project"), sans décision pré-établie. Conformément à `CLAUDE.md`, questions posées au porteur du projet avant d'agir plutôt que de choisir seul : direction de session (chat UX/identité visuelle/accessibilité retenues), librairie de composants (Vue.js proposé en premier puis écarté après avoir signalé le coût — contredisait `STACK_TECHNIQUE.md` et aurait jeté tout le frontend Next.js vérifié ; confirmé de rester sur Next.js), puis shadcn/ui retenu.
+
+**Fait :**
+- **UX/UI du frontend retravaillée** (milestone 6, déjà ✅, amélioré après coup — voir `CHECKLIST.md` pour le détail) : shadcn/ui (Radix + Tailwind, style "new-york") écrit à la main dans `frontend/components/ui/` (CLI shadcn injoignable — `ui.shadcn.com` bloqué par la policy réseau du sandbox ; composants reproduits depuis leur code source standard, MIT, bien connu).
+- Identité visuelle : palette indigo en CSS variables (`app/globals.css`), police Geist effectivement appliquée (bug de scaffold initial — jamais branchée dans `tailwind.config.ts`).
+- Page de garde, login, register reconstruites avec Card/Button/Input/Label/Alert.
+- Chat : avatars (Bot/User), indicateur de streaming (points animés), sources en badges, auto-scroll (`ScrollArea` + `scrollIntoView`), zone `aria-live="polite"` masquée annonçant l'état de streaming sans spammer les lecteurs d'écran à chaque fragment.
+- Accessibilité : `<html lang="fr">` (était `en`), `role="status"`/`aria-live` sur la barre de notifications, labels de formulaire associés explicitement (`htmlFor`/`id` via `useId`), focus visible (déjà géré par les composants shadcn/Radix).
+- `STACK_TECHNIQUE.md` mis à jour (ajout shadcn/ui + Radix, décision actée avec le porteur).
+- Vérifié : `npx tsc --noEmit`, `npm run build`, `npm run lint` tous verts. Vérification visuelle réelle (Playwright, Chromium headless, desktop 1280×800 + mobile 390×844) sur page de garde/login/register — rendu conforme, responsive.
+
+**Limite connue :** pas de Docker dans ce sandbox cloud → impossible de démarrer SQL Server/Qdrant/Ollama, donc impossible d'obtenir une session réelle et de vérifier visuellement la page `/chat` (avatars, streaming, sources) en conditions réelles. Le redirect `/chat` → `/login` sans session a été vérifié (pas de crash). **À faire à la prochaine session avec Docker disponible : ouvrir `/chat` avec un compte de test et vérifier visuellement le rendu du chat.**
+
+**Reste ouvert (inchangé, pour rappel) :**
+- Routeur conversationnel (~27% de mauvais routage) — toujours mis de côté volontairement.
+- Reconfirmer le jeu de Q/R gold complet (48 questions) d'un seul tenant.
+- Endpoints de lecture/liste, cas particuliers §8, suite de tests .NET complète à reconfirmer d'un seul tenant.
+- Vérification visuelle réelle du chat (voir limite ci-dessus).
+
+**Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.

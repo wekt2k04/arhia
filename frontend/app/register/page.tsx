@@ -1,11 +1,26 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function PageInscription() {
   const router = useRouter();
+  const emailId = useId();
+  const motDePasseId = useId();
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
@@ -37,58 +52,64 @@ export default function PageInscription() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
-      <form
-        onSubmit={soumettre}
-        className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-8 shadow-sm"
-      >
-        <h1 className="text-xl font-semibold text-slate-900">Créer un compte</h1>
-        <p className="mt-2 text-sm text-slate-500">
-          Réservé aux nouveaux collaborateurs. Votre compte est créé avec un accès collaborateur ;
-          le RH de votre pôle complètera votre fiche.
-        </p>
+    <main className="flex min-h-screen items-center justify-center px-6">
+      <Card className="w-full max-w-sm">
+        <form onSubmit={soumettre} noValidate>
+          <CardHeader>
+            <CardTitle className="text-xl">Créer un compte</CardTitle>
+            <CardDescription>
+              Réservé aux nouveaux collaborateurs. Votre compte est créé avec un accès
+              collaborateur ; le RH de votre pôle complètera votre fiche.
+            </CardDescription>
+          </CardHeader>
 
-        <label className="mt-6 block text-sm font-medium text-slate-700">
-          Email
-          <input
-            type="email"
-            required
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
-          />
-        </label>
+          <CardContent className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor={emailId}>Email</Label>
+              <Input
+                id={emailId}
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
 
-        <label className="mt-4 block text-sm font-medium text-slate-700">
-          Mot de passe
-          <input
-            type="password"
-            required
-            autoComplete="new-password"
-            value={motDePasse}
-            onChange={(e) => setMotDePasse(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
-          />
-        </label>
+            <div className="space-y-1.5">
+              <Label htmlFor={motDePasseId}>Mot de passe</Label>
+              <Input
+                id={motDePasseId}
+                type="password"
+                required
+                autoComplete="new-password"
+                value={motDePasse}
+                onChange={(e) => setMotDePasse(e.target.value)}
+              />
+            </div>
 
-        {erreur && <p className="mt-4 text-sm text-red-600">{erreur}</p>}
+            {erreur && (
+              <Alert variant="destructive">
+                <AlertDescription>{erreur}</AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
 
-        <button
-          type="submit"
-          disabled={enCours}
-          className="mt-6 w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
-        >
-          {enCours ? "Création..." : "Créer mon compte"}
-        </button>
+          <CardFooter className="flex flex-col gap-4">
+            <Button type="submit" disabled={enCours} className="w-full">
+              {enCours && <Loader2 className="animate-spin" aria-hidden />}
+              {enCours ? "Création..." : "Créer mon compte"}
+            </Button>
 
-        <p className="mt-4 text-center text-sm text-slate-500">
-          Déjà un compte ?{" "}
-          <Link href="/login" className="font-medium text-slate-900 underline">
-            Se connecter
-          </Link>
-        </p>
-      </form>
+            <p className="text-center text-sm text-muted-foreground">
+              Déjà un compte ?{" "}
+              <Link href="/login" className="font-medium text-primary underline underline-offset-4">
+                Se connecter
+              </Link>
+            </p>
+          </CardFooter>
+        </form>
+      </Card>
     </main>
   );
 }

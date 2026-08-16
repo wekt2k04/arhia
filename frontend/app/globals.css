@@ -2,8 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 12%;
+
+    /* AGIRH — indigo : identité de l'agent conversationnel, distinct du gris neutre par défaut. */
+    --primary: 243 75% 59%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 10% 12%;
+
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+
+    --accent: 243 60% 96%;
+    --accent-foreground: 243 75% 30%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 243 75% 59%;
+
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: 240 10% 8%;
+    --foreground: 0 0% 96%;
+
+    --card: 240 8% 11%;
+    --card-foreground: 0 0% 96%;
+
+    --popover: 240 8% 11%;
+    --popover-foreground: 0 0% 96%;
+
+    --primary: 243 80% 70%;
+    --primary-foreground: 240 10% 8%;
+
+    --secondary: 240 6% 16%;
+    --secondary-foreground: 0 0% 96%;
+
+    --muted: 240 6% 16%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 243 30% 20%;
+    --accent-foreground: 243 80% 85%;
+
+    --destructive: 0 63% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 6% 20%;
+    --input: 240 6% 20%;
+    --ring: 243 80% 70%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }

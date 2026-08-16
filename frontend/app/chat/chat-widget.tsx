@@ -1,20 +1,23 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
-import ReactMarkdown from "react-markdown";
-
-type Message = {
-  role: "user" | "assistant";
-  texte: string;
-  sourcee?: boolean;
-  sources?: string[];
-};
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card } from "@/components/ui/card";
+import { ChatMessage, type Message } from "@/components/chat-message";
 
 export function ChatWidget() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState("");
   const [enCours, setEnCours] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const finDesMessagesRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    finDesMessagesRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages]);
 
   function envoyer(evenement: FormEvent) {
     evenement.preventDefault();
@@ -63,53 +66,48 @@ export function ChatWidget() {
   }
 
   return (
-    <div className="flex h-[70vh] w-full max-w-2xl flex-col rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="flex-1 space-y-4 overflow-y-auto p-4">
-        {messages.length === 0 && (
-          <p className="text-center text-sm text-slate-400">
-            Posez une question sur les politiques internes ou sur l&apos;avancement de votre
-            dossier.
-          </p>
-        )}
-        {messages.map((message, index) => (
-          <div key={index} className={message.role === "user" ? "text-right" : "text-left"}>
-            <div
-              className={`inline-block max-w-md rounded-lg px-4 py-2 text-left text-sm ${
-                message.role === "user"
-                  ? "bg-slate-900 text-white"
-                  : "border border-slate-200 bg-slate-50 text-slate-900"
-              }`}
-            >
-              <div className="prose prose-sm max-w-none prose-p:my-1">
-                <ReactMarkdown>{message.texte || "…"}</ReactMarkdown>
-              </div>
-              {message.role === "assistant" && message.sources && message.sources.length > 0 && (
-                <p className="mt-2 border-t border-slate-200 pt-1 text-xs text-slate-400">
-                  Source{message.sources.length > 1 ? "s" : ""} : {message.sources.join(", ")}
-                </p>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+    <Card className="flex h-[70vh] w-full max-w-2xl flex-col overflow-hidden py-0">
+      <ScrollArea className="flex-1">
+        <div className="space-y-4 p-4">
+          {messages.length === 0 && (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              Posez une question sur les politiques internes ou sur l&apos;avancement de votre
+              dossier.
+            </p>
+          )}
+          {messages.map((message, index) => (
+            <ChatMessage
+              key={index}
+              message={message}
+              estEnCours={enCours && index === messages.length - 1}
+            />
+          ))}
+          <div ref={finDesMessagesRef} />
+        </div>
+      </ScrollArea>
 
-      <form onSubmit={envoyer} className="flex gap-2 border-t border-slate-200 p-4">
-        <input
+      <p role="status" aria-live="polite" className="sr-only">
+        {enCours ? "L'assistant est en train de répondre." : ""}
+      </p>
+
+      <form onSubmit={envoyer} className="flex gap-2 border-t border-border p-4">
+        <label htmlFor="question-chat" className="sr-only">
+          Votre question
+        </label>
+        <Input
+          id="question-chat"
           type="text"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           disabled={enCours}
           placeholder="Posez votre question..."
-          className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none disabled:opacity-50"
+          className="flex-1"
         />
-        <button
-          type="submit"
-          disabled={enCours || !question.trim()}
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
-        >
-          {enCours ? "…" : "Envoyer"}
-        </button>
+        <Button type="submit" disabled={enCours || !question.trim()} size="icon">
+          <Send aria-hidden />
+          <span className="sr-only">Envoyer</span>
+        </Button>
       </form>
-    </div>
+    </Card>
   );
 }
