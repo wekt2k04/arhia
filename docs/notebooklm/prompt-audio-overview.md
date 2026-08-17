@@ -2,7 +2,7 @@
 
 *À coller dans le champ "What should the AI hosts focus on in this episode?" (icône crayon à côté
 de "Audio Overview", avant de générer). Ce champ est plafonné à **500 caractères** côté NotebookLM
-(confirmé sur la documentation officielle Google, août 2026) — le texte ci-dessous fait 493
+(confirmé sur la documentation officielle Google, août 2026) — le texte ci-dessous fait 471
 caractères, vérifié.*
 
 ## Réglages à choisir dans l'interface (pas dans le texte du prompt)
@@ -16,7 +16,7 @@ caractères, vérifié.*
 ## Le prompt (à copier tel quel)
 
 ```
-Sources = 5 dossiers techniques d'un projet IA/RAG. Priorite nette aux 2 volets IA (pipeline RAG : chunking, embedding ONNX, Qdrant, reranking cross-encodeur ; orchestration : Router/Generator, garde-fous anti-hallucination) : citez le code ET le chemin de fichier exact de chaque extrait mentionne. Le reste (architecture/securite, Docker, workflows) plus brievement. Un segment par theme, transitions verbales claires. Vu la densite, ne vous pressez pas, quitte a depasser la duree standard.
+Sources = 5 dossiers techniques projet IA/RAG. Priorite max IA : (1) Pipeline RAG : chunking strategies, embeddings ONNX, Qdrant vector store, reranking cross-encodeur ; (2) Orchestration : Router/Generator logic, garde-fous hallucination, prompting defensif. Citez code exact ET chemin fichier complet depuis repo root pour chaque extrait. Reste (archi/securite/Docker/workflows) : bref. Segment par theme, transitions verbales claires. Prenez le temps, n'accelerez pas.
 ```
 
 ## Pourquoi ce prompt est écrit ainsi

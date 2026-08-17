@@ -3,7 +3,7 @@
 *Dernière mise à jour : 2026-08-17, poste de travail (Windows). Ce fichier est **réécrit** à chaque checkpoint (pas un journal) — pour l'historique complet, voir `.claude/HANDOFF/LOG.md`.*
 
 ## En une phrase
-**Milestones 0-9 et 11 terminés, application complète fonctionnelle de bout en bout, y compris en Docker Compose. Profil Ollama entreprise complet (`Maison`/`Entreprise` via `--launch-profile`). Racine du dépôt entièrement réorganisée** (documents de cadrage sous `docs/`, données RAG sous `rag/`, HANDOFF et scripts sous `.claude/`, 2 checklists SMSI sources retirées — déjà absorbées ailleurs) **et les 5 documents NotebookLM enrichis de vrai code + 2 prompts (audio/quiz) créés.** Page de garde → connexion/inscription (cookie httpOnly) → chat en streaming réel (SSE) → notifications en direct — tout vérifié en HTTP réel, y compris Docker Compose sur base fraîche. Il reste : la vérification visuelle **pixel** du chat (seul le porteur du projet peut clore ce point), le routeur conversationnel (~27% de mauvais routage, mis de côté volontairement), le jeu de Q/R gold à reconfirmer d'un seul tenant, et des chantiers annexes.
+**Milestones 0-9 et 11 terminés, application complète fonctionnelle de bout en bout, y compris en Docker Compose. Profil Ollama entreprise complet (`Maison`/`Entreprise` via `--launch-profile`). Racine du dépôt entièrement réorganisée** (documents de cadrage sous `docs/`, données RAG sous `rag/`, HANDOFF et scripts sous `.claude/`, 2 checklists SMSI sources retirées — déjà absorbées ailleurs) **et les 5 documents NotebookLM enrichis de vrai code + 2 prompts (audio/flashcards) créés.** Page de garde → connexion/inscription (cookie httpOnly) → chat en streaming réel (SSE) → notifications en direct — tout vérifié en HTTP réel, y compris Docker Compose sur base fraîche. Il reste : la vérification visuelle **pixel** du chat (seul le porteur du projet peut clore ce point), le routeur conversationnel (~27% de mauvais routage, mis de côté volontairement), le jeu de Q/R gold à reconfirmer d'un seul tenant, et des chantiers annexes.
 
 ## Depuis le dernier checkpoint (2026-08-17, poste de travail)
 
@@ -26,7 +26,7 @@ Conséquences code (pas seulement de la doc) et **vérifiées empiriquement, pas
 
 **NotebookLM** (`docs/notebooklm/`) : les 5 documents exhaustifs déjà présents (fondations/sécurité, pipeline RAG, orchestration conversationnelle, Docker, temps réel/workflows) enrichis avec du **vrai code cité** (RbacMatrix, PoleScopeGuard, validation JWT, cookie BFF, embedding ONNX, reranker cross-encodeur avec sigmoïde, prompt système complet du Router, garde-fou anti-hallucination complet à double porte de sortie, frames SSE, migration EF Core auto), chaque citation portant son **chemin complet depuis la racine** (ex. `src/Agirh.Core/Security/RbacMatrix.cs`) — pondéré sur demande explicite : gros volume sur les 2 documents IA/ML (pipeline RAG, orchestration), plus léger sur le reste. Deux nouveaux fichiers créés :
 - `docs/notebooklm/prompt-audio-overview.md` — prompt de 493/500 caractères (limite officielle NotebookLM vérifiée sur la doc Google, pas supposée) pour le champ "focus" de l'Audio Overview : Deep Dive, français, pondéré IA/ML, demande explicitement de citer le code **et** le chemin de fichier exact à l'oral, structuré par segments (la vraie technique qui marche — pas de réglage "pause de 5s", qui n'existe pas côté NotebookLM, vérifié).
-- `docs/notebooklm/prompt-quiz.md` — prompt pour la génération de quiz (difficulté Difficile), même pondération IA/ML, priorité aux règles métier/garde-fous encodés en code puis à la syntaxe réelle, demande de citer le chemin de fichier dans chaque explication de réponse.
+- `docs/notebooklm/prompt-flashcards.md` — prompt pour la génération de flashcards (type Question/Réponse, difficulté Difficile, nombre "Plus"), même pondération IA/ML, priorité aux règles métier/garde-fous encodés en code puis à la syntaxe réelle, chemin de fichier exigé sur la face arrière de chaque carte portant sur du code.
 
 **Profils de lancement `Maison`/`Entreprise` pour Ollama** (`src/Agirh.Api/Properties/launchSettings.json`), mis en place juste avant les deux passes de restructuration ci-dessus :
 - **`Maison`** : `Ollama__BaseUrl=http://localhost:11434`, Router+Generator = `phi4-mini:3.8b` (comportement inchangé).
@@ -38,7 +38,7 @@ Conséquences code (pas seulement de la doc) et **vérifiées empiriquement, pas
 1. Si l'image AGIRH a été fournie entre-temps par le porteur du projet : la brancher dans `frontend/components/agirh-mark.tsx`.
 2. Le porteur du projet peut ouvrir `http://localhost:3000/chat` lui-même pour le dernier doute purement visuel (compte `chattest@agirh.test`).
 3. **En reprenant sur un autre appareil** : `git pull` fera disparaître du disque `.claude/HANDOFF/`, `.claude/scripts/download-models.ps1` réel (remplacé par ce que Git suivait avant) et `launchSettings.json` — ce ne sont pas des pertes de données, juste des fichiers gitignorés/déplacés qu'il faut régénérer localement (copier les `.example`, relancer `download-models.ps1` si besoin). Lire ce fichier avant de supposer quoi que ce soit sur les chemins.
-4. Utiliser les prompts NotebookLM (`docs/notebooklm/prompt-*.md`) pour générer l'Audio Overview et le quiz si souhaité — pas encore fait, juste préparé.
+4. Utiliser les prompts NotebookLM (`docs/notebooklm/prompt-*.md`) pour générer l'Audio Overview et les flashcards si souhaité — pas encore fait, juste préparé.
 
 ## Ce qui marche déjà (vérifié en HTTP réel, pas juste écrit)
 - Socle métier, auth, pipeline RAG, orchestration conversationnelle (milestones 0-5, 7, 8) — inchangés depuis les checkpoints précédents.
@@ -51,7 +51,7 @@ Conséquences code (pas seulement de la doc) et **vérifiées empiriquement, pas
   - **Barre de notifications en direct** : même mécanisme de proxy SSE.
 - **Docker Compose complet** : `docker compose up -d --build` démarre sqlserver + qdrant + api + frontend. Migrations EF Core auto-appliquées au démarrage. Pas de service Ollama conteneurisé (natif via `host.docker.internal`). Chemins `rag/models`/`rag/corpus` (montages) revérifiés après la restructuration (`docker compose config`).
 - **Profil Ollama entreprise complet** : 2 profils de lancement nommés `Maison`/`Entreprise`.
-- **`docs/notebooklm/`** : 5 documents exhaustifs + 2 prompts (audio/quiz), prêts à l'emploi.
+- **`docs/notebooklm/`** : 5 documents exhaustifs + 2 prompts (audio/flashcards), prêts à l'emploi.
 
 ## Ce qui reste ouvert
 0. **Vérification visuelle *pixel* de `/chat`** — fonctionnellement confirmé, pas vérifié à l'œil dans un navigateur par manque d'outil de capture dans les sessions récentes. Les serveurs tournent (`http://localhost:3000/chat`, compte `chattest@agirh.test`).
@@ -60,7 +60,7 @@ Conséquences code (pas seulement de la doc) et **vérifiées empiriquement, pas
 3. Endpoints de lecture/liste — à concevoir avec le besoin d'écran concret.
 4. Suite de tests .NET complète — **reconfirmée cette session (211/211)**, mais seulement hors catégorie Evaluation (exclusion volontaire, cf. convention du projet).
 5. Les 3 cas particuliers (`docs/LOGIQUE_METIER.md` §8) — propositions jamais validées.
-6. Audio Overview / quiz NotebookLM — prompts prêts, jamais encore exécutés dans l'interface NotebookLM elle-même.
+6. Audio Overview / flashcards NotebookLM — prompts prêts, jamais encore exécutés dans l'interface NotebookLM elle-même.
 
 ## Routeur : pistes non tentées (si repris un jour)
 Tentative déjà faite et abandonnée : plus d'exemples/règles dans le prompt (`OllamaRouterAdapter`), testée empiriquement sur 11 cas réels, effet net nul. **Ne pas refaire la même chose.** Pistes non explorées : modèle différent pour le routeur uniquement ; pré-filtre déterministe en complément du LLM ; accepter le taux d'erreur actuel comme limite connue du prototype.
@@ -71,7 +71,7 @@ Tentative déjà faite et abandonnée : plus d'exemples/règles dans le prompt (
 2. Reconfirmer le jeu de Q/R gold complet (48 questions).
 3. Endpoints de lecture/liste + vues RH au-delà du chat.
 4. Peaufiner l'UI (design, responsive, accessibilité).
-5. Générer l'Audio Overview / le quiz NotebookLM avec les prompts préparés.
+5. Générer l'Audio Overview / les flashcards NotebookLM avec les prompts préparés.
 
 **Ne pas trancher sans demander** — cohérent avec `CLAUDE.md`.
 
