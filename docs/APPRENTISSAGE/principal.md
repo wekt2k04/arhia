@@ -42,9 +42,6 @@ retournent le résultat.
 - **AdminQualite** — portée globale, seul rôle qui peut élever un compte (Collaborateur→RH,
   etc.) et valider/approuver des templates.
 
-Pas de Keycloak ni de système d'auth externe — jugé disproportionné pour l'échelle réelle
-(~5 RH + 2 Admin/Qualité + collaborateurs). JWT + ASP.NET Identity suffisent.
-
 ## 3. Le frontend ne détient jamais le JWT — pattern BFF
 
 Next.js joue le rôle de **Backend For Frontend** : le navigateur ne parle *jamais* directement à

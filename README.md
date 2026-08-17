@@ -122,8 +122,7 @@ corpus/                   corpus source du pipeline RAG (documents Markdown, lu 
 tests/Agirh.Tests/        xUnit + Moq + FluentAssertions
 docs/                      documents de cadrage (LOGIQUE_METIER, STACK_TECHNIQUE, ARCHITECTURE,
                             CHECKLIST, HISTORIQUE, SUJET_STAGE) + docs/notebooklm/ (synthèses
-                            approfondies : architecture, IA, Docker, workflows)
-APPRENTISSAGE/            notes de montée en compétence personnelle
+                            approfondies) + docs/APPRENTISSAGE/ (notes de montée en compétence)
 HANDOFF/                  protocole de continuité entre sessions de travail
 ```
 
