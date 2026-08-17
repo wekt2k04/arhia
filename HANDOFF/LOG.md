@@ -292,3 +292,21 @@
 - Nouvelle demande reçue en fin de session, pas encore traitée : le porteur du projet trouve qu'il y a beaucoup de fichiers à la racine du dépôt et demande une restructuration.
 
 **Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-17 — Poste de travail (Windows)
+
+**Fait :**
+- Réponse aux deux questions du porteur du projet en tête de session : (1) les 2 fichiers checklist SMSI source manquants ne sont plus nécessaires — vérifié que leur contenu est déjà cité et absorbé mot pour mot dans `LOGIQUE_METIER.md` ("Dérivé du document réel SMSI.ENR.10-1/2") et `STACK_TECHNIQUE.md`, et qu'aucun fichier `.cs`/`.json`/script du dépôt ne les référence (grep à zéro résultat) — n'étaient utiles qu'au cadrage initial, déjà terminé ; (2) confirmé que les regrouper dans `docs/` est faisable, en excluant `corpus/` (lu par le pipeline d'ingestion RAG, ne doit pas bouger) et en gardant `CLAUDE.md`/`README.md` à la racine (contraintes d'outillage/convention, pas de choix).
+- **Racine du dépôt réorganisée** sur demande explicite : `ARCHITECTURE.md`, `CHECKLIST.md`, `LOGIQUE_METIER.md`, `STACK_TECHNIQUE.md`, `HISTORIQUE.md`, `SUJET_STAGE.md` déplacés vers `docs/` via `git mv` (historique Git préservé). Les 2 fichiers SMSI formellement supprimés (`git rm`) après validation explicite du porteur du projet.
+- Tous les renvois croisés corrigés dans ~35 fichiers non déplacés : `CLAUDE.md` (dont l'ordre de lecture canonique), `README.md` (liens markdown), les 5 agents `.claude/agents/`, `.claude/context/PROJECT_STATE.md`, `.claude/commands/`, des commentaires `///`/`//` de "pourquoi" dans une quinzaine de fichiers `.cs`/`.ts` (ex. `RepondreConversationUseCase.cs`, `OllamaRouterAdapter.cs`, routes BFF `frontend/app/api/`), `eval/gold_qa.json` (champs `notes`), `scripts/download-models.ps1`, `HANDOFF/NEXT_SESSION.md`. Vérifié par grep exhaustif sur tout le dépôt (tous types de fichiers confondus) : plus aucune mention "bare" (sans préfixe `docs/`) de ces 6 noms de fichier en dehors de `docs/` lui-même. **Exception délibérée** : les entrées passées de ce fichier (`HANDOFF/LOG.md`) n'ont pas été retouchées — append-only, ne jamais réécrire une entrée existante même pour corriger un chemin devenu obsolète (règle du fichier lui-même, ligne 3).
+- Les 6 fichiers déplacés dans `docs/` n'ont **pas eu besoin d'édition** : ils se référencent uniquement entre eux (tous restent siblings dans `docs/` après le déplacement), donc leurs renvois internes bare restaient corrects tels quels — vérifié explicitement avant de conclure, pas supposé.
+- Build .NET revérifié vert (0 warning) après les édits de commentaires dans les fichiers `.cs` — changement textuel uniquement, mais vérifié plutôt que supposé sans impact.
+- `HANDOFF/NEXT_SESSION.md` réécrit (nouveaux chemins, item SMSI retiré de "ce qui reste ouvert" car résolu).
+
+**Reste :**
+- Toute session sur un autre appareil devra noter que `docs/` a bougé et que `launchSettings.json` (profils Maison/Entreprise, voir entrée précédente) a disparu du disque au prochain pull — les deux sont documentés dans `HANDOFF/NEXT_SESSION.md`.
+- Contrôle visuel pixel de `/chat`, routeur conversationnel, jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8 — inchangé.
+
+**Prochaine session :** voir `HANDOFF/NEXT_SESSION.md`.
