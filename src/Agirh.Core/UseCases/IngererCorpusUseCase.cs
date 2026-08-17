@@ -8,7 +8,7 @@ namespace Agirh.Core.UseCases;
 
 /// <summary>
 /// Ingestion du corpus documentaire dans le pipeline RAG : chunking -> embedding -> indexation
-/// Qdrant (STACK_TECHNIQUE.md #4, phases 1-3). Reservee a Admin/Qualite : reindexer le corpus
+/// Qdrant (docs/STACK_TECHNIQUE.md #4, phases 1-3). Reservee a Admin/Qualite : reindexer le corpus
 /// modifie ce que l'agent conversationnel considere comme source de verite documentaire.
 /// </summary>
 public sealed class IngererCorpusUseCase

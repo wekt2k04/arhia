@@ -3,7 +3,7 @@ using Agirh.Core.Ports;
 namespace Agirh.Infrastructure.Llm;
 
 /// <summary>
-/// Routeur (STACK_TECHNIQUE.md #5) : classification d'intention via phi4-mini:3.8b.
+/// Routeur (docs/STACK_TECHNIQUE.md #5) : classification d'intention via phi4-mini:3.8b.
 /// La sortie du modèle n'est JAMAIS utilisée telle quelle — validée contre un enum fermé,
 /// tout ce qui ne matche pas exactement retombe sur HorsPerimetre (fail-safe, pas fail-open).
 /// Prompt affiné empiriquement : un prompt minimal classait à tort des questions générales

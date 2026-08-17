@@ -2,7 +2,7 @@
 
 *Document dense, pensé pour être recopié à la main en 1-2h. Chaque notion est expliquée avec le
 "pourquoi", pas juste le "quoi" — recopier le pourquoi est ce qui fait retenir. Pour la référence
-exhaustive et à jour : `LOGIQUE_METIER.md`, `STACK_TECHNIQUE.md`, `ARCHITECTURE.md`.*
+exhaustive et à jour : `docs/LOGIQUE_METIER.md`, `docs/STACK_TECHNIQUE.md`, `docs/ARCHITECTURE.md`.*
 
 ## 1. Le principe central : architecture hexagonale
 

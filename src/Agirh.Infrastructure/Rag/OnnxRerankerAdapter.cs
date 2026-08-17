@@ -5,7 +5,7 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 namespace Agirh.Infrastructure.Rag;
 
 /// <summary>
-/// Phase 4 (STACK_TECHNIQUE.md #4, obligatoire) : reranking cross-encoder ONNX.
+/// Phase 4 (docs/STACK_TECHNIQUE.md #4, obligatoire) : reranking cross-encoder ONNX.
 /// Un seul logit de pertinence par paire (requête, document), passé au sigmoïde.
 /// </summary>
 public sealed class OnnxRerankerAdapter : IRerankerPort, IDisposable

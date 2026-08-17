@@ -3,7 +3,7 @@ import { AGIRH_API_URL } from "@/lib/api/config";
 import { definirSession } from "@/lib/api/session";
 
 // Auto-inscription -> rôle Collaborateur par défaut, jamais élevé à l'inscription
-// (LOGIQUE_METIER.md §1) — décidé et appliqué côté Agirh.Api, pas ici.
+// (docs/LOGIQUE_METIER.md §1) — décidé et appliqué côté Agirh.Api, pas ici.
 export async function POST(request: NextRequest) {
   const corps = await request.json();
 

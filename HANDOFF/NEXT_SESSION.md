@@ -39,7 +39,7 @@
 2. **Jeu de Q/R gold (milestone 9)** : le run complet à 48 questions n'a été confirmé qu'une seule fois (21/48, avant les 3 corrections livrées) — à relancer d'un seul tenant si l'environnement le permet, pour avoir un vrai chiffre before/after.
 3. Endpoints de lecture/liste (ex. "mes collaborateurs", "dossiers de mon pôle") — aucun n'existe encore, seuls les use cases d'écriture étaient prêts. À concevoir avec le besoin d'écran concret quand le frontend en aura besoin (ex. une vue RH au-delà du chat).
 4. Suite de tests .NET complète pas reconfirmée d'un seul tenant depuis plusieurs checkpoints (instabilité d'environnement, voir pièges plus bas) — sous-ensembles ciblés systématiquement tous verts.
-5. Les 3 cas particuliers (`LOGIQUE_METIER.md` §8 : mutation inter-pôle, annulation/suspension, pôle vacant) — propositions jamais validées.
+5. Les 3 cas particuliers (`docs/LOGIQUE_METIER.md` §8 : mutation inter-pôle, annulation/suspension, pôle vacant) — propositions jamais validées.
 6. ~~Profil Ollama entreprise incomplet~~ **→ FAIT** (voir section dédiée ci-dessous).
 
 ## Routeur : pistes non tentées (si repris un jour)
@@ -55,22 +55,22 @@ Tentative déjà faite et abandonnée : plus d'exemples/règles dans le prompt (
 **Ne pas trancher sans demander** — cohérent avec `CLAUDE.md`.
 
 ## Comment reprendre concrètement
-1. Lire ce fichier en entier, puis `CHECKLIST.md` pour le détail milestone par milestone.
+1. Lire ce fichier en entier, puis `docs/CHECKLIST.md` pour le détail milestone par milestone.
 2. Vérifier l'état réel avant de supposer quoi que ce soit : `git log --oneline -15`, `git status`.
 2bis. **Vérifier si `HANDOFF/.in_progress` existe.** Si oui, une session précédente a probablement planté en plein travail — lire ce fichier, examiner `git status`/`git diff`, décider de garder/corriger/annuler avant de continuer.
 3. Infrastructure locale, deux façons de démarrer :
    - **Manuel (comme tout ce checkpoint)** : `docker start agirh-sql` + `docker start agirh-qdrant`, `ollama serve` natif avec `phi4-mini:3.8b` disponible, `cd src/Agirh.Api && dotnet run -c Release` (port 5080), `cd frontend && npm run dev` (port 3000, nécessite `frontend/.env.local` avec `AGIRH_API_URL=http://localhost:5080`, voir `.env.example`).
    - **Docker Compose** : `.env` à la racine (copier `.env.example`, remplir `SQL_SA_PASSWORD`/`JWT_SIGNING_KEY`), puis `docker compose up -d --build`. **Attention aux ports partagés avec les conteneurs manuels ci-dessus** (`agirh-sql`/`agirh-qdrant` sur 1433/6333) — les arrêter avant (`docker stop agirh-sql agirh-qdrant`), les redémarrer après. Ollama reste natif dans les deux cas (pas conteneurisé, voir pièges). Après le tout premier démarrage sur une base fraîche : promouvoir un compte en AdminQualite en SQL (voir plus bas) puis `POST api/admin/reindexer-corpus` pour peupler Qdrant — sans ça le chat documentaire ne trouvera rien.
-4. Avant de coder une nouvelle logique métier ou un choix technique : relire `LOGIQUE_METIER.md` / `STACK_TECHNIQUE.md` / `ARCHITECTURE.md` si la tâche touche à une décision déjà actée.
+4. Avant de coder une nouvelle logique métier ou un choix technique : relire `docs/LOGIQUE_METIER.md` / `docs/STACK_TECHNIQUE.md` / `docs/ARCHITECTURE.md` si la tâche touche à une décision déjà actée.
 5. Pour tester en HTTP depuis ce poste (Git Bash/Windows) avec des caractères accentués : passer par un fichier JSON (`curl --data-binary @fichier.json`), pas une chaîne shell.
 6. Aucun compte AdminQualite/pôle n'existe par défaut dans une base fraîche — promotion manuelle en SQL (voir pièges ci-dessous). Comptes de test existants : `chattest@agirh.test`, `admintest@agirh.test`, `frontendtest@agirh.test` (Collaborateur).
-7. **À la fin de la session (ou après un jalon terminé)** : mettre à jour ce fichier + `HANDOFF/LOG.md` + `CHECKLIST.md`, puis `git commit` + `git push origin master`.
+7. **À la fin de la session (ou après un jalon terminé)** : mettre à jour ce fichier + `HANDOFF/LOG.md` + `docs/CHECKLIST.md`, puis `git commit` + `git push origin master`.
 
 ## Décisions en attente (à trancher avec le porteur du projet)
 - Prochaine étape (voir section dédiée plus haut).
 - Le taux de mauvaise classification du routeur (~25-27%) est-il acceptable pour la suite, ou faut-il investir dans une nouvelle approche maintenant ?
 - Temps restant sur le stage et livrables attendus (rapport, soutenance, dépôt, démo live) — jamais communiqué.
-- Comportements précis des 3 cas particuliers (`LOGIQUE_METIER.md` §8).
+- Comportements précis des 3 cas particuliers (`docs/LOGIQUE_METIER.md` §8).
 - Noms définitifs des ~5 pôles/départements.
 
 ## Pièges techniques rencontrés (à ne pas refaire)

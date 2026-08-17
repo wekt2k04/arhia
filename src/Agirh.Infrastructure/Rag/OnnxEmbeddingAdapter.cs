@@ -5,7 +5,7 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 namespace Agirh.Infrastructure.Rag;
 
 /// <summary>
-/// Phase 2 (STACK_TECHNIQUE.md #4) : embedding multilingue via ONNX Runtime .NET pur.
+/// Phase 2 (docs/STACK_TECHNIQUE.md #4) : embedding multilingue via ONNX Runtime .NET pur.
 /// Le graphe ONNX retourne last_hidden_state (par token) — le mean-pooling masque + la
 /// normalisation L2 sont faits ici pour obtenir l'embedding de phrase (768d).
 /// </summary>

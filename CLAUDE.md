@@ -1,23 +1,25 @@
 # AGIRH V8 — Contexte projet
 
-Assistant RH agentique (Onboarding/Offboarding), stage été 2026. Projet reconstruit de zéro le 2026-08-14 (V7→V8) — voir `HISTORIQUE.md` pour le pourquoi.
+Assistant RH agentique (Onboarding/Offboarding), stage été 2026. Projet reconstruit de zéro le 2026-08-14 (V7→V8) — voir `docs/HISTORIQUE.md` pour le pourquoi.
 
 ## Rôle de chaque session : exécutant, pas décideur
 
-Ce dépôt encode déjà toutes les décisions produit et techniques actées avec le porteur du projet (`LOGIQUE_METIER.md`, `STACK_TECHNIQUE.md`, `ARCHITECTURE.md`). **Une session qui reprend ce projet — en particulier depuis un autre appareil — doit exécuter la suite du plan déjà acté, pas le réinventer ni improviser.**
+Ce dépôt encode déjà toutes les décisions produit et techniques actées avec le porteur du projet (`docs/LOGIQUE_METIER.md`, `docs/STACK_TECHNIQUE.md`, `docs/ARCHITECTURE.md`). **Une session qui reprend ce projet — en particulier depuis un autre appareil — doit exécuter la suite du plan déjà acté, pas le réinventer ni improviser.**
 
 - Ne jamais trancher seul(e) une question de logique métier, d'architecture, ou de choix technique qui n'est pas déjà répondue dans ces documents. Si une décision manque : l'ajouter à la section "Décisions en attente" de `HANDOFF/NEXT_SESSION.md` et **poser la question au porteur du projet** plutôt que de choisir à sa place. C'est le mode de collaboration établi depuis le début de ce projet — beaucoup de questions avant d'agir, jamais de décision produit unilatérale.
-- Suivre l'ordre de construction déjà acté (`LOGIQUE_METIER.md` §10, `CHECKLIST.md`) plutôt que de réordonner les priorités de sa propre initiative.
+- Suivre l'ordre de construction déjà acté (`docs/LOGIQUE_METIER.md` §10, `docs/CHECKLIST.md`) plutôt que de réordonner les priorités de sa propre initiative.
 - Ne pas réinterpréter ou "améliorer" silencieusement une décision déjà actée. Un désaccord ou une meilleure idée se signale explicitement au porteur du projet, ne s'applique pas unilatéralement.
 - En cas de doute entre "je décide" et "je demande" : demander. Le coût d'une question est faible ; le coût d'une décision produit prise à la place du porteur du projet ne l'est pas.
 
 ## Documents canoniques (lire dans cet ordre)
 1. **`HANDOFF/NEXT_SESSION.md`** — point de départ obligatoire : état courant, prochaine action concrète.
-2. `CHECKLIST.md` — suivi détaillé milestone par milestone (statuts en émojis).
-3. `LOGIQUE_METIER.md` — rôles, workflows, RBAC, garde-fous IA.
-4. `STACK_TECHNIQUE.md` — stack backend/frontend/données/IA.
-5. `ARCHITECTURE.md` — hexagonal, arborescence, diagrammes.
+2. `docs/CHECKLIST.md` — suivi détaillé milestone par milestone (statuts en émojis).
+3. `docs/LOGIQUE_METIER.md` — rôles, workflows, RBAC, garde-fous IA.
+4. `docs/STACK_TECHNIQUE.md` — stack backend/frontend/données/IA.
+5. `docs/ARCHITECTURE.md` — hexagonal, arborescence, diagrammes.
 6. `.claude/context/PROJECT_STATE.md` — pointeur pour les agents custom (`.claude/agents/`).
+
+Les autres documents de cadrage (`docs/HISTORIQUE.md`, `docs/SUJET_STAGE.md`) et la documentation complémentaire (`docs/notebooklm/`) vivent aussi sous `docs/` — seuls `CLAUDE.md` (chargé automatiquement par l'outillage) et `README.md` (convention GitHub) restent à la racine du dépôt.
 
 ## Protocole de continuité entre sessions (PC ↔ mobile)
 
@@ -28,7 +30,7 @@ Ce projet est travaillé depuis plusieurs appareils (poste de travail + Claude C
 **En fin de session, ou après un changement significatif** (jalon terminé, décision produit/technique actée, bug important corrigé) :
 1. Réécrire `HANDOFF/NEXT_SESSION.md` — c'est un instantané de l'état courant, pas un journal (ne pas y accumuler l'historique).
 2. Ajouter une entrée en fin de `HANDOFF/LOG.md` (date, appareil/session, ce qui a été fait, ce qui reste) — ne jamais modifier une entrée existante.
-3. Mettre à jour `CHECKLIST.md` si un milestone a changé de statut.
+3. Mettre à jour `docs/CHECKLIST.md` si un milestone a changé de statut.
 4. `git add`, `git commit`, `git push origin master`.
 
 **Ne pas sauter cette étape**, même pour une session courte — c'est le seul mécanisme qui permet à l'autre appareil de savoir ce qui a été fait. Sans push, le travail reste invisible ailleurs.

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AGIRH_API_URL } from "@/lib/api/config";
 import { definirSession } from "@/lib/api/session";
 
-// BFF (STACK_TECHNIQUE.md #2) : le navigateur appelle cette route, jamais l'Api .NET
+// BFF (docs/STACK_TECHNIQUE.md #2) : le navigateur appelle cette route, jamais l'Api .NET
 // directement. Le token JWT reçu de l'Api est posé en cookie httpOnly ici et jamais renvoyé
 // dans le corps de la réponse — le client ne le voit jamais en clair.
 export async function POST(request: NextRequest) {

@@ -6,7 +6,7 @@ using Qdrant.Client;
 namespace Agirh.Tests.Rag;
 
 /// <summary>
-/// Test capstone : chaine les 4 phases (STACK_TECHNIQUE.md #4) sur un vrai document du
+/// Test capstone : chaine les 4 phases (docs/STACK_TECHNIQUE.md #4) sur un vrai document du
 /// corpus (corpus/01_politique_onboarding.md), avec les vrais modeles ONNX et un vrai
 /// Qdrant. Se termine sans assertion si l'un des prerequis (modeles, Qdrant) est absent.
 /// </summary>

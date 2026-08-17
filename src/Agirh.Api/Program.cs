@@ -79,7 +79,7 @@ builder.Services.AddSingleton<SseNotificationBroadcaster>();
 
 builder.Services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
 
-// Pipeline RAG (STACK_TECHNIQUE.md #4) + orchestration conversationnelle (#5).
+// Pipeline RAG (docs/STACK_TECHNIQUE.md #4) + orchestration conversationnelle (#5).
 // Racine du depot resolue dynamiquement (pas de chemin absolu fige) pour retrouver models/ et corpus/
 // quel que soit le repertoire de travail depuis lequel l'Api est lancee.
 var racineDepot = TrouverRacineDepot(AppContext.BaseDirectory);

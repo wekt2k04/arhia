@@ -28,11 +28,11 @@ public class ChatController : ControllerBase
     }
 
     /// <summary>
-    /// SSE (STACK_TECHNIQUE.md §1) : un événement "fragment" par morceau de texte reçu du
+    /// SSE (docs/STACK_TECHNIQUE.md §1) : un événement "fragment" par morceau de texte reçu du
     /// générateur au fur et à mesure de sa génération, puis exactement un événement "termine"
     /// portant sourcee/sources. Un refus RBAC (AccesRefuseException) se traduit en message
     /// conversationnel plutôt qu'une erreur HTTP au milieu du flux — même choix de design que la
-    /// version JSON qu'elle remplace (LOGIQUE_METIER.md §9 : l'agent est conversationnel, pas une
+    /// version JSON qu'elle remplace (docs/LOGIQUE_METIER.md §9 : l'agent est conversationnel, pas une
     /// API technique brute).
     /// </summary>
     [HttpGet("demander")]

@@ -9,9 +9,9 @@ using Agirh.Domain.Entities;
 namespace Agirh.Core.UseCases;
 
 /// <summary>
-/// Orchestration conversationnelle (STACK_TECHNIQUE.md #5, ARCHITECTURE.md §5) : Router puis,
+/// Orchestration conversationnelle (docs/STACK_TECHNIQUE.md #5, docs/ARCHITECTURE.md §5) : Router puis,
 /// selon l'intention, pipeline RAG (embedding -> recherche Qdrant -> reranking) ou lecture
-/// seule d'un WorkflowInstance. Garde-fous LOGIQUE_METIER.md §9 : informatif uniquement,
+/// seule d'un WorkflowInstance. Garde-fous docs/LOGIQUE_METIER.md §9 : informatif uniquement,
 /// anti-hallucination applique en code (jamais d'appel au generateur sans chunk pertinent),
 /// RBAC applique avant toute lecture de dossier.
 /// </summary>
@@ -84,7 +84,7 @@ public sealed class RepondreConversationUseCase
     }
 
     /// <summary>
-    /// Équivalent streamé de <see cref="ExecuterAsync"/>, pour le chat SSE (STACK_TECHNIQUE.md
+    /// Équivalent streamé de <see cref="ExecuterAsync"/>, pour le chat SSE (docs/STACK_TECHNIQUE.md
     /// §1). Émet un FragmentTexte par fragment de texte reçu du générateur (branche
     /// documentaire) ou un seul FragmentTexte pour les branches déjà synchrones (statut de
     /// dossier, hors périmètre — pas de generation LLM a etaler dans le temps), puis exactement

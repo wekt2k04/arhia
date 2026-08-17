@@ -75,7 +75,7 @@ public sealed class GoldCorpusFixture : IAsyncLifetime
 }
 
 /// <summary>
-/// Mesure de retrieval (STACK_TECHNIQUE.md #4, milestone 9) : pour chaque question
+/// Mesure de retrieval (docs/STACK_TECHNIQUE.md #4, milestone 9) : pour chaque question
 /// "documentaire" du jeu de Q/R gold, le document en tête après reranking doit être l'une des
 /// sources acceptées. Rapide et déterministe (pas d'appel LLM) — fait partie de la suite par
 /// défaut. La fidélité de la réponse générée (avec LLM) est mesurée séparément par

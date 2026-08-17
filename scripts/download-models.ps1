@@ -1,6 +1,6 @@
 <#
 Telecharge les poids ONNX et fichiers de tokenisation necessaires au pipeline RAG
-(STACK_TECHNIQUE.md #4). Idempotent : ne re-telecharge pas un fichier deja present.
+(docs/STACK_TECHNIQUE.md #4). Idempotent : ne re-telecharge pas un fichier deja present.
 Jamais commite (voir .gitignore) - a relancer sur toute nouvelle machine/session.
 #>
 

@@ -32,7 +32,7 @@ public sealed class InscrireUseCase
 
         var hash = _hasher.HacherMotDePasse(motDePasseEnClair);
 
-        // Auto-inscription → toujours rôle Collaborateur, jamais élevé à l'inscription (LOGIQUE_METIER.md §1)
+        // Auto-inscription → toujours rôle Collaborateur, jamais élevé à l'inscription (docs/LOGIQUE_METIER.md §1)
         var compte = new CompteUtilisateur(Guid.NewGuid(), email, hash, RoleType.Collaborateur, null, dateCreation);
 
         await _comptes.AjouterAsync(compte, ct);

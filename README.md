@@ -42,7 +42,7 @@ graph TB
     Front -.HTTP/SSE.-> Api
 ```
 
-Détail complet, diagrammes de flux et arborescence cible : [`ARCHITECTURE.md`](ARCHITECTURE.md).
+Détail complet, diagrammes de flux et arborescence cible : [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ### Pipeline RAG (4 phases, toutes obligatoires)
 
@@ -71,7 +71,7 @@ du Router qui ne matche pas exactement l'un des trois cas retombe par défaut su
 | Déploiement démo | Docker Compose |
 | Tests | xUnit, Moq, FluentAssertions |
 
-Détail et justification de chaque choix : [`STACK_TECHNIQUE.md`](STACK_TECHNIQUE.md).
+Détail et justification de chaque choix : [`docs/STACK_TECHNIQUE.md`](docs/STACK_TECHNIQUE.md).
 
 ## Démarrage rapide
 
@@ -79,7 +79,7 @@ Détail et justification de chaque choix : [`STACK_TECHNIQUE.md`](STACK_TECHNIQU
 
 - .NET 8 SDK, Node 20+ (18.20 minimum pour le développement local hors Docker), Docker.
 - [Ollama](https://ollama.com) installé nativement avec `phi4-mini:3.8b` disponible
-  (`ollama pull phi4-mini:3.8b`) — non conteneurisé, voir `STACK_TECHNIQUE.md` §2.
+  (`ollama pull phi4-mini:3.8b`) — non conteneurisé, voir `docs/STACK_TECHNIQUE.md` §2.
 
 ### Option A — Docker Compose (recommandé pour une démo)
 
@@ -118,9 +118,11 @@ src/
   Agirh.Infrastructure/   adaptateurs : EF Core, Qdrant, ONNX (RAG), Ollama (LLM), SSE
   Agirh.Api/              Controllers, composition root (Program.cs)
 frontend/                 Next.js — BFF, chat, notifications, pages d'auth
-corpus/                   corpus source du pipeline RAG (documents Markdown)
+corpus/                   corpus source du pipeline RAG (documents Markdown, lu par l'ingestion)
 tests/Agirh.Tests/        xUnit + Moq + FluentAssertions
-docs/notebooklm/          synthèses approfondies (architecture, IA, Docker, workflows)
+docs/                      documents de cadrage (LOGIQUE_METIER, STACK_TECHNIQUE, ARCHITECTURE,
+                            CHECKLIST, HISTORIQUE, SUJET_STAGE) + docs/notebooklm/ (synthèses
+                            approfondies : architecture, IA, Docker, workflows)
 APPRENTISSAGE/            notes de montée en compétence personnelle
 HANDOFF/                  protocole de continuité entre sessions de travail
 ```
@@ -129,11 +131,11 @@ HANDOFF/                  protocole de continuité entre sessions de travail
 
 | Document | Contenu |
 |---|---|
-| [`LOGIQUE_METIER.md`](LOGIQUE_METIER.md) | Rôles, workflows métier, RBAC, garde-fous IA |
-| [`STACK_TECHNIQUE.md`](STACK_TECHNIQUE.md) | Stack backend/frontend/données/IA et justifications |
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | Détail hexagonal, arborescence, diagrammes de flux |
-| [`CHECKLIST.md`](CHECKLIST.md) | Suivi milestone par milestone, statut réel |
-| [`HISTORIQUE.md`](HISTORIQUE.md) | Pourquoi le projet a été reconstruit de zéro (V7→V8) |
+| [`docs/LOGIQUE_METIER.md`](docs/LOGIQUE_METIER.md) | Rôles, workflows métier, RBAC, garde-fous IA |
+| [`docs/STACK_TECHNIQUE.md`](docs/STACK_TECHNIQUE.md) | Stack backend/frontend/données/IA et justifications |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Détail hexagonal, arborescence, diagrammes de flux |
+| [`docs/CHECKLIST.md`](docs/CHECKLIST.md) | Suivi milestone par milestone, statut réel |
+| [`docs/HISTORIQUE.md`](docs/HISTORIQUE.md) | Pourquoi le projet a été reconstruit de zéro (V7→V8) |
 | [`docs/notebooklm/`](docs/notebooklm/) | Approfondissements (architecture, RAG, orchestration IA, Docker, workflows) |
 
 ## Statut du projet
@@ -142,4 +144,4 @@ Milestones 0-9 et 11 terminés — application fonctionnelle de bout en bout, y 
 Compose sur base fraîche : inscription/connexion, chat en streaming réel, notifications en
 direct. Restent ouverts : l'affinage du routeur conversationnel (~27% de mauvais routage mesuré,
 mis de côté volontairement), la reconfirmation du jeu de questions/réponses de référence, et
-quelques endpoints de lecture annexes. Détail exhaustif dans [`CHECKLIST.md`](CHECKLIST.md).
+quelques endpoints de lecture annexes. Détail exhaustif dans [`docs/CHECKLIST.md`](docs/CHECKLIST.md).

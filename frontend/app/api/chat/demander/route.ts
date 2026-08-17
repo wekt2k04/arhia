@@ -3,7 +3,7 @@ import { AGIRH_API_URL } from "@/lib/api/config";
 import { obtenirToken } from "@/lib/api/session";
 
 // Jamais mis en cache/optimisé statiquement : c'est un flux SSE, par nature différent à chaque
-// requête (STACK_TECHNIQUE.md #1).
+// requête (docs/STACK_TECHNIQUE.md #1).
 export const dynamic = "force-dynamic";
 
 // Proxy BFF pur : relit le cookie de session, ajoute le Bearer token, et relaie tel quel le flux

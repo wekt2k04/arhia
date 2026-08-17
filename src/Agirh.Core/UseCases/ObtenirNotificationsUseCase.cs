@@ -7,7 +7,7 @@ using Agirh.Domain.Entities;
 namespace Agirh.Core.UseCases;
 
 /// <summary>
-/// Barre de notifications (03_guide_referent_pole.md §3, LOGIQUE_METIER.md §9). Calculée à la
+/// Barre de notifications (03_guide_referent_pole.md §3, docs/LOGIQUE_METIER.md §9). Calculée à la
 /// demande à partir des données déjà persistées (WorkflowInstance, Collaborateur,
 /// WorkflowTemplate) — pas de table Notification dédiée, pas d'événement à émettre : toute
 /// nouvelle lecture reflète l'état courant. Seuils (3 jours) fixés avec le porteur du projet ;

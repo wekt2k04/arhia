@@ -6,7 +6,7 @@ namespace Agirh.Infrastructure.Llm;
 
 /// <summary>
 /// Client HTTP bas niveau pour l'API Ollama locale (POST /api/generate, stream=false).
-/// Partagé par le routeur et le générateur (STACK_TECHNIQUE.md #5).
+/// Partagé par le routeur et le générateur (docs/STACK_TECHNIQUE.md #5).
 /// </summary>
 public sealed class OllamaClient
 {

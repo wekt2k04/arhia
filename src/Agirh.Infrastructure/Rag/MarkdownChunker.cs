@@ -5,7 +5,7 @@ namespace Agirh.Infrastructure.Rag;
 public sealed record ChunkBrut(string CheminTitres, string Contenu, int NombreTokens);
 
 /// <summary>
-/// Decoupage structurel (STACK_TECHNIQUE.md phase 1) : un chunk = une section Markdown
+/// Decoupage structurel (docs/STACK_TECHNIQUE.md phase 1) : un chunk = une section Markdown
 /// (chemin de titres H1&gt;H2&gt;H3 prefixe au contenu pour le contexte), sous-decoupee par
 /// paragraphe avec recouvrement si elle depasse le budget de tokens.
 /// </summary>

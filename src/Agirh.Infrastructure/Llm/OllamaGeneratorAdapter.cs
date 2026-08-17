@@ -4,7 +4,7 @@ using Agirh.Core.Ports;
 namespace Agirh.Infrastructure.Llm;
 
 /// <summary>
-/// Générateur (STACK_TECHNIQUE.md #5) : phi4-mini:3.8b par défaut sur cette infra (gemma4:12b
+/// Générateur (docs/STACK_TECHNIQUE.md #5) : phi4-mini:3.8b par défaut sur cette infra (gemma4:12b
 /// testé en réel : plus de 2 minutes sans réponse, pas de GPU adapté ici). Modèle configurable
 /// (Ollama:GeneratorModele, Program.cs) pour permettre de basculer vers le serveur Ollama
 /// d'entreprise du porteur du projet (modèles plus capables) sans recompiler.
