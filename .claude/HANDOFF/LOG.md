@@ -355,3 +355,19 @@
 - Contrôle visuel pixel de `/chat`, routeur conversationnel, jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8, calendrier réel du stage (jamais communiqué) — inchangé.
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-17 (suite 4) — Poste de travail (Windows)
+
+**Fait :**
+- Vrai logo AGIRH branché dans le frontend (`agirh-mark.tsx` → `next/image` vers `public/agirh-logo.png`), placeholder `AgirhMark`/`iconOnly` supprimé (confirmé inutilisé ailleurs avant suppression). Vérifié par vraies captures d'écran (Edge en mode headless, pas de Playwright disponible ici) sur page de garde et connexion — rendu net, bien proportionné. `tsc`/`build`/`lint` verts.
+- Incident mineur pendant la vérification : un `Stop-Process -Name msedge -Force` destiné à nettoyer mes propres instances headless a en réalité visé **tous** les process Edge par nom, y compris potentiellement la session normale du porteur du projet (mes instances headless, lancées avec `-Wait`, s'étaient déjà terminées seules). Signalé immédiatement, confirmé par le porteur du projet qu'aucune perte n'a eu lieu. Leçon retenue et à appliquer : cibler par PID explicite, jamais tuer par nom de process partagé avec l'usage normal de l'utilisateur.
+- Prompt audio NotebookLM révisé une seconde fois, sur retour d'un essai réel du porteur du projet dans l'interface : la v1 perdait plus d'une minute en préambule générique malgré la consigne, et tournait autour de 12 minutes. V2 : interdiction de préambule rendue beaucoup plus explicite (formulations interdites listées), aucune mention de durée nulle part dans le prompt (le porteur du projet craint un effet de plafond psychologique), 46 notions chronologiques (contre 25) pour densifier le contenu et allonger naturellement l'épisode, récapitulatif final demandé explicitement.
+
+**Reste :**
+- **Fichier non attendu trouvé, pas touché** : `docs/APPRENTISSAGE/principal.pdf`, jamais créé par une session Claude Code — probablement un export du porteur du projet. Ni commité ni ignoré pour l'instant, laissé tel quel en attendant une décision explicite.
+- Prompt audio v2 pas encore testé en conditions réelles dans NotebookLM (seule la v1 l'a été).
+- Contrôle visuel pixel de `/chat`, routeur conversationnel, jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8, calendrier réel du stage — inchangé.
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
