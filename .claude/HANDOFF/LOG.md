@@ -337,3 +337,21 @@
 - Contrôle visuel pixel de `/chat`, routeur conversationnel, jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8 — inchangé.
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-17 (suite 3) — Poste de travail (Windows)
+
+**Fait :**
+- `prompt-quiz.md` → `prompt-flashcards.md`, sur demande explicite du porteur du projet (voulait des flashcards, pas un quiz à choix multiples). Contenu réécrit pour le vrai format NotebookLM (type Question/Réponse, chemin de fichier sur la face arrière plutôt que des distracteurs qui n'avaient plus de sens). Au passage, correction du prompt audio : le porteur du projet l'avait retaillé lui-même mais dépassait la limite de 500 caractères (575) — retaillé de nouveau (471) en gardant l'esprit de sa reformulation plus dense.
+- `docs/APPRENTISSAGE/principal.md` restructuré autour de la partie IA/ML sur demande explicite et répétée ("je dois très bien maîtriser tout ce qui est de l'IA en fait") : les 4 phases RAG + Router + Generator/garde-fou avec du vrai code source cité (chemin **et numéros de ligne exacts**, vérifiés via `grep -n` sur les vrais fichiers avant citation, jamais fabriqués) + une carte des 12 fichiers du sous-système IA. Reste du document resserré pour respecter la contrainte de recopie manuelle explicitement rappelée par le porteur du projet — plusieurs passes de coupe (183 → 321 → 298 lignes) après avoir signalé que la première version dépassait sans doute la limite.
+- **Présentation de soutenance générée** (`docs/presentations/`) : demande initiale "va directement, pas de questions, je te fais confiance" — recherche de contexte faite quand même avant d'agir (dossier `presentation/` du Bureau, images = vrais logos AGIRH/ENSA Safi, pas des logos inventés). Un `script_orateur.md` antérieur trouvé dans ce dossier décrivait une architecture Python/FastAPI/Microsoft-Agent-Framework sans rapport avec le projet réel — **volontairement pas utilisé comme base** (mtime très antérieur au reset V7→V8), tout le contenu généré vient du projet réel et vérifié. 20 slides via `python-pptx` (déjà installé), thème sombre indigo extrait des vraies couleurs du produit (`globals.css`). **Vérification visuelle réelle** : chaque slide exportée en PNG via automatisation COM PowerPoint et inspectée à l'image — 4 bugs trouvés et corrigés (logo débordant, titre traversé par son soulignement, chevauchement de texte, flèche de diagramme orpheline).
+- Question du porteur du projet sur la place de `docs/` dans Git ("GitHub c'est pour le code non ?") — corrigée : `docs/` est déjà versionné depuis le début du projet (LOGIQUE_METIER.md, STACK_TECHNIQUE.md, etc., tous déjà commités). La vraie distinction pertinente : binaire (pas diffable, gonfle l'historique) vs texte, pas "dans docs/" vs "pas dans docs/". Décision actée : script Python de génération (texte, reproductible) commité, `.pptx` généré gitignoré, son existence documentée dans `script_orateur.md`.
+
+**Reste :**
+- **Vrai logo AGIRH disponible mais pas encore branché** dans `frontend/components/agirh-mark.tsx` (toujours le placeholder `UsersRound`) — ce n'est plus une attente d'un fichier manquant, le fichier existe (`presentation/assets/agirh_white_rgba.png`, hors dépôt).
+- Présentation jamais répétée à voix haute (minutage ~15 min visé, pas chronométré).
+- Prompts NotebookLM toujours jamais exécutés dans l'interface réelle.
+- Contrôle visuel pixel de `/chat`, routeur conversationnel, jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8, calendrier réel du stage (jamais communiqué) — inchangé.
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
