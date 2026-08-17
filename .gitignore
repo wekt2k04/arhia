@@ -25,3 +25,6 @@ logs/
 # ── Modèles IA (poids ONNX, plusieurs centaines de Mo — jamais commités) ──
 rag/models/
 qdrant_storage/
+
+# ── Presentation generee (binaire, non diffable — regenerable via generate_pptx.py) ──
+docs/presentations/*.pptx
