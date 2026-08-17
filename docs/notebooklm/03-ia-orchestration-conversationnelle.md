@@ -83,6 +83,51 @@ que le modèle "voie" le pattern attendu). Un prompt minimal, sans ces exemples,
 question générale ("qui signe la fiche de décharge ?") comme une question de statut personnel —
 alors qu'elle relève en réalité d'une question documentaire sur une procédure.
 
+**Code réel — le prompt système complet du Router** (`src/Agirh.Infrastructure/Llm/OllamaRouterAdapter.cs`),
+tel qu'il est réellement envoyé au modèle à chaque question :
+
+```
+Tu es un classifieur d'intention pour un assistant RH interne. Classe la question dans EXACTEMENT
+une categorie parmi les trois suivantes. Reponds UNIQUEMENT par un de ces 3 mots exacts, en
+majuscules, rien d'autre : DOCUMENTAIRE, STATUT_DOSSIER, HORS_PERIMETRE.
+
+Regle cle : si la question ne contient PAS "mon", "ma", "je", "j'ai", ou "moi", classe-la TOUJOURS
+en DOCUMENTAIRE (jamais STATUT_DOSSIER), meme si elle parle de dossier, fiche ou signature en
+general.
+
+DOCUMENTAIRE : question generale sur une politique, regle, procedure ou charte de l'entreprise,
+applicable a tout le monde.
+"Quelle est la politique de mot de passe ?" -> DOCUMENTAIRE
+"Qui signe la fiche de decharge ?" -> DOCUMENTAIRE (question generale sur QUI signe, pas sur MON dossier)
+
+STATUT_DOSSIER : question sur l'avancement du dossier PERSONNEL de l'utilisateur, contient
+obligatoirement mon/ma/je/j'ai/moi.
+"Ou en est mon onboarding ?" -> STATUT_DOSSIER
+
+HORS_PERIMETRE : toute autre question sans lien avec les politiques de l'entreprise ou un dossier
+onboarding/offboarding.
+```
+
+Puis, côté code, la sortie brute du modèle est parsée ainsi (extrait réel) :
+
+```csharp
+var normalise = (reponseBrute ?? string.Empty).Trim().ToUpperInvariant();
+
+if (normalise.Contains("STATUT_DOSSIER"))
+    return IntentionConversation.StatutDossier;
+
+if (normalise.Contains("DOCUMENTAIRE"))
+    return IntentionConversation.QuestionDocumentaire;
+
+// tout le reste (y compris une sortie vide, un timeout, un mot halluciné) -> HorsPerimetre
+```
+
+> **Règle métier à retenir** : la "règle clé" du prompt (mon/ma/je/j'ai/moi comme seul signal
+> autorisé pour `STATUT_DOSSIER`) est une **heuristique lexicale explicite écrite en langage
+> naturel dans le prompt**, pas une règle codée en C#. C'est précisément la limite documentée
+> plus bas : un petit modèle peut échouer à appliquer correctement une règle qui lui est pourtant
+> énoncée noir sur blanc.
+
 Une observation empirique importante, obtenue en testant directement sur le projet : **doubler le
 nombre d'exemples few-shot dans le prompt du Router n'a eu aucun effet mesurable** sur le taux de
 mauvaise classification (~27% mesuré sur un jeu de 48 questions de test, voir plus bas). Cette
@@ -126,6 +171,51 @@ seuil de pertinence), le **Generator n'est même pas appelé**. Le système rép
 n'ai pas trouvé cette information", sans jamais donner au modèle l'opportunité d'halluciner une
 réponse à partir de rien. C'est un garde-fou en code, vérifiable et testé (couvert par des tests
 unitaires dédiés), pas une simple consigne dans un prompt que le modèle pourrait ne pas suivre.
+
+**Code réel — le garde-fou complet** (`src/Agirh.Core/UseCases/RepondreConversationUseCase.cs`),
+retrieval → reranking → filtrage par seuil → décision d'appeler ou non le Generator :
+
+```csharp
+private const float SeuilPertinenceMinimum = 0.01f;
+
+private async Task<PreparationDocumentaire> PreparerContexteDocumentaireAsync(
+    string question, CancellationToken ct)
+{
+    var vecteurRequete = await _embedding.GenererEmbeddingAsync(question, ct);
+    var candidats = await _rechercheVectorielle.RechercherAsync(vecteurRequete, TopKRecherche, ct);
+
+    if (candidats.Count == 0)
+        return new PreparationDocumentaire(false, null, Array.Empty<ChunkDocumentaire>());
+
+    var rerankes = await _reranker.RerankAsync(question, candidats, ct);
+    var meilleurs = rerankes
+        .Where(c => c.Score >= SeuilPertinenceMinimum)
+        .Take(TopKApresReranking)
+        .ToList();
+
+    if (meilleurs.Count == 0)
+        return new PreparationDocumentaire(false, null, Array.Empty<ChunkDocumentaire>());
+
+    // ... construction du system prompt avec le contexte trouvé ...
+    return new PreparationDocumentaire(true, systemPrompt, meilleurs);
+}
+```
+
+Le champ `Trouve` (premier élément du tuple `PreparationDocumentaire`) est vérifié par l'appelant
+**avant** toute tentative d'appel au Generator :
+
+```csharp
+var preparation = await PreparerContexteDocumentaireAsync(question, ct);
+if (!preparation.Trouve)
+    return ReponseNonTrouvee(); // le Generator n'est jamais invoqué dans cette branche
+```
+
+> **Règle métier à retenir, la plus importante du document** : il existe **deux** portes de sortie
+> anticipée avant le Generator (`candidats.Count == 0` juste après Qdrant, et `meilleurs.Count == 0`
+> après filtrage par le reranker) — pas une seule. Même si Qdrant retourne des résultats, si aucun
+> ne passe le seuil de pertinence post-reranking, le Generator reste non appelé. C'est cette
+> double porte, pas une simple instruction de prompt, qui rend le mode de défaillance du système
+> "gracieusement faux" plutôt que "confiant et faux".
 
 ### Un agent strictement informatif, jamais un agent d'action
 

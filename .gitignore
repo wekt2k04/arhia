@@ -23,5 +23,5 @@ coverage.*
 logs/
 
 # ── Modèles IA (poids ONNX, plusieurs centaines de Mo — jamais commités) ──
-models/
+rag/models/
 qdrant_storage/

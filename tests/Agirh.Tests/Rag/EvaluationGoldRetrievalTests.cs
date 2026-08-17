@@ -10,8 +10,8 @@ namespace Agirh.Tests.Rag;
 
 /// <summary>
 /// Fixture partagée (une seule fois pour toute la classe, pas par question) : ingère le vrai
-/// corpus/*.md dans Qdrant sous ses vrais noms de documents avant de mesurer la précision de
-/// récupération sur le jeu de Q/R gold (eval/gold_qa.json, milestone 9). Se termine sans
+/// rag/corpus/*.md dans Qdrant sous ses vrais noms de documents avant de mesurer la précision de
+/// récupération sur le jeu de Q/R gold (rag/eval/gold_qa.json, milestone 9). Se termine sans
 /// initialiser <see cref="PrerequisDisponibles"/> si modèles ONNX ou Qdrant sont absents.
 /// </summary>
 public sealed class GoldCorpusFixture : IAsyncLifetime
@@ -28,7 +28,7 @@ public sealed class GoldCorpusFixture : IAsyncLifetime
         var embeddingSpm = Path.Combine(RepoPaths.ModelesEmbedding, "sentencepiece.bpe.model");
         var rerankerOnnx = Path.Combine(RepoPaths.ModelesReranker, "model_quantized.onnx");
         var rerankerSpm = Path.Combine(RepoPaths.ModelesReranker, "sentencepiece.bpe.model");
-        var corpusDir = Path.Combine(RepoPaths.Racine, "corpus");
+        var corpusDir = Path.Combine(RepoPaths.Racine, "rag", "corpus");
 
         if (!File.Exists(embeddingOnnx) || !File.Exists(embeddingSpm)) return;
         if (!File.Exists(rerankerOnnx) || !File.Exists(rerankerSpm)) return;
@@ -102,7 +102,7 @@ public class EvaluationGoldRetrievalTests : IClassFixture<GoldCorpusFixture>
         // topK large + filtre sur les vrais noms de documents : Qdrant est persistant (volume nommé)
         // et peut contenir des fixtures d'autres tests (ex. PipelineCompletCorpusReelTests) au contenu
         // parfois identique à un vrai document sous un autre nom — même pattern de fix que
-        // RagPipelineIntegrationTests (cf. HANDOFF/NEXT_SESSION.md).
+        // RagPipelineIntegrationTests (cf. .claude/HANDOFF/NEXT_SESSION.md).
         var candidatsBruts = await _fixture.VectorSearch!.RechercherAsync(vecteurRequete, topK: 20);
         var candidats = candidatsBruts.Where(c => _fixture.NomsDocumentsReels.Contains(c.DocumentSource)).ToList();
         candidats.Should().NotBeEmpty($"la question gold {gold.Id} doit retrouver au moins un candidat du vrai corpus indexé");

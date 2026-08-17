@@ -80,11 +80,11 @@ builder.Services.AddSingleton<SseNotificationBroadcaster>();
 builder.Services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
 
 // Pipeline RAG (docs/STACK_TECHNIQUE.md #4) + orchestration conversationnelle (#5).
-// Racine du depot resolue dynamiquement (pas de chemin absolu fige) pour retrouver models/ et corpus/
-// quel que soit le repertoire de travail depuis lequel l'Api est lancee.
+// Racine du depot resolue dynamiquement (pas de chemin absolu fige) pour retrouver rag/models/ et
+// rag/corpus/ quel que soit le repertoire de travail depuis lequel l'Api est lancee.
 var racineDepot = TrouverRacineDepot(AppContext.BaseDirectory);
-var modelesEmbeddingDir = Path.Combine(racineDepot, "models", "embedding");
-var modelesRerankerDir = Path.Combine(racineDepot, "models", "reranker");
+var modelesEmbeddingDir = Path.Combine(racineDepot, "rag", "models", "embedding");
+var modelesRerankerDir = Path.Combine(racineDepot, "rag", "models", "reranker");
 
 builder.Services.AddSingleton<IEmbeddingPort>(_ => new OnnxEmbeddingAdapter(
     Path.Combine(modelesEmbeddingDir, "model_quantized.onnx"),
@@ -102,7 +102,7 @@ builder.Services.AddSingleton(_ => XlmRobertaTokenizer.ChargerDepuisFichier(
     Path.Combine(modelesEmbeddingDir, "sentencepiece.bpe.model")));
 builder.Services.AddSingleton<IDocumentChunkerPort>(sp =>
     new MarkdownChunkerAdapter(sp.GetRequiredService<XlmRobertaTokenizer>()));
-builder.Services.AddSingleton(new Agirh.Api.Controllers.CorpusOptions(Path.Combine(racineDepot, "corpus")));
+builder.Services.AddSingleton(new Agirh.Api.Controllers.CorpusOptions(Path.Combine(racineDepot, "rag", "corpus")));
 builder.Services.AddScoped<IngererCorpusUseCase>();
 
 builder.Services.AddHttpClient<OllamaClient>(client =>

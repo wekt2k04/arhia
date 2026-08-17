@@ -6,7 +6,7 @@ namespace Agirh.Tests.Rag;
 
 /// <summary>
 /// Test d'integration reel contre le modele ONNX de reranking (~570 Mo, non commite -
-/// voir scripts/download-models.ps1). Se termine sans assertion si le modele est absent.
+/// voir .claude/scripts/download-models.ps1). Se termine sans assertion si le modele est absent.
 /// </summary>
 public class OnnxRerankerAdapterTests
 {

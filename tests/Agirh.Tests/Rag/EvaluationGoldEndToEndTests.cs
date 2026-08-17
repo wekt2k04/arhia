@@ -10,7 +10,7 @@ using Xunit;
 namespace Agirh.Tests.Rag;
 
 /// <summary>
-/// Évaluation de bout en bout du jeu de Q/R gold (eval/gold_qa.json, milestone 9) : chaîne
+/// Évaluation de bout en bout du jeu de Q/R gold (rag/eval/gold_qa.json, milestone 9) : chaîne
 /// réelle Router → RAG → Generator via Ollama (phi4-mini:3.8b), pas de mock. Mesure à la fois le
 /// routage (documentaire / hors périmètre) et la fidélité de la réponse générée.
 ///

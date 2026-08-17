@@ -71,7 +71,7 @@ frontend/
     chat/                 interface post-connexion : chat + barre de notifications
   lib/api/                BFF (cookie httpOnly, jamais le JWT exposé au client)
 
-corpus/                     corpus source du pipeline RAG (6 documents Markdown, milestone 7/9 CHECKLIST.md) —
+rag/corpus/                 corpus source du pipeline RAG (6 documents Markdown, milestone 7/9 CHECKLIST.md) —
                             lu par l'adaptateur d'ingestion (Agirh.Infrastructure/Rag/), jamais par le code applicatif directement
 
 tests/

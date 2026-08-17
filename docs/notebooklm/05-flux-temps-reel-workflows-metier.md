@@ -65,6 +65,22 @@ Ce parcours traverse la quasi-totalité des couches décrites dans les documents
    fragment de texte généré part immédiatement en frame SSE nommée `fragment`.
 7. Une fois la génération terminée, une frame finale `termine` porte deux informations : si la
    réponse est effectivement sourcée (`sourcee`), et la liste des sources utilisées.
+
+Code réel de l'écriture d'une frame (`src/Agirh.Api/Controllers/ChatController.cs`) — chaque événement
+métier (`FragmentTexte`, `ReponseTerminee`) est traduit en une frame SSE nommée :
+
+```csharp
+private async Task EcrireEvenementAsync(EvenementConversation evenement, CancellationToken ct)
+{
+    var (type, donnees) = evenement switch
+    {
+        FragmentTexte f => ("fragment", (object)new { texte = f.Texte }),
+        ReponseTerminee r => ("termine", new { sourcee = r.Sourcee, sources = r.Sources }),
+        _ => throw new InvalidOperationException()
+    };
+    // écrit "event: {type}\ndata: {json}\n\n" et flush immédiatement la réponse HTTP
+}
+```
 8. Côté navigateur, le composant `ChatWidget` accumule chaque fragment reçu dans le message en
    cours de construction (l'utilisateur voit le texte apparaître progressivement), puis affiche
    les sources une fois la frame `termine` reçue.

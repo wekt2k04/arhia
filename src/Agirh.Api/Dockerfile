@@ -17,8 +17,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
 # TrouverRacineDepot (Program.cs) remonte l'arborescence a la recherche d'Agirh.sln pour
-# localiser models/ et corpus/ de facon identique en local et en conteneur - seule la presence
-# du fichier compte, pas son contenu.
+# localiser rag/models/ et rag/corpus/ de facon identique en local et en conteneur - seule la
+# presence du fichier compte, pas son contenu.
 COPY Agirh.sln ./
 COPY --from=build /app/publish .
 

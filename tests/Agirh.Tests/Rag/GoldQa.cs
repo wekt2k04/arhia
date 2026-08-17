@@ -18,13 +18,13 @@ internal sealed record GoldQaFile(
 
 internal static class GoldQa
 {
-    private static string CheminFichier => Path.Combine(RepoPaths.Racine, "eval", "gold_qa.json");
+    private static string CheminFichier => Path.Combine(RepoPaths.Racine, "rag", "eval", "gold_qa.json");
 
     public static IReadOnlyList<GoldQuestion> Charger()
     {
         var json = File.ReadAllText(CheminFichier);
         var fichier = JsonSerializer.Deserialize<GoldQaFile>(json, new JsonSerializerOptions(JsonSerializerDefaults.Web))
-            ?? throw new InvalidOperationException("eval/gold_qa.json n'a pas pu être désérialisé.");
+            ?? throw new InvalidOperationException("rag/eval/gold_qa.json n'a pas pu être désérialisé.");
         return fichier.Questions;
     }
 

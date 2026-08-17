@@ -7,7 +7,7 @@ Le projet a été **entièrement remis à zéro** le 2026-08-14 (V7 → V8, voir
 2. **`docs/STACK_TECHNIQUE.md`** — stack backend/frontend/données/IA. **Fait.**
 3. **`docs/ARCHITECTURE.md`** — hexagonal, arborescence de dossiers, diagrammes. **Fait.**
 4. **`docs/CHECKLIST.md`** — suivi milestone par milestone (statuts en émojis, livré, reste à faire). Mis à jour à la fin de chaque étape.
-5. **`HANDOFF/NEXT_SESSION.md`** + **`HANDOFF/LOG.md`** — protocole de continuité multi-appareils (PC ↔ mobile), décrit dans `CLAUDE.md` à la racine. Une session fraîche (y compris ces agents custom) doit s'y référer pour l'état courant plutôt que de le redécouvrir.
+5. **`.claude/HANDOFF/NEXT_SESSION.md`** + **`.claude/HANDOFF/LOG.md`** — protocole de continuité multi-appareils (PC ↔ mobile), décrit dans `CLAUDE.md` à la racine. Une session fraîche (y compris ces agents custom) doit s'y référer pour l'état courant plutôt que de le redécouvrir.
 
 ## Code existant (milestones 3-4, docs/CHECKLIST.md)
 `Agirh.sln` (.NET 8, pas 10 — SDK réellement installé) : `Agirh.Domain`, `Agirh.Core`, `Agirh.Infrastructure` (EF Core + SQL Server, JWT, password hashing), `Agirh.Api` (ASP.NET Core, AuthController), `Agirh.Tests`. **121/121 tests verts**, 0 warning. Migration `InitialCreate` appliquée sur le conteneur Docker réel `agirh-sql` (port 1433, remis à zéro pour V8) ; flux register/login/me vérifié en HTTP réel.

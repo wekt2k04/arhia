@@ -2,8 +2,8 @@
 **/obj
 frontend/node_modules
 frontend/.next
-models
+rag/models
 qdrant_storage
 .git
-HANDOFF
+.claude
 *.md

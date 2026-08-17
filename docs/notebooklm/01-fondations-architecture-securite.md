@@ -117,6 +117,71 @@ refusé, indépendamment du fait qu'il ait techniquement le bon rôle. Cette sé
 vérifications distinctes (rôle, puis portée) rend chacune plus simple à raisonner et à tester
 isolément, plutôt qu'une seule vérification monolithique qui mélangerait les deux dimensions.
 
+**Code réel — la matrice RBAC complète** (`src/Agirh.Core/Security/RbacMatrix.cs`), une seule source de
+vérité pour toutes les autorisations du système, jamais de vérification de rôle dispersée ailleurs
+dans le code :
+
+```csharp
+public static class RbacMatrix
+{
+    private static readonly IReadOnlyDictionary<ResourceAction, IReadOnlySet<RoleType>> Default =
+        new Dictionary<ResourceAction, IReadOnlySet<RoleType>>
+        {
+            [ResourceAction.CollaborateurCreer] = Roles(RoleType.RH),
+            [ResourceAction.WorkflowInstancier] = Roles(RoleType.RH),
+            [ResourceAction.WorkflowInstanceLire] = Roles(RoleType.Collaborateur, RoleType.RH, RoleType.AdminQualite),
+            [ResourceAction.WorkflowInstanceCocher] = Roles(RoleType.RH),
+            [ResourceAction.WorkflowInstanceCloturer] = Roles(RoleType.RH),
+            [ResourceAction.WorkflowInstanceArchiver] = Roles(RoleType.RH, RoleType.AdminQualite),
+            [ResourceAction.TemplateProposer] = Roles(RoleType.RH),
+            [ResourceAction.TemplateVerifier] = Roles(RoleType.AdminQualite),
+            [ResourceAction.TemplateApprouver] = Roles(RoleType.AdminQualite),
+            [ResourceAction.TemplateRejeter] = Roles(RoleType.AdminQualite),
+            [ResourceAction.CompteElevRole] = Roles(RoleType.AdminQualite),
+            [ResourceAction.CorpusIngerer] = Roles(RoleType.AdminQualite)
+        };
+
+    public static bool EstAutorise(RoleType role, ResourceAction action) =>
+        Default.TryGetValue(action, out var rolesAutorises) && rolesAutorises.Contains(role);
+}
+```
+
+Lecture de cette matrice : c'est un dictionnaire fermé `Action → ensemble de rôles autorisés`. Une
+action absente du dictionnaire (`TryGetValue` échoue) retourne `false` — **default-deny**, pas
+default-allow. Ajouter une nouvelle capacité au système exige une entrée explicite ici ; l'oublier
+signifie que personne ne peut l'utiliser (erreur silencieuse mais jamais une faille de sécurité).
+
+Et le code réel de `PoleScopeGuard` (`src/Agirh.Core/Security/PoleScopeGuard.cs`) — la vérification de
+portée qui complète cette matrice :
+
+```csharp
+public static class PoleScopeGuard
+{
+    public static bool PeutAccederAuPole(CompteUtilisateur acteur, Guid poleCibleId) =>
+        acteur.Role switch
+        {
+            RoleType.AdminQualite => true,
+            RoleType.RH => acteur.PoleId == poleCibleId,
+            _ => false
+        };
+
+    public static bool PeutAccederAuCollaborateur(CompteUtilisateur acteur, Collaborateur cible) =>
+        acteur.Role switch
+        {
+            RoleType.AdminQualite => true,
+            RoleType.RH => acteur.PoleId == cible.PoleId,
+            RoleType.Collaborateur => acteur.Id == cible.CompteUtilisateurId,
+            _ => false
+        };
+}
+```
+
+> **Règle métier à retenir** : un `RoleType.Collaborateur` n'apparaît **jamais** dans
+> `PeutAccederAuPole` (il retombe sur le `_ => false` par défaut) — un collaborateur n'a de portée
+> que sur ses propres données (`PeutAccederAuCollaborateur`), jamais sur un pôle entier. C'est la
+> traduction directe en code de "Collaborateur = ses propres données uniquement" : pas une phrase
+> de documentation qu'on espère vraie, une expression du switch qu'on peut lire et tester.
+
 Pourquoi pas un système d'identité externe plus riche (Keycloak, Auth0...) ? La décision a été
 prise consciemment de ne pas partir sur Keycloak (envisagé puis abandonné) : à l'échelle réelle du
 projet (environ 5 RH, 2 Admin/Qualité, et des collaborateurs), la complexité opérationnelle d'un
@@ -146,6 +211,28 @@ pourquoi la durée de validité est un paramètre de sécurité important : plus
 vite une révocation de compte devient effective, mais plus les utilisateurs doivent se
 reconnecter souvent.
 
+**Code réel — la validation JWT côté Api** (`src/Agirh.Api/Program.cs`) :
+
+```csharp
+options.TokenValidationParameters = new TokenValidationParameters
+{
+    ValidateIssuer = true,
+    ValidIssuer = jwtOptions.Issuer,
+    ValidateAudience = true,
+    ValidAudience = jwtOptions.Audience,
+    ValidateLifetime = true,
+    ValidateIssuerSigningKey = true,
+    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
+    ClockSkew = TimeSpan.FromMinutes(1)
+};
+```
+
+> **Règle métier/sécurité à retenir** : les **quatre** `Validate*` sont explicitement à `true` — ce
+> n'est jamais le cas par défaut dans un exemple copié-collé depuis internet, où `ValidateIssuer`/
+> `ValidateAudience` sont souvent laissés à `false` "pour aller plus vite". Chaque `Validate*` à
+> `false` est une vérification de sécurité désactivée, silencieusement. `ClockSkew` à 1 minute
+> (au lieu du défaut .NET de 5 minutes) réduit aussi la fenêtre de tolérance sur un token expiré.
+
 ## Le pattern BFF (Backend For Frontend) : pourquoi le navigateur ne voit jamais le JWT
 
 Le piège classique d'une application web avec authentification par token : si le token est stocké
@@ -169,6 +256,26 @@ et Next.js doit maintenir cette couche de proxy pour chaque route utilisée. C'e
 latence et de code accepté en échange d'une réduction réelle de surface d'attaque — un choix
 classique en sécurité applicative : accepter un coût mesurable pour éliminer une classe entière de
 vulnérabilités, plutôt que de compter sur des mitigations partielles.
+
+**Code réel — la pose du cookie côté serveur Next.js** (`frontend/lib/api/session.ts`) :
+
+```typescript
+export async function definirSession(token: string): Promise<void> {
+  const store = await cookies();
+  store.set(NOM_COOKIE, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: DUREE_COOKIE_SECONDES,
+  });
+}
+```
+
+> **Règle métier/sécurité à retenir** : `httpOnly: true` est la ligne qui porte toute la protection
+> contre le vol de token par XSS — sans elle, tout le reste du pattern BFF serait décoratif. Ce
+> fichier (`session.ts`) est le **seul** endroit de tout le frontend qui manipule le token
+> directement ; aucun composant React, aucun code exécuté dans le navigateur, ne le voit jamais.
 
 ## Synthèse : ce que ces trois notions ont en commun
 

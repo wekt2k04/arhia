@@ -175,7 +175,7 @@ commités dans le repo.
 ## 12. Ce qui reste un chantier ouvert (pour situer l'état réel, pas juste la cible)
 
 - **Routeur** : ~27% de mauvais classement mesuré sur le jeu de Q/R gold — connu, mis de côté
-  volontairement (pistes non tentées documentées dans `HANDOFF/NEXT_SESSION.md`).
+  volontairement (pistes non tentées documentées dans `.claude/HANDOFF/NEXT_SESSION.md`).
 - **3 cas particuliers métier** (mutation inter-pôle, annulation/suspension, pôle vacant) — pas
   encore de use case dédié, comportement pas encore validé avec le porteur du projet.
 - **Endpoints de lecture/liste** (ex. "mes collaborateurs") — n'existent pas encore, seule

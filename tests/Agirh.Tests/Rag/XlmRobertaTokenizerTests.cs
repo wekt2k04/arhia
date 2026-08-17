@@ -5,7 +5,7 @@ namespace Agirh.Tests.Rag;
 
 /// <summary>
 /// Tests d'integration reels contre le fichier sentencepiece.bpe.model (~5 Mo, non commite -
-/// voir scripts/download-models.ps1). Si le modele n'est pas present sur la machine, le test
+/// voir .claude/scripts/download-models.ps1). Si le modele n'est pas present sur la machine, le test
 /// se termine sans assertion plutot que d'echouer bloquant la suite sur une machine fraiche.
 /// </summary>
 public class XlmRobertaTokenizerTests

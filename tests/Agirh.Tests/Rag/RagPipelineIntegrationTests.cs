@@ -7,7 +7,7 @@ namespace Agirh.Tests.Rag;
 
 /// <summary>
 /// Test d'integration de bout en bout du pipeline RAG (embedding ONNX reel + Qdrant reel).
-/// Necessite les modeles telecharges (scripts/download-models.ps1) et un conteneur Qdrant
+/// Necessite les modeles telecharges (.claude/scripts/download-models.ps1) et un conteneur Qdrant
 /// accessible sur localhost:6334 (docker start agirh-qdrant). Se termine sans assertion si
 /// l'un des deux est absent, plutot que d'echouer bloquant la suite sur une machine fraiche.
 /// </summary>

@@ -4,8 +4,8 @@ internal static class RepoPaths
 {
     public static string Racine { get; } = TrouverRacine();
 
-    public static string ModelesEmbedding => Path.Combine(Racine, "models", "embedding");
-    public static string ModelesReranker => Path.Combine(Racine, "models", "reranker");
+    public static string ModelesEmbedding => Path.Combine(Racine, "rag", "models", "embedding");
+    public static string ModelesReranker => Path.Combine(Racine, "rag", "models", "reranker");
 
     private static string TrouverRacine()
     {

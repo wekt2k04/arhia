@@ -126,8 +126,8 @@ respectivement aux répertoires de données internes de SQL Server et de Qdrant 
 recréer ces conteneurs (par exemple lors d'une mise à jour d'image) ne perd pas les données
 stockées.
 
-Un second usage des volumes, différent, apparaît sur le service `api` : les répertoires `models/`
-(les poids ONNX du pipeline RAG, environ 850 Mo) et `corpus/` (les documents source) sont montés en
+Un second usage des volumes, différent, apparaît sur le service `api` : les répertoires `rag/models/`
+(les poids ONNX du pipeline RAG, environ 850 Mo) et `rag/corpus/` (les documents source) sont montés en
 **lecture seule** (`:ro`) depuis l'hôte, plutôt que copiés à l'intérieur de l'image au moment de la
 construction. C'est un **bind mount** (un dossier réel de la machine hôte, monté tel quel dans le
 conteneur), différent d'un volume nommé géré par Docker. Le choix ici : ces fichiers sont trop
@@ -179,7 +179,14 @@ sensibles* (locales, jamais partagées).
 Un piège classique du déploiement conteneurisé : une base de données fraîchement créée (premier
 démarrage sur un volume vide) n'a pas encore le schéma attendu par l'application. AGIRH applique
 les migrations EF Core (`dbContext.Database.Migrate()`) **automatiquement au démarrage** de
-l'`api`, aussi bien en développement local qu'en conteneur. C'est une opération **idempotente** —
+l'`api`, aussi bien en développement local qu'en conteneur — code réel (`src/Agirh.Api/Program.cs`) :
+
+```csharp
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<AgirhDbContext>().Database.Migrate();
+}
+``` C'est une opération **idempotente** —
 l'exécuter sur une base déjà à jour ne fait rien, l'exécuter sur une base vide ou en retard
 applique exactement ce qu'il faut. Ce choix élimine une étape manuelle (`dotnet ef database
 update`) qui serait facile à oublier, en particulier sur un environnement de démo où on ne veut pas

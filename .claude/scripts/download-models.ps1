@@ -16,9 +16,11 @@ function Get-IfMissing {
     Invoke-WebRequest -Uri $Url -OutFile $Destination
 }
 
-$root = Split-Path -Parent $PSScriptRoot
-$embeddingDir = Join-Path $root "models\embedding"
-$rerankerDir = Join-Path $root "models\reranker"
+# $PSScriptRoot = .claude/scripts -> 2 niveaux vers le haut pour atteindre la racine du depot
+# (different d'1 seul niveau depuis le deplacement du script sous .claude/, 2026-08-17).
+$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$embeddingDir = Join-Path $root "rag\models\embedding"
+$rerankerDir = Join-Path $root "rag\models\reranker"
 
 New-Item -ItemType Directory -Force -Path $embeddingDir | Out-Null
 New-Item -ItemType Directory -Force -Path $rerankerDir | Out-Null
@@ -45,4 +47,4 @@ Get-IfMissing "$rerankerBase/config.json" (Join-Path $rerankerDir "config.json")
 # depot d'origine BAAI (meme vocabulaire, la conversion ONNX ne change pas la tokenisation)
 Get-IfMissing "https://huggingface.co/BAAI/bge-reranker-v2-m3/resolve/main/sentencepiece.bpe.model" (Join-Path $rerankerDir "sentencepiece.bpe.model")
 
-Write-Host "Modeles prets dans $root\models\"
+Write-Host "Modeles prets dans $root\rag\models\"

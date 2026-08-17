@@ -95,6 +95,38 @@ faire tourner un modèle d'embedding directement dans le processus .NET, sans d�
 service externe pour cette étape précise, avec un contrôle total sur la latence et la
 disponibilité.
 
+**Code réel — l'adaptateur d'embedding** (`src/Agirh.Infrastructure/Rag/OnnxEmbeddingAdapter.cs`) :
+
+```csharp
+public sealed class OnnxEmbeddingAdapter : IEmbeddingPort, IDisposable
+{
+    public int Dimension { get; } = 768;
+
+    private readonly InferenceSession _session;
+    private readonly XlmRobertaTokenizer _tokenizer;
+
+    public OnnxEmbeddingAdapter(string cheminModeleOnnx, string cheminSentencePieceModel)
+    {
+        _session = new InferenceSession(cheminModeleOnnx);
+        _tokenizer = XlmRobertaTokenizer.ChargerDepuisFichier(cheminSentencePieceModel);
+    }
+
+    public Task<float[]> GenererEmbeddingAsync(string texte, CancellationToken ct = default)
+    {
+        var ids = _tokenizer.EncoderEnIdsHuggingFace(texte);
+        // ... tokenisation -> tenseurs input_ids/attention_mask -> InferenceSession.Run -> ...
+        // mean-pooling sur les embeddings de tokens (pondéré par attention_mask) + normalisation L2
+        // -> un seul vecteur de 768 dimensions représentant la phrase entière.
+    }
+}
+```
+
+> **Règle technique à retenir** : `Dimension` est une propriété **fixe et vérifiée au démarrage**
+> (pas une constante magique dispersée) — si un modèle différent était chargé avec une dimension
+> différente, `IEmbeddingPort.Dimension` le révélerait immédiatement au lieu de laisser une
+> incohérence silencieuse se propager jusqu'à Qdrant, où un mismatch de dimension casserait la
+> recherche de façon beaucoup plus difficile à diagnostiquer.
+
 ### Phase 3 — Storage (stockage vectoriel et recherche ANN)
 
 Une fois tous les chunks vectorisés, il faut pouvoir, à chaque question, retrouver rapidement les
@@ -140,6 +172,45 @@ Il faut distinguer deux familles de modèles ici :
   ceux du document. Le prix à payer : c'est beaucoup plus lent, donc infaisable sur *tout* le
   corpus — d'où l'architecture en deux étages : le bi-encodeur (rapide) réduit le corpus entier à
   quelques candidats, puis le cross-encodeur (lent mais précis) les réordonne finement.
+
+**Code réel — le cross-encodeur de reranking** (`src/Agirh.Infrastructure/Rag/OnnxRerankerAdapter.cs`),
+le code exact qui transforme un candidat brut Qdrant en score de pertinence final :
+
+```csharp
+public Task<IReadOnlyList<ChunkDocumentaire>> RerankAsync(
+    string requete,
+    IReadOnlyList<ChunkDocumentaire> candidats,
+    CancellationToken ct = default)
+{
+    if (candidats.Count == 0)
+        return Task.FromResult<IReadOnlyList<ChunkDocumentaire>>(Array.Empty<ChunkDocumentaire>());
+
+    var resultats = candidats
+        .Select(c => c with { Score = CalculerScore(requete, c.Contenu) })
+        .OrderByDescending(c => c.Score)
+        .ToList();
+
+    return Task.FromResult<IReadOnlyList<ChunkDocumentaire>>(resultats);
+}
+
+private float CalculerScore(string requete, string document)
+{
+    var ids = _tokenizer.EncoderPaireEnIdsHuggingFace(requete, document); // <s> requête </s></s> document </s>
+    // ... InferenceSession.Run ...
+    var logit = resultatsOnnx.First(r => r.Name == "logits").AsTensor<float>()[0, 0];
+    return Sigmoid(logit);
+}
+
+private static float Sigmoid(float x) => 1f / (1f + MathF.Exp(-x));
+```
+
+Deux détails de syntaxe qui valent la peine d'être compris précisément : `EncoderPaireEnIdsHuggingFace`
+construit **une seule séquence de tokens** contenant requête *et* document, séparés par le format
+RoBERTa `<s> requête </s></s> document </s>` (deux tokens de séparation `</s></s>` entre les deux
+segments, pas un seul — un détail de format qui, s'il est faux, ne provoque aucune erreur mais
+dégrade silencieusement la qualité du score). Et le modèle ONNX ne produit qu'un **logit brut** non
+borné (`logits[0,0]`) — c'est `Sigmoid` qui le ramène dans l'intervalle [0, 1] pour en faire un
+score de pertinence interprétable, exactement comme la dernière couche d'un classifieur binaire.
 
 **Un piège réel rencontré pendant le développement d'AGIRH, à retenir absolument** : un score de
 reranking élevé (jusqu'à 0.78 observé sur une échelle où le seuil de pertinence était fixé à 0.01)

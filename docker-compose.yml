@@ -57,10 +57,10 @@ services:
     ports:
       - "5080:8080"
     volumes:
-      # models/ (~850 Mo, telecharge via scripts/download-models.ps1) et corpus/ montes en
-      # lecture seule depuis l'hote plutot que copies dans l'image (voir Dockerfile).
-      - ./models:/app/models:ro
-      - ./corpus:/app/corpus:ro
+      # rag/models/ (~850 Mo, telecharge via .claude/scripts/download-models.ps1) et rag/corpus/
+      # montes en lecture seule depuis l'hote plutot que copies dans l'image (voir Dockerfile).
+      - ./rag/models:/app/rag/models:ro
+      - ./rag/corpus:/app/rag/corpus:ro
 
   frontend:
     build:

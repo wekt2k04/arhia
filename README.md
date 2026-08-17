@@ -118,12 +118,16 @@ src/
   Agirh.Infrastructure/   adaptateurs : EF Core, Qdrant, ONNX (RAG), Ollama (LLM), SSE
   Agirh.Api/              Controllers, composition root (Program.cs)
 frontend/                 Next.js — BFF, chat, notifications, pages d'auth
-corpus/                   corpus source du pipeline RAG (documents Markdown, lu par l'ingestion)
 tests/Agirh.Tests/        xUnit + Moq + FluentAssertions
+rag/                       données du pipeline RAG, hors du code compilé
+  corpus/                  documents source (Markdown, lus par l'ingestion)
+  models/                  poids ONNX (embedding + reranking, ~850 Mo, jamais commités)
+  eval/                    jeu de questions/réponses de référence (gold_qa.json)
 docs/                      documents de cadrage (LOGIQUE_METIER, STACK_TECHNIQUE, ARCHITECTURE,
                             CHECKLIST, HISTORIQUE, SUJET_STAGE) + docs/notebooklm/ (synthèses
                             approfondies) + docs/APPRENTISSAGE/ (notes de montée en compétence)
-HANDOFF/                  protocole de continuité entre sessions de travail
+.claude/                   outillage Claude Code : agents, commandes, HANDOFF/ (continuité entre
+                            sessions), scripts/ (téléchargement des modèles)
 ```
 
 ## Documentation

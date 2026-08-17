@@ -7,7 +7,7 @@ namespace Agirh.Tests.Rag;
 
 /// <summary>
 /// Test capstone : chaine les 4 phases (docs/STACK_TECHNIQUE.md #4) sur un vrai document du
-/// corpus (corpus/01_politique_onboarding.md), avec les vrais modeles ONNX et un vrai
+/// corpus (rag/corpus/01_politique_onboarding.md), avec les vrais modeles ONNX et un vrai
 /// Qdrant. Se termine sans assertion si l'un des prerequis (modeles, Qdrant) est absent.
 /// </summary>
 public class PipelineCompletCorpusReelTests
@@ -16,7 +16,7 @@ public class PipelineCompletCorpusReelTests
     private static string CheminEmbeddingSpm => Path.Combine(RepoPaths.ModelesEmbedding, "sentencepiece.bpe.model");
     private static string CheminRerankerOnnx => Path.Combine(RepoPaths.ModelesReranker, "model_quantized.onnx");
     private static string CheminRerankerSpm => Path.Combine(RepoPaths.ModelesReranker, "sentencepiece.bpe.model");
-    private static string CheminDocumentCorpus => Path.Combine(RepoPaths.Racine, "corpus", "01_politique_onboarding.md");
+    private static string CheminDocumentCorpus => Path.Combine(RepoPaths.Racine, "rag", "corpus", "01_politique_onboarding.md");
 
     [Fact]
     public async Task PipelineComplet_ChunkingEmbeddingQdrantReranking_SurUnVraiDocumentDuCorpus()
