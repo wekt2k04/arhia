@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Agirh.Api.Controllers;
 
-public record DemanderRequest(string Question, Guid? CollaborateurCibleId);
+public record AskRequest(string Question, Guid? TargetEmployeeId);
 
 [ApiController]
 [Route("api/chat")]
@@ -18,25 +18,25 @@ public class ChatController : ControllerBase
 {
     private static readonly JsonSerializerOptions OptionsJson = new(JsonSerializerDefaults.Web);
 
-    private readonly RepondreConversationUseCase _repondreConversation;
+    private readonly AnswerConversationUseCase _answerConversation;
     private readonly ICurrentUserAccessor _currentUser;
 
-    public ChatController(RepondreConversationUseCase repondreConversation, ICurrentUserAccessor currentUser)
+    public ChatController(AnswerConversationUseCase answerConversation, ICurrentUserAccessor currentUser)
     {
-        _repondreConversation = repondreConversation;
+        _answerConversation = answerConversation;
         _currentUser = currentUser;
     }
 
     /// <summary>
     /// SSE (docs/STACK_TECHNIQUE.md §1) : un événement "fragment" par morceau de texte reçu du
-    /// générateur au fur et à mesure de sa génération, puis exactement un événement "termine"
-    /// portant sourcee/sources. Un refus RBAC (AccessDeniedException) se traduit en message
+    /// générateur au fur et à mesure de sa génération, puis exactement un événement "done"
+    /// portant sourced/sources. Un refus RBAC (AccessDeniedException) se traduit en message
     /// conversationnel plutôt qu'une erreur HTTP au milieu du flux — même choix de design que la
     /// version JSON qu'elle remplace (docs/LOGIQUE_METIER.md §9 : l'agent est conversationnel, pas une
     /// API technique brute).
     /// </summary>
-    [HttpGet("demander")]
-    public async Task Demander([FromQuery] string question, [FromQuery] Guid? collaborateurCibleId, CancellationToken ct)
+    [HttpGet("ask")]
+    public async Task Ask([FromQuery] string question, [FromQuery] Guid? targetEmployeeId, CancellationToken ct)
     {
         var actor = await _currentUser.GetActorAsync(ct);
 
@@ -46,13 +46,13 @@ public class ChatController : ControllerBase
 
         try
         {
-            await foreach (var evenement in _repondreConversation.ExecuterEnStreamingAsync(actor, question, collaborateurCibleId, ct))
-                await EcrireEvenementAsync(evenement, ct);
+            await foreach (var conversationEvent in _answerConversation.ExecuteStreamingAsync(actor, question, targetEmployeeId, ct))
+                await WriteEventAsync(conversationEvent, ct);
         }
         catch (AccessDeniedException)
         {
-            await EcrireEvenementAsync(new FragmentTexte("Vous n'avez pas accès à ce dossier. Contactez le RH de votre pôle si besoin."), ct);
-            await EcrireEvenementAsync(new ReponseTerminee(Sourcee: false, Array.Empty<string>()), ct);
+            await WriteEventAsync(new TextFragment("Vous n'avez pas accès à ce dossier. Contactez le RH de votre pôle si besoin."), ct);
+            await WriteEventAsync(new ResponseCompleted(Sourced: false, Array.Empty<string>()), ct);
         }
         catch (ArgumentException ex)
         {
@@ -65,16 +65,16 @@ public class ChatController : ControllerBase
         }
     }
 
-    private async Task EcrireEvenementAsync(EvenementConversation evenement, CancellationToken ct)
+    private async Task WriteEventAsync(ConversationEvent conversationEvent, CancellationToken ct)
     {
-        var (type, donnees) = evenement switch
+        var (type, data) = conversationEvent switch
         {
-            FragmentTexte f => ("fragment", (object)new { texte = f.Texte }),
-            ReponseTerminee r => ("termine", new { sourcee = r.Sourcee, sources = r.DocumentsSources }),
-            _ => throw new InvalidOperationException($"Type d'événement conversation non géré : {evenement.GetType().Name}")
+            TextFragment f => ("fragment", (object)new { text = f.Text }),
+            ResponseCompleted r => ("done", new { sourced = r.Sourced, sources = r.Sources }),
+            _ => throw new InvalidOperationException($"Type d'événement conversation non géré : {conversationEvent.GetType().Name}")
         };
 
-        var json = JsonSerializer.Serialize(donnees, OptionsJson);
+        var json = JsonSerializer.Serialize(data, OptionsJson);
         var frame = Encoding.UTF8.GetBytes($"event: {type}\ndata: {json}\n\n");
 
         await Response.Body.WriteAsync(frame, ct);

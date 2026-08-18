@@ -5,5 +5,5 @@ namespace Agirh.Core.Ports;
 
 public interface ILlmRouterPort
 {
-    Task<IntentionConversation> ClassifierAsync(string question, CancellationToken ct = default);
+    Task<ConversationIntent> ClassifyAsync(string question, CancellationToken ct = default);
 }

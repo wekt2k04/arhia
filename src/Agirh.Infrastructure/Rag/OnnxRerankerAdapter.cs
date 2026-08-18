@@ -13,51 +13,51 @@ public sealed class OnnxRerankerAdapter : IRerankerPort, IDisposable
     private readonly InferenceSession _session;
     private readonly XlmRobertaTokenizer _tokenizer;
 
-    public OnnxRerankerAdapter(string cheminModeleOnnx, string cheminSentencePieceModel)
+    public OnnxRerankerAdapter(string onnxModelPath, string sentencePieceModelPath)
     {
-        _session = new InferenceSession(cheminModeleOnnx);
-        _tokenizer = XlmRobertaTokenizer.ChargerDepuisFichier(cheminSentencePieceModel);
+        _session = new InferenceSession(onnxModelPath);
+        _tokenizer = XlmRobertaTokenizer.LoadFromFile(sentencePieceModelPath);
     }
 
-    public Task<IReadOnlyList<ChunkDocumentaire>> RerankAsync(
-        string requete,
-        IReadOnlyList<ChunkDocumentaire> candidats,
+    public Task<IReadOnlyList<DocumentChunk>> RerankAsync(
+        string query,
+        IReadOnlyList<DocumentChunk> candidates,
         CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();
 
-        if (candidats.Count == 0)
-            return Task.FromResult<IReadOnlyList<ChunkDocumentaire>>(Array.Empty<ChunkDocumentaire>());
+        if (candidates.Count == 0)
+            return Task.FromResult<IReadOnlyList<DocumentChunk>>(Array.Empty<DocumentChunk>());
 
-        var resultats = candidats
-            .Select(c => c with { Score = CalculerScore(requete, c.Contenu) })
+        var results = candidates
+            .Select(c => c with { Score = ComputeScore(query, c.Content) })
             .OrderByDescending(c => c.Score)
             .ToList();
 
-        return Task.FromResult<IReadOnlyList<ChunkDocumentaire>>(resultats);
+        return Task.FromResult<IReadOnlyList<DocumentChunk>>(results);
     }
 
-    private float CalculerScore(string requete, string document)
+    private float ComputeScore(string query, string document)
     {
-        var ids = _tokenizer.EncoderPaireEnIdsHuggingFace(requete, document);
-        var longueur = ids.Length;
+        var ids = _tokenizer.EncodePairToHuggingFaceIds(query, document);
+        var length = ids.Length;
 
-        var inputIds = new DenseTensor<long>(new[] { 1, longueur });
-        var attentionMask = new DenseTensor<long>(new[] { 1, longueur });
-        for (var i = 0; i < longueur; i++)
+        var inputIds = new DenseTensor<long>(new[] { 1, length });
+        var attentionMask = new DenseTensor<long>(new[] { 1, length });
+        for (var i = 0; i < length; i++)
         {
             inputIds[0, i] = ids[i];
             attentionMask[0, i] = 1;
         }
 
-        var entrees = new List<NamedOnnxValue>
+        var inputs = new List<NamedOnnxValue>
         {
             NamedOnnxValue.CreateFromTensor("input_ids", inputIds),
             NamedOnnxValue.CreateFromTensor("attention_mask", attentionMask)
         };
 
-        using var resultatsOnnx = _session.Run(entrees);
-        var logit = resultatsOnnx.First(r => r.Name == "logits").AsTensor<float>()[0, 0];
+        using var onnxResults = _session.Run(inputs);
+        var logit = onnxResults.First(r => r.Name == "logits").AsTensor<float>()[0, 0];
 
         return Sigmoid(logit);
     }

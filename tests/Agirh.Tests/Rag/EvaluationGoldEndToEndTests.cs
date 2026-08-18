@@ -31,13 +31,13 @@ public class EvaluationGoldEndToEndTests : IClassFixture<GoldCorpusFixture>
         _fixture = fixture;
     }
 
-    private static async Task<bool> OllamaDisponibleAsync()
+    private static async Task<bool> OllamaAvailableAsync()
     {
         try
         {
             using var http = new HttpClient { BaseAddress = new Uri("http://localhost:11434"), Timeout = TimeSpan.FromSeconds(3) };
-            var reponse = await http.GetAsync("/api/tags");
-            return reponse.IsSuccessStatusCode;
+            var response = await http.GetAsync("/api/tags");
+            return response.IsSuccessStatusCode;
         }
         catch
         {
@@ -45,19 +45,19 @@ public class EvaluationGoldEndToEndTests : IClassFixture<GoldCorpusFixture>
         }
     }
 
-    private RepondreConversationUseCase CreerUseCase()
+    private AnswerConversationUseCase CreateUseCase()
     {
         var ollamaHttp = new HttpClient { BaseAddress = new Uri("http://localhost:11434"), Timeout = TimeSpan.FromSeconds(120) };
         var ollamaClient = new OllamaClient(ollamaHttp);
         var router = new OllamaRouterAdapter(ollamaClient);
-        var generateur = new OllamaGeneratorAdapter(ollamaClient);
+        var generator = new OllamaGeneratorAdapter(ollamaClient);
 
-        return new RepondreConversationUseCase(
-            router, generateur, _fixture.Embedder!, _fixture.VectorSearch!, _fixture.Reranker!,
+        return new AnswerConversationUseCase(
+            router, generator, _fixture.Embedder!, _fixture.VectorSearch!, _fixture.Reranker!,
             Mock.Of<IEmployeeRepository>(), Mock.Of<IWorkflowInstanceRepository>());
     }
 
-    private static UserAccount CreerActeur() =>
+    private static UserAccount CreateActor() =>
         new(Guid.NewGuid(), "eval@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
 
     public static IEnumerable<object[]> ToutesLesQuestions() => GoldQa.Charger().Select(q => new object[] { q });
@@ -67,24 +67,24 @@ public class EvaluationGoldEndToEndTests : IClassFixture<GoldCorpusFixture>
     public async Task Evaluation_QuestionGold_RoutageEtFideliteConformesAuxAttentes(GoldQuestion gold)
     {
         if (!_fixture.PrerequisDisponibles) return;
-        if (!await OllamaDisponibleAsync()) return;
+        if (!await OllamaAvailableAsync()) return;
 
-        var useCase = CreerUseCase();
-        var actor = CreerActeur();
+        var useCase = CreateUseCase();
+        var actor = CreateActor();
 
-        var reponse = await useCase.ExecuteAsync(actor, gold.Question, null);
+        var response = await useCase.ExecuteAsync(actor, gold.Question, null);
 
-        reponse.Sourcee.Should().Be(gold.SourceeAttendu,
-            $"{gold.Id} ({gold.Question}) — catégorie {gold.Categorie} : \"{reponse.Texte}\"");
+        response.Sourced.Should().Be(gold.SourceeAttendu,
+            $"{gold.Id} ({gold.Question}) — catégorie {gold.Categorie} : \"{response.Text}\"");
 
         if (!gold.SourceeAttendu) return;
 
-        reponse.DocumentsSources.Should().IntersectWith(gold.SourcesAcceptees,
-            $"{gold.Id} devrait citer une source parmi {string.Join(" ou ", gold.SourcesAcceptees)}, a cité {string.Join(", ", reponse.DocumentsSources)}");
+        response.Sources.Should().IntersectWith(gold.SourcesAcceptees,
+            $"{gold.Id} devrait citer une source parmi {string.Join(" ou ", gold.SourcesAcceptees)}, a cité {string.Join(", ", response.Sources)}");
 
         if (gold.MotsClesAttendus.Length == 0) return;
-        var texteMinuscule = reponse.Texte.ToLowerInvariant();
-        gold.MotsClesAttendus.Any(mc => texteMinuscule.Contains(mc.ToLowerInvariant())).Should().BeTrue(
-            $"{gold.Id} — réponse \"{reponse.Texte}\" devrait contenir un des mots-clés attendus : {string.Join(", ", gold.MotsClesAttendus)}");
+        var lowercaseText = response.Text.ToLowerInvariant();
+        gold.MotsClesAttendus.Any(mc => lowercaseText.Contains(mc.ToLowerInvariant())).Should().BeTrue(
+            $"{gold.Id} — réponse \"{response.Text}\" devrait contenir un des mots-clés attendus : {string.Join(", ", gold.MotsClesAttendus)}");
     }
 }

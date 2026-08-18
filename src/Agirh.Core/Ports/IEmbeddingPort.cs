@@ -6,5 +6,5 @@ namespace Agirh.Core.Ports;
 public interface IEmbeddingPort
 {
     int Dimension { get; }
-    Task<float[]> GenererEmbeddingAsync(string texte, CancellationToken ct = default);
+    Task<float[]> GenerateEmbeddingAsync(string text, CancellationToken ct = default);
 }

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 type Notification = {
   type: number;
   message: string;
-  dateReference: string;
+  referenceDate: string;
   referenceId: string | null;
 };
 

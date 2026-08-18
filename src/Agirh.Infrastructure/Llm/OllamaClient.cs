@@ -19,27 +19,27 @@ public sealed class OllamaClient
         _http = http;
     }
 
-    public async Task<string?> GenererAsync(string modele, string systemPrompt, string prompt, CancellationToken ct = default)
+    public async Task<string?> GenerateAsync(string model, string systemPrompt, string prompt, CancellationToken ct = default)
     {
-        var requete = new OllamaGenerateRequest(modele, systemPrompt, prompt, Stream: false);
+        var request = new OllamaGenerateRequest(model, systemPrompt, prompt, Stream: false);
 
-        HttpResponseMessage reponseHttp;
+        HttpResponseMessage httpResponse;
         try
         {
-            reponseHttp = await _http.PostAsJsonAsync("/api/generate", requete, OptionsJson, ct);
+            httpResponse = await _http.PostAsJsonAsync("/api/generate", request, OptionsJson, ct);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
             return null;
         }
 
-        using (reponseHttp)
+        using (httpResponse)
         {
-            if (!reponseHttp.IsSuccessStatusCode)
+            if (!httpResponse.IsSuccessStatusCode)
                 return null;
 
-            var corps = await reponseHttp.Content.ReadFromJsonAsync<OllamaGenerateResponse>(OptionsJson, ct);
-            return corps?.Response;
+            var body = await httpResponse.Content.ReadFromJsonAsync<OllamaGenerateResponse>(OptionsJson, ct);
+            return body?.Response;
         }
     }
 
@@ -50,46 +50,46 @@ public sealed class OllamaClient
     /// retourner et on perd tout l'intérêt du streaming (le client SSE ne verrait rien avant la
     /// fin de la génération complète).
     /// </summary>
-    public async IAsyncEnumerable<string> GenererStreamAsync(
-        string modele, string systemPrompt, string prompt, [EnumeratorCancellation] CancellationToken ct = default)
+    public async IAsyncEnumerable<string> GenerateStreamAsync(
+        string model, string systemPrompt, string prompt, [EnumeratorCancellation] CancellationToken ct = default)
     {
-        var requete = new OllamaGenerateRequest(modele, systemPrompt, prompt, Stream: true);
+        var request = new OllamaGenerateRequest(model, systemPrompt, prompt, Stream: true);
 
-        HttpResponseMessage? reponseHttp = null;
-        var echec = false;
+        HttpResponseMessage? httpResponse = null;
+        var failed = false;
         try
         {
             using var message = new HttpRequestMessage(HttpMethod.Post, "/api/generate")
             {
-                Content = JsonContent.Create(requete, options: OptionsJson)
+                Content = JsonContent.Create(request, options: OptionsJson)
             };
-            reponseHttp = await _http.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, ct);
-            if (!reponseHttp.IsSuccessStatusCode)
-                echec = true;
+            httpResponse = await _http.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, ct);
+            if (!httpResponse.IsSuccessStatusCode)
+                failed = true;
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
-            echec = true;
+            failed = true;
         }
 
-        if (echec)
+        if (failed)
         {
-            reponseHttp?.Dispose();
+            httpResponse?.Dispose();
             yield break;
         }
 
-        var reponseValide = reponseHttp!;
-        using (reponseValide)
-        await using (var stream = await reponseValide.Content.ReadAsStreamAsync(ct))
+        var validResponse = httpResponse!;
+        using (validResponse)
+        await using (var stream = await validResponse.Content.ReadAsStreamAsync(ct))
         using (var reader = new StreamReader(stream))
         {
             while (!reader.EndOfStream)
             {
-                var ligne = await reader.ReadLineAsync(ct);
-                if (string.IsNullOrWhiteSpace(ligne))
+                var line = await reader.ReadLineAsync(ct);
+                if (string.IsNullOrWhiteSpace(line))
                     continue;
 
-                var frame = DeserialiserFrameSecurise(ligne);
+                var frame = DeserializeFrameSafely(line);
                 if (!string.IsNullOrEmpty(frame?.Response))
                     yield return frame.Response;
 
@@ -99,11 +99,11 @@ public sealed class OllamaClient
         }
     }
 
-    private static OllamaGenerateResponse? DeserialiserFrameSecurise(string ligne)
+    private static OllamaGenerateResponse? DeserializeFrameSafely(string line)
     {
         try
         {
-            return JsonSerializer.Deserialize<OllamaGenerateResponse>(ligne, OptionsJson);
+            return JsonSerializer.Deserialize<OllamaGenerateResponse>(line, OptionsJson);
         }
         catch (JsonException)
         {

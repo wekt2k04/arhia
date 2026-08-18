@@ -11,12 +11,16 @@ namespace Agirh.Infrastructure.Llm;
 /// </summary>
 public sealed class OllamaRouterAdapter : ILlmRouterPort
 {
-    // Configurable (Ollama:RouterModele, Program.cs) pour permettre de basculer entre un profil
+    // Configurable (Ollama:RouterModel, Program.cs) pour permettre de basculer entre un profil
     // local (petits modeles) et un profil entreprise (serveur Ollama distant, modeles plus
     // capables) sans recompiler - le porteur du projet a acces a un serveur Ollama d'entreprise
     // en plus de son Ollama local. Defaut inchange si non configure.
-    private readonly string _modele;
+    private readonly string _model;
 
+    // Les libelles de sortie (DOCUMENTAIRE/STATUT_DOSSIER/HORS_PERIMETRE) restent en francais a
+    // dessein : c'est un contrat de prompt calibre empiriquement avec le modele, pas du
+    // vocabulaire de code — les traduire risquerait de degrader silencieusement un routage deja
+    // imparfait (~27% d'erreur connu, voir HANDOFF) sans aucun benefice mesurable.
     private const string SystemPrompt = """
         Tu es un classifieur d'intention pour un assistant RH interne. Classe la question dans EXACTEMENT une categorie parmi les trois suivantes. Reponds UNIQUEMENT par un de ces 3 mots exacts, en majuscules, rien d'autre : DOCUMENTAIRE, STATUT_DOSSIER, HORS_PERIMETRE.
 
@@ -42,28 +46,28 @@ public sealed class OllamaRouterAdapter : ILlmRouterPort
 
     private readonly OllamaClient _client;
 
-    public OllamaRouterAdapter(OllamaClient client, string modele = "phi4-mini:3.8b")
+    public OllamaRouterAdapter(OllamaClient client, string model = "phi4-mini:3.8b")
     {
         _client = client;
-        _modele = modele;
+        _model = model;
     }
 
-    public async Task<IntentionConversation> ClassifierAsync(string question, CancellationToken ct = default)
+    public async Task<ConversationIntent> ClassifyAsync(string question, CancellationToken ct = default)
     {
-        var reponse = await _client.GenererAsync(_modele, SystemPrompt, question, ct);
-        return ParserIntention(reponse);
+        var response = await _client.GenerateAsync(_model, SystemPrompt, question, ct);
+        return ParseIntent(response);
     }
 
-    private static IntentionConversation ParserIntention(string? reponseBrute)
+    private static ConversationIntent ParseIntent(string? rawResponse)
     {
-        var normalise = (reponseBrute ?? string.Empty).Trim().ToUpperInvariant();
+        var normalized = (rawResponse ?? string.Empty).Trim().ToUpperInvariant();
 
-        if (normalise.Contains("STATUT_DOSSIER"))
-            return IntentionConversation.StatutDossier;
+        if (normalized.Contains("STATUT_DOSSIER"))
+            return ConversationIntent.CaseStatus;
 
-        if (normalise.Contains("DOCUMENTAIRE"))
-            return IntentionConversation.QuestionDocumentaire;
+        if (normalized.Contains("DOCUMENTAIRE"))
+            return ConversationIntent.DocumentaryQuestion;
 
-        return IntentionConversation.HorsPerimetre;
+        return ConversationIntent.OutOfScope;
     }
 }

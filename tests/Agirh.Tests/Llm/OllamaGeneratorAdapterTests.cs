@@ -8,13 +8,13 @@ namespace Agirh.Tests.Llm;
 /// </summary>
 public class OllamaGeneratorAdapterTests
 {
-    private static async Task<bool> OllamaDisponibleAsync()
+    private static async Task<bool> OllamaAvailableAsync()
     {
         try
         {
             using var http = new HttpClient { BaseAddress = new Uri("http://localhost:11434"), Timeout = TimeSpan.FromSeconds(3) };
-            var reponse = await http.GetAsync("/api/tags");
-            return reponse.IsSuccessStatusCode;
+            var response = await http.GetAsync("/api/tags");
+            return response.IsSuccessStatusCode;
         }
         catch
         {
@@ -23,9 +23,9 @@ public class OllamaGeneratorAdapterTests
     }
 
     [Fact]
-    public async Task GenererReponseAsync_ContexteFourni_ProduitUneReponseNonVide()
+    public async Task GenerateResponseAsync_ContextProvided_ProducesANonEmptyResponse()
     {
-        if (!await OllamaDisponibleAsync()) return;
+        if (!await OllamaAvailableAsync()) return;
 
         var adapter = new OllamaGeneratorAdapter(new OllamaClient(
             new HttpClient { BaseAddress = new Uri("http://localhost:11434"), Timeout = TimeSpan.FromSeconds(60) }));
@@ -34,26 +34,26 @@ public class OllamaGeneratorAdapterTests
             "Réponds uniquement à partir de ce contexte : « La politique de mot de passe exige au moins 10 caractères. » " +
             "Si l'information n'y est pas, dis que tu ne l'as pas trouvée.";
 
-        var reponse = await adapter.GenererReponseAsync(systemPrompt, "Quelle est la longueur minimale du mot de passe ?");
+        var response = await adapter.GenerateResponseAsync(systemPrompt, "Quelle est la longueur minimale du mot de passe ?");
 
-        reponse.Should().NotBeNullOrWhiteSpace();
+        response.Should().NotBeNullOrWhiteSpace();
     }
 
     [Fact]
-    public async Task GenererReponseAsync_ServiceIndisponible_RetourneMessageDeReplilGracieux()
+    public async Task GenerateResponseAsync_ServiceUnavailable_ReturnsGracefulFallbackMessage()
     {
         var adapter = new OllamaGeneratorAdapter(new OllamaClient(
             new HttpClient { BaseAddress = new Uri("http://localhost:1"), Timeout = TimeSpan.FromSeconds(2) }));
 
-        var reponse = await adapter.GenererReponseAsync("system", "question");
+        var response = await adapter.GenerateResponseAsync("system", "question");
 
-        reponse.Should().Contain("problème technique");
+        response.Should().Contain("problème technique");
     }
 
     [Fact]
-    public async Task GenererReponseEnStreamingAsync_ContexteFourni_ProduitAuMoinsUnFragmentEtReconstitueUneReponseNonVide()
+    public async Task GenerateResponseStreamingAsync_ContextProvided_ProducesAtLeastOneFragmentAndReassemblesANonEmptyResponse()
     {
-        if (!await OllamaDisponibleAsync()) return;
+        if (!await OllamaAvailableAsync()) return;
 
         var adapter = new OllamaGeneratorAdapter(new OllamaClient(
             new HttpClient { BaseAddress = new Uri("http://localhost:11434"), Timeout = TimeSpan.FromSeconds(60) }));
@@ -63,7 +63,7 @@ public class OllamaGeneratorAdapterTests
             "Si l'information n'y est pas, dis que tu ne l'as pas trouvée.";
 
         var fragments = new List<string>();
-        await foreach (var fragment in adapter.GenererReponseEnStreamingAsync(systemPrompt, "Quelle est la longueur minimale du mot de passe ?"))
+        await foreach (var fragment in adapter.GenerateResponseStreamingAsync(systemPrompt, "Quelle est la longueur minimale du mot de passe ?"))
             fragments.Add(fragment);
 
         fragments.Should().NotBeEmpty();
@@ -71,13 +71,13 @@ public class OllamaGeneratorAdapterTests
     }
 
     [Fact]
-    public async Task GenererReponseEnStreamingAsync_ServiceIndisponible_RetourneUnSeulFragmentDeReplilGracieux()
+    public async Task GenerateResponseStreamingAsync_ServiceUnavailable_ReturnsASingleGracefulFallbackFragment()
     {
         var adapter = new OllamaGeneratorAdapter(new OllamaClient(
             new HttpClient { BaseAddress = new Uri("http://localhost:1"), Timeout = TimeSpan.FromSeconds(2) }));
 
         var fragments = new List<string>();
-        await foreach (var fragment in adapter.GenererReponseEnStreamingAsync("system", "question"))
+        await foreach (var fragment in adapter.GenerateResponseStreamingAsync("system", "question"))
             fragments.Add(fragment);
 
         fragments.Should().ContainSingle(f => f.Contains("problème technique"));

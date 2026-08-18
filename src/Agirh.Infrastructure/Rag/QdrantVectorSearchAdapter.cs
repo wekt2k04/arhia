@@ -6,7 +6,7 @@ namespace Agirh.Infrastructure.Rag;
 
 public sealed class QdrantVectorSearchAdapter : IVectorSearchPort
 {
-    private const string NomCollection = "agirh-corpus";
+    private const string CollectionName = "agirh-corpus";
 
     private readonly QdrantClient _client;
     private readonly int _dimension;
@@ -17,48 +17,48 @@ public sealed class QdrantVectorSearchAdapter : IVectorSearchPort
         _dimension = dimension;
     }
 
-    public async Task PreparerAsync(CancellationToken ct = default)
+    public async Task PrepareAsync(CancellationToken ct = default)
     {
-        var existe = await _client.CollectionExistsAsync(NomCollection, ct);
-        if (!existe)
+        var exists = await _client.CollectionExistsAsync(CollectionName, ct);
+        if (!exists)
         {
             await _client.CreateCollectionAsync(
-                NomCollection,
+                CollectionName,
                 new VectorParams { Size = (ulong)_dimension, Distance = Distance.Cosine },
                 cancellationToken: ct);
         }
     }
 
-    public async Task IndexerAsync(ChunkDocumentaire chunk, float[] vecteur, CancellationToken ct = default)
+    public async Task IndexAsync(DocumentChunk chunk, float[] vector, CancellationToken ct = default)
     {
         var point = new PointStruct
         {
             Id = chunk.Id,
-            Vectors = vecteur
+            Vectors = vector
         };
         point.Payload.Add("documentSource", chunk.DocumentSource);
         point.Payload.Add("chunkIndex", (long)chunk.ChunkIndex);
-        point.Payload.Add("cheminTitres", chunk.CheminTitres);
-        point.Payload.Add("contenu", chunk.Contenu);
+        point.Payload.Add("titlePath", chunk.TitlePath);
+        point.Payload.Add("content", chunk.Content);
 
-        await _client.UpsertAsync(NomCollection, new[] { point }, cancellationToken: ct);
+        await _client.UpsertAsync(CollectionName, new[] { point }, cancellationToken: ct);
     }
 
-    public async Task<IReadOnlyList<ChunkDocumentaire>> RechercherAsync(float[] vecteurRequete, int topK, CancellationToken ct = default)
+    public async Task<IReadOnlyList<DocumentChunk>> SearchAsync(float[] queryVector, int topK, CancellationToken ct = default)
     {
-        var resultats = await _client.QueryAsync(
-            NomCollection,
-            query: vecteurRequete,
+        var results = await _client.QueryAsync(
+            CollectionName,
+            query: queryVector,
             limit: (ulong)topK,
             payloadSelector: true,
             cancellationToken: ct);
 
-        return resultats.Select(r => new ChunkDocumentaire(
+        return results.Select(r => new DocumentChunk(
             Id: Guid.Parse(r.Id.Uuid),
             DocumentSource: r.Payload["documentSource"].StringValue,
             ChunkIndex: (int)r.Payload["chunkIndex"].IntegerValue,
-            CheminTitres: r.Payload["cheminTitres"].StringValue,
-            Contenu: r.Payload["contenu"].StringValue,
+            TitlePath: r.Payload["titlePath"].StringValue,
+            Content: r.Payload["content"].StringValue,
             Score: r.Score
         )).ToList();
     }

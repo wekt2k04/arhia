@@ -28,13 +28,13 @@ export function ChatWidget() {
 
     setMessages((precedents) => [
       ...precedents,
-      { role: "user", texte: texteQuestion },
-      { role: "assistant", texte: "" },
+      { role: "user", text: texteQuestion },
+      { role: "assistant", text: "" },
     ]);
     setQuestion("");
     setEnCours(true);
 
-    const url = `/api/chat/demander?question=${encodeURIComponent(texteQuestion)}`;
+    const url = `/api/chat/ask?question=${encodeURIComponent(texteQuestion)}`;
     const source = new EventSource(url);
     eventSourceRef.current = source;
 
@@ -48,13 +48,13 @@ export function ChatWidget() {
     }
 
     source.addEventListener("fragment", (evt) => {
-      const donnees = JSON.parse((evt as MessageEvent).data) as { texte: string };
-      mettreAJourDernierMessage((m) => ({ ...m, texte: m.texte + donnees.texte }));
+      const donnees = JSON.parse((evt as MessageEvent).data) as { text: string };
+      mettreAJourDernierMessage((m) => ({ ...m, text: m.text + donnees.text }));
     });
 
-    source.addEventListener("termine", (evt) => {
-      const donnees = JSON.parse((evt as MessageEvent).data) as { sourcee: boolean; sources: string[] };
-      mettreAJourDernierMessage((m) => ({ ...m, sourcee: donnees.sourcee, sources: donnees.sources }));
+    source.addEventListener("done", (evt) => {
+      const donnees = JSON.parse((evt as MessageEvent).data) as { sourced: boolean; sources: string[] };
+      mettreAJourDernierMessage((m) => ({ ...m, sourced: donnees.sourced, sources: donnees.sources }));
       source.close();
       setEnCours(false);
     });

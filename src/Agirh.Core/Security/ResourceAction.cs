@@ -13,5 +13,5 @@ public enum ResourceAction
     TemplateApprove,
     TemplateReject,
     UserAccountElevateRole,
-    CorpusIngerer
+    CorpusIngest
 }

@@ -5,5 +5,5 @@ namespace Agirh.Core.Ports;
 
 public interface IRerankerPort
 {
-    Task<IReadOnlyList<ChunkDocumentaire>> RerankAsync(string requete, IReadOnlyList<ChunkDocumentaire> candidats, CancellationToken ct = default);
+    Task<IReadOnlyList<DocumentChunk>> RerankAsync(string query, IReadOnlyList<DocumentChunk> candidates, CancellationToken ct = default);
 }

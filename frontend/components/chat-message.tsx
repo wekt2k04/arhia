@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils";
 
 export type Message = {
   role: "user" | "assistant";
-  texte: string;
-  sourcee?: boolean;
+  text: string;
+  sourced?: boolean;
   sources?: string[];
 };
 
@@ -31,9 +31,9 @@ export function ChatMessage({ message, estEnCours }: { message: Message; estEnCo
             : "rounded-tl-sm border border-border bg-card text-card-foreground",
         )}
       >
-        {message.texte ? (
+        {message.text ? (
           <div className="prose prose-sm max-w-none break-words prose-p:my-1 prose-p:leading-relaxed dark:prose-invert">
-            <ReactMarkdown>{message.texte}</ReactMarkdown>
+            <ReactMarkdown>{message.text}</ReactMarkdown>
           </div>
         ) : (
           estEnCours && (

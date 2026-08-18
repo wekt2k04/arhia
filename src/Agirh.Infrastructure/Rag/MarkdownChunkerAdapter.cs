@@ -6,22 +6,22 @@ public sealed class MarkdownChunkerAdapter : IDocumentChunkerPort
 {
     private readonly MarkdownChunker _chunker;
 
-    public MarkdownChunkerAdapter(XlmRobertaTokenizer tokenizerPourComptage, int maxTokensParChunk = 400, double tauxRecouvrement = 0.15)
+    public MarkdownChunkerAdapter(XlmRobertaTokenizer tokenizerForCounting, int maxTokensPerChunk = 400, double overlapRatio = 0.15)
     {
-        _chunker = new MarkdownChunker(tokenizerPourComptage.CompterTokens, maxTokensParChunk, tauxRecouvrement);
+        _chunker = new MarkdownChunker(tokenizerForCounting.CountTokens, maxTokensPerChunk, overlapRatio);
     }
 
-    public IReadOnlyList<ChunkDocumentaire> Decouper(string documentSource, string markdown)
+    public IReadOnlyList<DocumentChunk> Chunk(string documentSource, string markdown)
     {
-        var chunksBruts = _chunker.Decouper(markdown);
+        var rawChunks = _chunker.Chunk(markdown);
 
-        return chunksBruts
-            .Select((chunk, index) => new ChunkDocumentaire(
-                ChunkDocumentaire.CalculerId(documentSource, index),
+        return rawChunks
+            .Select((chunk, index) => new DocumentChunk(
+                DocumentChunk.ComputeId(documentSource, index),
                 documentSource,
                 index,
-                chunk.CheminTitres,
-                chunk.Contenu))
+                chunk.TitlePath,
+                chunk.Content))
             .ToList();
     }
 }

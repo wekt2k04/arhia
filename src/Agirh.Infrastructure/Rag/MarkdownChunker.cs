@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace Agirh.Infrastructure.Rag;
 
-public sealed record ChunkBrut(string CheminTitres, string Contenu, int NombreTokens);
+public sealed record RawChunk(string TitlePath, string Content, int TokenCount);
 
 /// <summary>
 /// Decoupage structurel (docs/STACK_TECHNIQUE.md phase 1) : un chunk = une section Markdown
@@ -11,137 +11,137 @@ public sealed record ChunkBrut(string CheminTitres, string Contenu, int NombreTo
 /// </summary>
 public sealed class MarkdownChunker
 {
-    private readonly Func<string, int> _compterTokens;
-    private readonly int _maxTokensParChunk;
-    private readonly double _tauxRecouvrement;
+    private readonly Func<string, int> _countTokens;
+    private readonly int _maxTokensPerChunk;
+    private readonly double _overlapRatio;
 
-    public MarkdownChunker(Func<string, int> compterTokens, int maxTokensParChunk = 400, double tauxRecouvrement = 0.15)
+    public MarkdownChunker(Func<string, int> countTokens, int maxTokensPerChunk = 400, double overlapRatio = 0.15)
     {
-        if (maxTokensParChunk <= 0)
-            throw new ArgumentOutOfRangeException(nameof(maxTokensParChunk), "Le budget de tokens doit être positif.");
-        if (tauxRecouvrement < 0 || tauxRecouvrement >= 1)
-            throw new ArgumentOutOfRangeException(nameof(tauxRecouvrement), "Le taux de recouvrement doit être dans [0, 1[.");
+        if (maxTokensPerChunk <= 0)
+            throw new ArgumentOutOfRangeException(nameof(maxTokensPerChunk), "Le budget de tokens doit être positif.");
+        if (overlapRatio < 0 || overlapRatio >= 1)
+            throw new ArgumentOutOfRangeException(nameof(overlapRatio), "Le taux de recouvrement doit être dans [0, 1[.");
 
-        _compterTokens = compterTokens ?? throw new ArgumentNullException(nameof(compterTokens));
-        _maxTokensParChunk = maxTokensParChunk;
-        _tauxRecouvrement = tauxRecouvrement;
+        _countTokens = countTokens ?? throw new ArgumentNullException(nameof(countTokens));
+        _maxTokensPerChunk = maxTokensPerChunk;
+        _overlapRatio = overlapRatio;
     }
 
-    public IReadOnlyList<ChunkBrut> Decouper(string markdown)
+    public IReadOnlyList<RawChunk> Chunk(string markdown)
     {
         if (string.IsNullOrWhiteSpace(markdown))
-            return Array.Empty<ChunkBrut>();
+            return Array.Empty<RawChunk>();
 
-        var resultat = new List<ChunkBrut>();
+        var result = new List<RawChunk>();
 
-        foreach (var section in ExtraireSections(markdown))
+        foreach (var section in ExtractSections(markdown))
         {
-            var texteAvecTitre = ComposerTexte(section.CheminTitres, section.Corps);
-            var nbTokens = _compterTokens(texteAvecTitre);
+            var textWithTitle = ComposeText(section.TitlePath, section.Body);
+            var tokenCount = _countTokens(textWithTitle);
 
-            if (nbTokens <= _maxTokensParChunk)
+            if (tokenCount <= _maxTokensPerChunk)
             {
-                resultat.Add(new ChunkBrut(section.CheminTitres, texteAvecTitre, nbTokens));
+                result.Add(new RawChunk(section.TitlePath, textWithTitle, tokenCount));
             }
             else
             {
-                resultat.AddRange(DecouperSectionLongue(section));
+                result.AddRange(ChunkLongSection(section));
             }
         }
 
-        return resultat;
+        return result;
     }
 
-    private List<ChunkBrut> DecouperSectionLongue(Section section)
+    private List<RawChunk> ChunkLongSection(Section section)
     {
-        var paragraphes = section.Corps
+        var paragraphs = section.Body
             .Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(p => p.Length > 0)
             .ToList();
 
-        var sousChunks = new List<ChunkBrut>();
-        var paragraphesCourants = new List<string>();
+        var subChunks = new List<RawChunk>();
+        var currentParagraphs = new List<string>();
 
-        void EmettreSousChunk()
+        void EmitSubChunk()
         {
-            if (paragraphesCourants.Count == 0) return;
-            var texte = ComposerTexte(section.CheminTitres, string.Join("\n\n", paragraphesCourants));
-            sousChunks.Add(new ChunkBrut(section.CheminTitres, texte, _compterTokens(texte)));
+            if (currentParagraphs.Count == 0) return;
+            var text = ComposeText(section.TitlePath, string.Join("\n\n", currentParagraphs));
+            subChunks.Add(new RawChunk(section.TitlePath, text, _countTokens(text)));
         }
 
-        for (var i = 0; i < paragraphes.Count; i++)
+        for (var i = 0; i < paragraphs.Count; i++)
         {
-            paragraphesCourants.Add(paragraphes[i]);
-            var texteCourant = ComposerTexte(section.CheminTitres, string.Join("\n\n", paragraphesCourants));
-            var estDernierParagraphe = i == paragraphes.Count - 1;
+            currentParagraphs.Add(paragraphs[i]);
+            var currentText = ComposeText(section.TitlePath, string.Join("\n\n", currentParagraphs));
+            var isLastParagraph = i == paragraphs.Count - 1;
 
-            if (_compterTokens(texteCourant) < _maxTokensParChunk && !estDernierParagraphe)
+            if (_countTokens(currentText) < _maxTokensPerChunk && !isLastParagraph)
                 continue;
 
-            EmettreSousChunk();
+            EmitSubChunk();
 
-            if (estDernierParagraphe)
+            if (isLastParagraph)
             {
                 // Rien de plus a ajouter : ne pas conserver de recouvrement qui ne ferait
                 // que reemettre a l'identique le meme contenu (cf. tests boundary).
-                paragraphesCourants = new List<string>();
+                currentParagraphs = new List<string>();
                 break;
             }
 
-            var nbParagraphesRecouvrement = Math.Max(1, (int)(paragraphesCourants.Count * _tauxRecouvrement));
-            paragraphesCourants = paragraphesCourants
-                .Skip(Math.Max(0, paragraphesCourants.Count - nbParagraphesRecouvrement))
+            var overlapParagraphCount = Math.Max(1, (int)(currentParagraphs.Count * _overlapRatio));
+            currentParagraphs = currentParagraphs
+                .Skip(Math.Max(0, currentParagraphs.Count - overlapParagraphCount))
                 .ToList();
         }
 
-        return sousChunks;
+        return subChunks;
     }
 
-    private static string ComposerTexte(string cheminTitres, string corps) =>
-        $"{cheminTitres}\n\n{corps}".Trim();
+    private static string ComposeText(string titlePath, string body) =>
+        $"{titlePath}\n\n{body}".Trim();
 
-    private static List<Section> ExtraireSections(string markdown)
+    private static List<Section> ExtractSections(string markdown)
     {
-        var lignes = markdown.Replace("\r\n", "\n").Split('\n');
+        var lines = markdown.Replace("\r\n", "\n").Split('\n');
         var sections = new List<Section>();
-        var pileTitres = new List<(int Niveau, string Texte)>();
-        var corpsCourant = new List<string>();
-        var cheminTitresCourant = string.Empty;
+        var titleStack = new List<(int Level, string Text)>();
+        var currentBody = new List<string>();
+        var currentTitlePath = string.Empty;
 
-        void ClorreSection()
+        void CloseSection()
         {
-            var corps = string.Join("\n", corpsCourant).Trim();
-            if (corps.Length > 0)
-                sections.Add(new Section(cheminTitresCourant, corps));
-            corpsCourant.Clear();
+            var body = string.Join("\n", currentBody).Trim();
+            if (body.Length > 0)
+                sections.Add(new Section(currentTitlePath, body));
+            currentBody.Clear();
         }
 
-        foreach (var ligne in lignes)
+        foreach (var line in lines)
         {
-            var match = Regex.Match(ligne, @"^(#{1,6})\s+(.*)$");
+            var match = Regex.Match(line, @"^(#{1,6})\s+(.*)$");
             if (match.Success)
             {
-                ClorreSection();
+                CloseSection();
 
-                var niveau = match.Groups[1].Value.Length;
-                var texte = match.Groups[2].Value.Trim();
+                var level = match.Groups[1].Value.Length;
+                var text = match.Groups[2].Value.Trim();
 
-                while (pileTitres.Count > 0 && pileTitres[^1].Niveau >= niveau)
-                    pileTitres.RemoveAt(pileTitres.Count - 1);
+                while (titleStack.Count > 0 && titleStack[^1].Level >= level)
+                    titleStack.RemoveAt(titleStack.Count - 1);
 
-                pileTitres.Add((niveau, texte));
-                cheminTitresCourant = string.Join(" > ", pileTitres.Select(t => t.Texte));
+                titleStack.Add((level, text));
+                currentTitlePath = string.Join(" > ", titleStack.Select(t => t.Text));
             }
             else
             {
-                corpsCourant.Add(ligne);
+                currentBody.Add(line);
             }
         }
 
-        ClorreSection();
+        CloseSection();
 
         return sections;
     }
 
-    private sealed record Section(string CheminTitres, string Corps);
+    private sealed record Section(string TitlePath, string Body);
 }

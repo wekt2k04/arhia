@@ -5,13 +5,13 @@ namespace Agirh.Tests.Rag;
 
 public class MarkdownChunkerTests
 {
-    private static int CompterMots(string texte) =>
-        texte.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+    private static int CountWords(string text) =>
+        text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
 
     [Fact]
-    public void Constructeur_MaxTokensNegatifOuZero_LeveArgumentOutOfRangeException()
+    public void Constructor_NegativeOrZeroMaxTokens_ThrowsArgumentOutOfRangeException()
     {
-        var act = () => new MarkdownChunker(CompterMots, maxTokensParChunk: 0);
+        var act = () => new MarkdownChunker(CountWords, maxTokensPerChunk: 0);
 
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
@@ -20,37 +20,37 @@ public class MarkdownChunkerTests
     [InlineData(-0.1)]
     [InlineData(1.0)]
     [InlineData(1.5)]
-    public void Constructeur_TauxRecouvrementHorsBornes_LeveArgumentOutOfRangeException(double taux)
+    public void Constructor_OverlapRatioOutOfBounds_ThrowsArgumentOutOfRangeException(double ratio)
     {
-        var act = () => new MarkdownChunker(CompterMots, tauxRecouvrement: taux);
+        var act = () => new MarkdownChunker(CountWords, overlapRatio: ratio);
 
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
 
     [Fact]
-    public void Decouper_TexteVideOuNull_RetourneAucunChunk()
+    public void Chunk_EmptyOrNullText_ReturnsNoChunk()
     {
-        var chunker = new MarkdownChunker(CompterMots);
+        var chunker = new MarkdownChunker(CountWords);
 
-        chunker.Decouper("").Should().BeEmpty();
-        chunker.Decouper("   \n  ").Should().BeEmpty();
+        chunker.Chunk("").Should().BeEmpty();
+        chunker.Chunk("   \n  ").Should().BeEmpty();
     }
 
     [Fact]
-    public void Decouper_UneSectionCourte_ProduitUnSeulChunkPrefixeParLeTitre()
+    public void Chunk_OneShortSection_ProducesASingleChunkPrefixedByTheTitle()
     {
         var markdown = "# Politique d'Onboarding\n\nCeci est un court paragraphe d'introduction.";
-        var chunker = new MarkdownChunker(CompterMots, maxTokensParChunk: 100);
+        var chunker = new MarkdownChunker(CountWords, maxTokensPerChunk: 100);
 
-        var chunks = chunker.Decouper(markdown);
+        var chunks = chunker.Chunk(markdown);
 
         chunks.Should().ContainSingle();
-        chunks[0].CheminTitres.Should().Be("Politique d'Onboarding");
-        chunks[0].Contenu.Should().Contain("Politique d'Onboarding").And.Contain("court paragraphe");
+        chunks[0].TitlePath.Should().Be("Politique d'Onboarding");
+        chunks[0].Content.Should().Contain("Politique d'Onboarding").And.Contain("court paragraphe");
     }
 
     [Fact]
-    public void Decouper_PlusieursSectionsH2_ProduitUnChunkParSection()
+    public void Chunk_SeveralH2Sections_ProducesOneChunkPerSection()
     {
         var markdown = """
             # Politique
@@ -61,17 +61,17 @@ public class MarkdownChunkerTests
             ## Section B
             Contenu de la section B.
             """;
-        var chunker = new MarkdownChunker(CompterMots, maxTokensParChunk: 100);
+        var chunker = new MarkdownChunker(CountWords, maxTokensPerChunk: 100);
 
-        var chunks = chunker.Decouper(markdown);
+        var chunks = chunker.Chunk(markdown);
 
         chunks.Should().HaveCount(2);
-        chunks[0].CheminTitres.Should().Be("Politique > Section A");
-        chunks[1].CheminTitres.Should().Be("Politique > Section B");
+        chunks[0].TitlePath.Should().Be("Politique > Section A");
+        chunks[1].TitlePath.Should().Be("Politique > Section B");
     }
 
     [Fact]
-    public void Decouper_TitresImbriquesH1H2H3_ConstruitLeCheminComplet()
+    public void Chunk_NestedH1H2H3Titles_BuildsTheFullPath()
     {
         var markdown = """
             # Titre Un
@@ -81,16 +81,16 @@ public class MarkdownChunkerTests
             ### Titre Trois
             Contenu profond.
             """;
-        var chunker = new MarkdownChunker(CompterMots, maxTokensParChunk: 100);
+        var chunker = new MarkdownChunker(CountWords, maxTokensPerChunk: 100);
 
-        var chunks = chunker.Decouper(markdown);
+        var chunks = chunker.Chunk(markdown);
 
         chunks.Should().ContainSingle();
-        chunks[0].CheminTitres.Should().Be("Titre Un > Titre Deux > Titre Trois");
+        chunks[0].TitlePath.Should().Be("Titre Un > Titre Deux > Titre Trois");
     }
 
     [Fact]
-    public void Decouper_RetourAuMemeNiveauDeTitre_ReinitialiseLeChemin()
+    public void Chunk_ReturnToTheSameTitleLevel_ResetsThePath()
     {
         var markdown = """
             # Racine
@@ -102,67 +102,67 @@ public class MarkdownChunkerTests
             ## Deuxieme sous-section
             Autre contenu.
             """;
-        var chunker = new MarkdownChunker(CompterMots, maxTokensParChunk: 100);
+        var chunker = new MarkdownChunker(CountWords, maxTokensPerChunk: 100);
 
-        var chunks = chunker.Decouper(markdown);
+        var chunks = chunker.Chunk(markdown);
 
         chunks.Should().HaveCount(2);
-        chunks[0].CheminTitres.Should().Be("Racine > Premiere sous-section > Sous-sous-section");
-        chunks[1].CheminTitres.Should().Be("Racine > Deuxieme sous-section");
+        chunks[0].TitlePath.Should().Be("Racine > Premiere sous-section > Sous-sous-section");
+        chunks[1].TitlePath.Should().Be("Racine > Deuxieme sous-section");
     }
 
     [Fact]
-    public void Decouper_SectionDepassantLeBudget_EstSousDecoupeeEnPlusieursChunks()
+    public void Chunk_SectionExceedingTheBudget_IsSplitIntoSeveralChunks()
     {
-        var paragraphes = Enumerable.Range(1, 10).Select(i => $"Paragraphe numero {i} avec plusieurs mots dedans.");
-        var markdown = "# Section longue\n\n" + string.Join("\n\n", paragraphes);
-        var chunker = new MarkdownChunker(CompterMots, maxTokensParChunk: 30, tauxRecouvrement: 0.2);
+        var paragraphs = Enumerable.Range(1, 10).Select(i => $"Paragraphe numero {i} avec plusieurs mots dedans.");
+        var markdown = "# Section longue\n\n" + string.Join("\n\n", paragraphs);
+        var chunker = new MarkdownChunker(CountWords, maxTokensPerChunk: 30, overlapRatio: 0.2);
 
-        var chunks = chunker.Decouper(markdown);
+        var chunks = chunker.Chunk(markdown);
 
         chunks.Should().HaveCountGreaterThan(1);
-        chunks.Should().OnlyContain(c => c.CheminTitres == "Section longue");
+        chunks.Should().OnlyContain(c => c.TitlePath == "Section longue");
     }
 
     [Fact]
-    public void Decouper_SectionLongue_ProduitUnRecouvrementEntreChunksConsecutifs()
+    public void Chunk_LongSection_ProducesOverlapBetweenConsecutiveChunks()
     {
-        var paragraphes = Enumerable.Range(1, 8).Select(i => $"P{i} mot mot mot mot mot mot.");
-        var markdown = "# Section\n\n" + string.Join("\n\n", paragraphes);
-        var chunker = new MarkdownChunker(CompterMots, maxTokensParChunk: 20, tauxRecouvrement: 0.3);
+        var paragraphs = Enumerable.Range(1, 8).Select(i => $"P{i} mot mot mot mot mot mot.");
+        var markdown = "# Section\n\n" + string.Join("\n\n", paragraphs);
+        var chunker = new MarkdownChunker(CountWords, maxTokensPerChunk: 20, overlapRatio: 0.3);
 
-        var chunks = chunker.Decouper(markdown);
+        var chunks = chunker.Chunk(markdown);
 
         chunks.Should().HaveCountGreaterThan(1);
         // Le dernier paragraphe du premier chunk doit reapparaitre dans le second (recouvrement)
-        var dernierParagrapheChunk1 = chunks[0].Contenu.Split("\n\n").Last();
-        chunks[1].Contenu.Should().Contain(dernierParagrapheChunk1);
+        var lastParagraphChunk1 = chunks[0].Content.Split("\n\n").Last();
+        chunks[1].Content.Should().Contain(lastParagraphChunk1);
     }
 
     [Fact]
-    public void Decouper_UnSeulParagrapheDepassantLeBudget_EstEmisTelQuelSansPlanter()
+    public void Chunk_SingleParagraphExceedingTheBudget_IsEmittedAsIsWithoutCrashing()
     {
-        var paragrapheEnorme = string.Join(" ", Enumerable.Repeat("mot", 500));
-        var markdown = $"# Section\n\n{paragrapheEnorme}";
-        var chunker = new MarkdownChunker(CompterMots, maxTokensParChunk: 50);
+        var hugeParagraph = string.Join(" ", Enumerable.Repeat("mot", 500));
+        var markdown = $"# Section\n\n{hugeParagraph}";
+        var chunker = new MarkdownChunker(CountWords, maxTokensPerChunk: 50);
 
-        var act = () => chunker.Decouper(markdown);
+        var act = () => chunker.Chunk(markdown);
 
         act.Should().NotThrow();
         var chunks = act();
         chunks.Should().ContainSingle();
-        chunks[0].NombreTokens.Should().BeGreaterThan(50);
+        chunks[0].TokenCount.Should().BeGreaterThan(50);
     }
 
     [Fact]
-    public void Decouper_SectionSansContenu_NestPasIncluse()
+    public void Chunk_SectionWithoutContent_IsNotIncluded()
     {
         var markdown = "# Titre vide\n\n## Sous-titre avec contenu\nDu texte ici.";
-        var chunker = new MarkdownChunker(CompterMots, maxTokensParChunk: 100);
+        var chunker = new MarkdownChunker(CountWords, maxTokensPerChunk: 100);
 
-        var chunks = chunker.Decouper(markdown);
+        var chunks = chunker.Chunk(markdown);
 
         chunks.Should().ContainSingle();
-        chunks[0].CheminTitres.Should().Be("Titre vide > Sous-titre avec contenu");
+        chunks[0].TitlePath.Should().Be("Titre vide > Sous-titre avec contenu");
     }
 }

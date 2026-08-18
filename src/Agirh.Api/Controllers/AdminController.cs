@@ -6,44 +6,44 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Agirh.Api.Controllers;
 
-public sealed record CorpusOptions(string Repertoire);
+public sealed record CorpusOptions(string Directory);
 
-public record ReindexerCorpusResponse(int DocumentsLus, int ChunksIndexes);
+public record ReindexCorpusResponse(int DocumentsRead, int ChunksIndexed);
 
 [ApiController]
 [Route("api/admin")]
 [Authorize]
 public class AdminController : ControllerBase
 {
-    private readonly IngererCorpusUseCase _ingererCorpus;
+    private readonly IngestCorpusUseCase _ingestCorpus;
     private readonly ICurrentUserAccessor _currentUser;
     private readonly CorpusOptions _corpusOptions;
 
-    public AdminController(IngererCorpusUseCase ingererCorpus, ICurrentUserAccessor currentUser, CorpusOptions corpusOptions)
+    public AdminController(IngestCorpusUseCase ingestCorpus, ICurrentUserAccessor currentUser, CorpusOptions corpusOptions)
     {
-        _ingererCorpus = ingererCorpus;
+        _ingestCorpus = ingestCorpus;
         _currentUser = currentUser;
         _corpusOptions = corpusOptions;
     }
 
     [HttpPost("reindex-corpus")]
-    public async Task<ActionResult<ReindexerCorpusResponse>> ReindexCorpus(CancellationToken ct)
+    public async Task<ActionResult<ReindexCorpusResponse>> ReindexCorpus(CancellationToken ct)
     {
         var actor = await _currentUser.GetActorAsync(ct);
 
-        if (!Directory.Exists(_corpusOptions.Repertoire))
-            return NotFound($"Répertoire corpus introuvable : {_corpusOptions.Repertoire}");
+        if (!Directory.Exists(_corpusOptions.Directory))
+            return NotFound($"Répertoire corpus introuvable : {_corpusOptions.Directory}");
 
         var documents = new Dictionary<string, string>();
-        foreach (var fichier in Directory.GetFiles(_corpusOptions.Repertoire, "*.md"))
+        foreach (var file in Directory.GetFiles(_corpusOptions.Directory, "*.md"))
         {
-            documents[Path.GetFileName(fichier)] = await System.IO.File.ReadAllTextAsync(fichier, ct);
+            documents[Path.GetFileName(file)] = await System.IO.File.ReadAllTextAsync(file, ct);
         }
 
         try
         {
-            var nombreChunks = await _ingererCorpus.ExecuteAsync(actor, documents, ct);
-            return Ok(new ReindexerCorpusResponse(documents.Count, nombreChunks));
+            var chunkCount = await _ingestCorpus.ExecuteAsync(actor, documents, ct);
+            return Ok(new ReindexCorpusResponse(documents.Count, chunkCount));
         }
         catch (AccessDeniedException)
         {

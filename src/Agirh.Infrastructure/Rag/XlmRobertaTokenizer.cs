@@ -24,35 +24,35 @@ public sealed class XlmRobertaTokenizer
         _tokenizer = tokenizer;
     }
 
-    public static XlmRobertaTokenizer ChargerDepuisFichier(string cheminSentencePieceModel)
+    public static XlmRobertaTokenizer LoadFromFile(string sentencePieceModelPath)
     {
-        if (!File.Exists(cheminSentencePieceModel))
-            throw new FileNotFoundException("Fichier sentencepiece.bpe.model introuvable.", cheminSentencePieceModel);
+        if (!File.Exists(sentencePieceModelPath))
+            throw new FileNotFoundException("Fichier sentencepiece.bpe.model introuvable.", sentencePieceModelPath);
 
-        using var flux = File.OpenRead(cheminSentencePieceModel);
-        var tokenizer = SentencePieceTokenizer.Create(flux, addBeginningOfSentence: true, addEndOfSentence: true);
+        using var stream = File.OpenRead(sentencePieceModelPath);
+        var tokenizer = SentencePieceTokenizer.Create(stream, addBeginningOfSentence: true, addEndOfSentence: true);
         return new XlmRobertaTokenizer(tokenizer);
     }
 
-    public int CompterTokens(string texte) =>
-        _tokenizer.CountTokens(texte, considerNormalization: true, considerPreTokenization: true);
+    public int CountTokens(string text) =>
+        _tokenizer.CountTokens(text, considerNormalization: true, considerPreTokenization: true);
 
-    public long[] EncoderEnIdsHuggingFace(string texte)
+    public long[] EncodeToHuggingFaceIds(string text)
     {
-        var idsBruts = _tokenizer.EncodeToIds(
-            texte,
+        var rawIds = _tokenizer.EncodeToIds(
+            text,
             addBeginningOfSentence: true,
             addEndOfSentence: true,
             considerNormalization: true,
             considerPreTokenization: true);
 
-        var resultat = new long[idsBruts.Count];
-        for (var i = 0; i < idsBruts.Count; i++)
+        var result = new long[rawIds.Count];
+        for (var i = 0; i < rawIds.Count; i++)
         {
-            resultat[i] = CorrigerVersEspaceHuggingFace(idsBruts[i]);
+            result[i] = FixToHuggingFaceSpace(rawIds[i]);
         }
 
-        return resultat;
+        return result;
     }
 
     /// <summary>
@@ -61,26 +61,26 @@ public sealed class XlmRobertaTokenizer
     /// (double separateur EOS entre les deux textes, convention de la famille RoBERTa —
     /// pas un choix specifique a ce modele).
     /// </summary>
-    public long[] EncoderPaireEnIdsHuggingFace(string texteA, string texteB)
+    public long[] EncodePairToHuggingFaceIds(string textA, string textB)
     {
-        var idsA = _tokenizer.EncodeToIds(texteA, addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: true, considerPreTokenization: true);
-        var idsB = _tokenizer.EncodeToIds(texteB, addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: true, considerPreTokenization: true);
+        var idsA = _tokenizer.EncodeToIds(textA, addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: true, considerPreTokenization: true);
+        var idsB = _tokenizer.EncodeToIds(textB, addBeginningOfSentence: false, addEndOfSentence: false, considerNormalization: true, considerPreTokenization: true);
 
-        var resultat = new List<long> { BosHuggingFace };
-        resultat.AddRange(idsA.Select(CorrigerVersEspaceHuggingFace));
-        resultat.Add(EosHuggingFace);
-        resultat.Add(EosHuggingFace);
-        resultat.AddRange(idsB.Select(CorrigerVersEspaceHuggingFace));
-        resultat.Add(EosHuggingFace);
+        var result = new List<long> { BosHuggingFace };
+        result.AddRange(idsA.Select(FixToHuggingFaceSpace));
+        result.Add(EosHuggingFace);
+        result.Add(EosHuggingFace);
+        result.AddRange(idsB.Select(FixToHuggingFaceSpace));
+        result.Add(EosHuggingFace);
 
-        return resultat.ToArray();
+        return result.ToArray();
     }
 
-    private static long CorrigerVersEspaceHuggingFace(int idBrutSentencePiece) => idBrutSentencePiece switch
+    private static long FixToHuggingFaceSpace(int rawSentencePieceId) => rawSentencePieceId switch
     {
         0 => UnkHuggingFace,
         1 => BosHuggingFace,
         2 => EosHuggingFace,
-        _ => idBrutSentencePiece + 1
+        _ => rawSentencePieceId + 1
     };
 }

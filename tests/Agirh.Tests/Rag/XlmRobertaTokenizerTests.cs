@@ -10,16 +10,16 @@ namespace Agirh.Tests.Rag;
 /// </summary>
 public class XlmRobertaTokenizerTests
 {
-    private static string CheminModele => Path.Combine(RepoPaths.ModelesEmbedding, "sentencepiece.bpe.model");
+    private static string ModelPath => Path.Combine(RepoPaths.ModelesEmbedding, "sentencepiece.bpe.model");
 
     [Fact]
-    public void EncoderEnIdsHuggingFace_TexteSimple_EncadreParBosEtEosEnEspaceHuggingFace()
+    public void EncodeToHuggingFaceIds_SimpleText_IsFramedByBosAndEosInHuggingFaceSpace()
     {
-        if (!File.Exists(CheminModele)) return;
+        if (!File.Exists(ModelPath)) return;
 
-        var tokenizer = XlmRobertaTokenizer.ChargerDepuisFichier(CheminModele);
+        var tokenizer = XlmRobertaTokenizer.LoadFromFile(ModelPath);
 
-        var ids = tokenizer.EncoderEnIdsHuggingFace("Bonjour tout le monde.");
+        var ids = tokenizer.EncodeToHuggingFaceIds("Bonjour tout le monde.");
 
         ids.Should().NotBeEmpty();
         ids[0].Should().Be(0, "<s> doit être l'identifiant 0 en espace Hugging Face, pas l'identifiant brut SentencePiece");
@@ -28,22 +28,22 @@ public class XlmRobertaTokenizerTests
     }
 
     [Fact]
-    public void CompterTokens_TextePlusLong_DonneUnCompteSuperieurATexteCourt()
+    public void CountTokens_LongerText_GivesAHigherCountThanShortText()
     {
-        if (!File.Exists(CheminModele)) return;
+        if (!File.Exists(ModelPath)) return;
 
-        var tokenizer = XlmRobertaTokenizer.ChargerDepuisFichier(CheminModele);
+        var tokenizer = XlmRobertaTokenizer.LoadFromFile(ModelPath);
 
-        var court = tokenizer.CompterTokens("Bonjour.");
-        var plusLong = tokenizer.CompterTokens("Bonjour, comment allez-vous aujourd'hui ? J'espère que tout va bien pour vous.");
+        var short_ = tokenizer.CountTokens("Bonjour.");
+        var longer = tokenizer.CountTokens("Bonjour, comment allez-vous aujourd'hui ? J'espère que tout va bien pour vous.");
 
-        plusLong.Should().BeGreaterThan(court);
+        longer.Should().BeGreaterThan(short_);
     }
 
     [Fact]
-    public void ChargerDepuisFichier_CheminInexistant_LeveFileNotFoundException()
+    public void LoadFromFile_NonExistentPath_ThrowsFileNotFoundException()
     {
-        var act = () => XlmRobertaTokenizer.ChargerDepuisFichier(Path.Combine(RepoPaths.Racine, "models", "inexistant.model"));
+        var act = () => XlmRobertaTokenizer.LoadFromFile(Path.Combine(RepoPaths.Racine, "models", "inexistant.model"));
 
         act.Should().Throw<FileNotFoundException>();
     }

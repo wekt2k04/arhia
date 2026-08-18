@@ -41,7 +41,7 @@ public sealed class GoldCorpusFixture : IAsyncLifetime
         var vectorSearch = new QdrantVectorSearchAdapter(client, Embedder.Dimension);
         try
         {
-            await vectorSearch.PreparerAsync();
+            await vectorSearch.PrepareAsync();
         }
         catch
         {
@@ -50,9 +50,9 @@ public sealed class GoldCorpusFixture : IAsyncLifetime
 
         VectorSearch = vectorSearch;
 
-        var tokenizer = XlmRobertaTokenizer.ChargerDepuisFichier(embeddingSpm);
+        var tokenizer = XlmRobertaTokenizer.LoadFromFile(embeddingSpm);
         var chunker = new MarkdownChunkerAdapter(tokenizer);
-        var ingestion = new IngererCorpusUseCase(chunker, Embedder, vectorSearch);
+        var ingestion = new IngestCorpusUseCase(chunker, Embedder, vectorSearch);
 
         var documents = new Dictionary<string, string>();
         foreach (var fichier in Directory.GetFiles(corpusDir, "*.md"))
@@ -98,19 +98,19 @@ public class EvaluationGoldRetrievalTests : IClassFixture<GoldCorpusFixture>
     {
         if (!_fixture.PrerequisDisponibles) return;
 
-        var vecteurRequete = await _fixture.Embedder!.GenererEmbeddingAsync(gold.Question);
+        var queryVector = await _fixture.Embedder!.GenerateEmbeddingAsync(gold.Question);
         // topK large + filtre sur les vrais noms de documents : Qdrant est persistant (volume nommé)
         // et peut contenir des fixtures d'autres tests (ex. PipelineCompletCorpusReelTests) au contenu
         // parfois identique à un vrai document sous un autre nom — même pattern de fix que
         // RagPipelineIntegrationTests (cf. .claude/HANDOFF/NEXT_SESSION.md).
-        var candidatsBruts = await _fixture.VectorSearch!.RechercherAsync(vecteurRequete, topK: 20);
-        var candidats = candidatsBruts.Where(c => _fixture.NomsDocumentsReels.Contains(c.DocumentSource)).ToList();
-        candidats.Should().NotBeEmpty($"la question gold {gold.Id} doit retrouver au moins un candidat du vrai corpus indexé");
+        var rawCandidates = await _fixture.VectorSearch!.SearchAsync(queryVector, topK: 20);
+        var candidates = rawCandidates.Where(c => _fixture.NomsDocumentsReels.Contains(c.DocumentSource)).ToList();
+        candidates.Should().NotBeEmpty($"la question gold {gold.Id} doit retrouver au moins un candidat du vrai corpus indexé");
 
-        var resultats = await _fixture.Reranker!.RerankAsync(gold.Question, candidats);
-        resultats.Should().NotBeEmpty();
+        var results = await _fixture.Reranker!.RerankAsync(gold.Question, candidates);
+        results.Should().NotBeEmpty();
 
-        resultats[0].DocumentSource.Should().BeOneOf(gold.SourcesAcceptees,
-            $"{gold.Id} ({gold.Question}) devrait être sourcée depuis {string.Join(" ou ", gold.SourcesAcceptees)}, pas {resultats[0].DocumentSource}");
+        results[0].DocumentSource.Should().BeOneOf(gold.SourcesAcceptees,
+            $"{gold.Id} ({gold.Question}) devrait être sourcée depuis {string.Join(" ou ", gold.SourcesAcceptees)}, pas {results[0].DocumentSource}");
     }
 }

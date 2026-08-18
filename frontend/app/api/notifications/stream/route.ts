@@ -4,7 +4,7 @@ import { obtenirToken } from "@/lib/api/session";
 
 export const dynamic = "force-dynamic";
 
-// Même proxy SSE pur que app/api/chat/demander — voir ce fichier pour le détail. Ici la source
+// Même proxy SSE pur que app/api/chat/ask — voir ce fichier pour le détail. Ici la source
 // est Agirh.Api.NotificationController (SseNotificationBroadcaster, rafraîchi toutes les 10s).
 export async function GET(request: NextRequest) {
   const token = await obtenirToken();

@@ -7,7 +7,7 @@ import { obtenirToken } from "@/lib/api/session";
 export const dynamic = "force-dynamic";
 
 // Proxy BFF pur : relit le cookie de session, ajoute le Bearer token, et relaie tel quel le flux
-// SSE de Agirh.Api.ChatController (event: fragment / event: termine) — pas de reparsing des
+// SSE de Agirh.Api.ChatController (event: fragment / event: done) — pas de reparsing des
 // frames ici, response.body est déjà un ReadableStream, on le transmet directement.
 export async function GET(request: NextRequest) {
   const token = await obtenirToken();
@@ -16,11 +16,11 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
-  const apiUrl = new URL(`${AGIRH_API_URL}/api/chat/demander`);
+  const apiUrl = new URL(`${AGIRH_API_URL}/api/chat/ask`);
   apiUrl.searchParams.set("question", searchParams.get("question") ?? "");
-  const collaborateurCibleId = searchParams.get("collaborateurCibleId");
-  if (collaborateurCibleId) {
-    apiUrl.searchParams.set("collaborateurCibleId", collaborateurCibleId);
+  const targetEmployeeId = searchParams.get("targetEmployeeId");
+  if (targetEmployeeId) {
+    apiUrl.searchParams.set("targetEmployeeId", targetEmployeeId);
   }
 
   const reponseApi = await fetch(apiUrl, {

@@ -36,7 +36,7 @@ public class NotificationController : ControllerBase
 
         try
         {
-            await _broadcaster.DiffuserAsync(
+            await _broadcaster.BroadcastAsync(
                 Response.Body,
                 innerCt => _getNotifications.ExecuteAsync(actor, DateTime.UtcNow, innerCt),
                 ct);

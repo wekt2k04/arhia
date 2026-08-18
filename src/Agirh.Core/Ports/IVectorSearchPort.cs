@@ -5,7 +5,7 @@ namespace Agirh.Core.Ports;
 
 public interface IVectorSearchPort
 {
-    Task PreparerAsync(CancellationToken ct = default);
-    Task IndexerAsync(ChunkDocumentaire chunk, float[] vecteur, CancellationToken ct = default);
-    Task<IReadOnlyList<ChunkDocumentaire>> RechercherAsync(float[] vecteurRequete, int topK, CancellationToken ct = default);
+    Task PrepareAsync(CancellationToken ct = default);
+    Task IndexAsync(DocumentChunk chunk, float[] vector, CancellationToken ct = default);
+    Task<IReadOnlyList<DocumentChunk>> SearchAsync(float[] queryVector, int topK, CancellationToken ct = default);
 }

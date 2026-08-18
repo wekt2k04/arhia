@@ -18,7 +18,7 @@ public static class RbacMatrix
             [ResourceAction.TemplateApprove] = Roles(RoleType.QualityAdmin),
             [ResourceAction.TemplateReject] = Roles(RoleType.QualityAdmin),
             [ResourceAction.UserAccountElevateRole] = Roles(RoleType.QualityAdmin),
-            [ResourceAction.CorpusIngerer] = Roles(RoleType.QualityAdmin)
+            [ResourceAction.CorpusIngest] = Roles(RoleType.QualityAdmin)
         };
 
     public static bool IsAuthorized(RoleType role, ResourceAction action) =>

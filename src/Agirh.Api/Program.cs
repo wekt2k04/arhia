@@ -98,19 +98,19 @@ builder.Services.AddSingleton(_ => new QdrantClient(builder.Configuration["Qdran
 builder.Services.AddSingleton<IVectorSearchPort>(sp =>
     new QdrantVectorSearchAdapter(sp.GetRequiredService<QdrantClient>(), sp.GetRequiredService<IEmbeddingPort>().Dimension));
 
-builder.Services.AddSingleton(_ => XlmRobertaTokenizer.ChargerDepuisFichier(
+builder.Services.AddSingleton(_ => XlmRobertaTokenizer.LoadFromFile(
     Path.Combine(modelesEmbeddingDir, "sentencepiece.bpe.model")));
 builder.Services.AddSingleton<IDocumentChunkerPort>(sp =>
     new MarkdownChunkerAdapter(sp.GetRequiredService<XlmRobertaTokenizer>()));
 builder.Services.AddSingleton(new Agirh.Api.Controllers.CorpusOptions(Path.Combine(racineDepot, "rag", "corpus")));
-builder.Services.AddScoped<IngererCorpusUseCase>();
+builder.Services.AddScoped<IngestCorpusUseCase>();
 
 builder.Services.AddHttpClient<OllamaClient>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Ollama:BaseUrl"] ?? "http://localhost:11434");
     client.Timeout = TimeSpan.FromSeconds(120);
 });
-// Modeles configurables independamment de l'URL (Ollama:RouterModele / Ollama:GeneratorModele) :
+// Modeles configurables independamment de l'URL (Ollama:RouterModel / Ollama:GeneratorModel) :
 // permet de basculer vers un serveur Ollama d'entreprise (URL différente ET modèles différents,
 // pas seulement une autre URL avec le même modèle) sans recompiler.
 builder.Services.AddScoped<ILlmRouterPort>(sp => new OllamaRouterAdapter(
@@ -120,7 +120,7 @@ builder.Services.AddScoped<ILlmGeneratorPort>(sp => new OllamaGeneratorAdapter(
     sp.GetRequiredService<OllamaClient>(),
     builder.Configuration["Ollama:GeneratorModel"] ?? "phi4-mini:3.8b"));
 
-builder.Services.AddScoped<RepondreConversationUseCase>();
+builder.Services.AddScoped<AnswerConversationUseCase>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

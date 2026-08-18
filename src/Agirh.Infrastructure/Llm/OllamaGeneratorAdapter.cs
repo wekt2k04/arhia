@@ -6,7 +6,7 @@ namespace Agirh.Infrastructure.Llm;
 /// <summary>
 /// Générateur (docs/STACK_TECHNIQUE.md #5) : phi4-mini:3.8b par défaut sur cette infra (gemma4:12b
 /// testé en réel : plus de 2 minutes sans réponse, pas de GPU adapté ici). Modèle configurable
-/// (Ollama:GeneratorModele, Program.cs) pour permettre de basculer vers le serveur Ollama
+/// (Ollama:GeneratorModel, Program.cs) pour permettre de basculer vers le serveur Ollama
 /// d'entreprise du porteur du projet (modèles plus capables) sans recompiler.
 /// </summary>
 public sealed class OllamaGeneratorAdapter : ILlmGeneratorPort
@@ -16,32 +16,32 @@ public sealed class OllamaGeneratorAdapter : ILlmGeneratorPort
         "Merci de réessayer, ou de contacter le RH de votre pôle.";
 
     private readonly OllamaClient _client;
-    private readonly string _modele;
+    private readonly string _model;
 
-    public OllamaGeneratorAdapter(OllamaClient client, string modele = "phi4-mini:3.8b")
+    public OllamaGeneratorAdapter(OllamaClient client, string model = "phi4-mini:3.8b")
     {
         _client = client;
-        _modele = modele;
+        _model = model;
     }
 
-    public async Task<string> GenererReponseAsync(string systemPrompt, string question, CancellationToken ct = default)
+    public async Task<string> GenerateResponseAsync(string systemPrompt, string question, CancellationToken ct = default)
     {
-        var reponse = await _client.GenererAsync(_modele, systemPrompt, question, ct);
-        return string.IsNullOrWhiteSpace(reponse) ? MessageIndisponible : reponse.Trim();
+        var response = await _client.GenerateAsync(_model, systemPrompt, question, ct);
+        return string.IsNullOrWhiteSpace(response) ? MessageIndisponible : response.Trim();
     }
 
-    public async IAsyncEnumerable<string> GenererReponseEnStreamingAsync(
+    public async IAsyncEnumerable<string> GenerateResponseStreamingAsync(
         string systemPrompt, string question, [EnumeratorCancellation] CancellationToken ct = default)
     {
-        var recuAuMoinsUnFragment = false;
+        var receivedAtLeastOneFragment = false;
 
-        await foreach (var fragment in _client.GenererStreamAsync(_modele, systemPrompt, question, ct))
+        await foreach (var fragment in _client.GenerateStreamAsync(_model, systemPrompt, question, ct))
         {
-            recuAuMoinsUnFragment = true;
+            receivedAtLeastOneFragment = true;
             yield return fragment;
         }
 
-        if (!recuAuMoinsUnFragment)
+        if (!receivedAtLeastOneFragment)
             yield return MessageIndisponible;
     }
 }

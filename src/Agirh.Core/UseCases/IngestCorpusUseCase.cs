@@ -11,17 +11,17 @@ namespace Agirh.Core.UseCases;
 /// Qdrant (docs/STACK_TECHNIQUE.md #4, phases 1-3). Reservee a Admin/Qualite : reindexer le corpus
 /// modifie ce que l'agent conversationnel considere comme source de verite documentaire.
 /// </summary>
-public sealed class IngererCorpusUseCase
+public sealed class IngestCorpusUseCase
 {
     private readonly IDocumentChunkerPort _chunker;
     private readonly IEmbeddingPort _embedding;
-    private readonly IVectorSearchPort _rechercheVectorielle;
+    private readonly IVectorSearchPort _vectorSearch;
 
-    public IngererCorpusUseCase(IDocumentChunkerPort chunker, IEmbeddingPort embedding, IVectorSearchPort rechercheVectorielle)
+    public IngestCorpusUseCase(IDocumentChunkerPort chunker, IEmbeddingPort embedding, IVectorSearchPort vectorSearch)
     {
         _chunker = chunker;
         _embedding = embedding;
-        _rechercheVectorielle = rechercheVectorielle;
+        _vectorSearch = vectorSearch;
     }
 
     public async Task<int> ExecuteAsync(
@@ -29,19 +29,19 @@ public sealed class IngererCorpusUseCase
         IReadOnlyDictionary<string, string> documents,
         CancellationToken ct = default)
     {
-        if (!RbacMatrix.IsAuthorized(actor.Role, ResourceAction.CorpusIngerer))
+        if (!RbacMatrix.IsAuthorized(actor.Role, ResourceAction.CorpusIngest))
             throw new AccessDeniedException("Seul un compte Admin/Qualité peut réindexer le corpus documentaire.");
 
-        await _rechercheVectorielle.PreparerAsync(ct);
+        await _vectorSearch.PrepareAsync(ct);
 
         var totalChunks = 0;
-        foreach (var (nomDocument, markdown) in documents)
+        foreach (var (documentName, markdown) in documents)
         {
-            var chunks = _chunker.Decouper(nomDocument, markdown);
+            var chunks = _chunker.Chunk(documentName, markdown);
             foreach (var chunk in chunks)
             {
-                var vecteur = await _embedding.GenererEmbeddingAsync(chunk.Contenu, ct);
-                await _rechercheVectorielle.IndexerAsync(chunk, vecteur, ct);
+                var vector = await _embedding.GenerateEmbeddingAsync(chunk.Content, ct);
+                await _vectorSearch.IndexAsync(chunk, vector, ct);
                 totalChunks++;
             }
         }

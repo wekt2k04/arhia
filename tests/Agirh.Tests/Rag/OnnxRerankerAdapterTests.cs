@@ -10,41 +10,41 @@ namespace Agirh.Tests.Rag;
 /// </summary>
 public class OnnxRerankerAdapterTests
 {
-    private static string CheminOnnx => Path.Combine(RepoPaths.ModelesReranker, "model_quantized.onnx");
-    private static string CheminSpm => Path.Combine(RepoPaths.ModelesReranker, "sentencepiece.bpe.model");
+    private static string OnnxPath => Path.Combine(RepoPaths.ModelesReranker, "model_quantized.onnx");
+    private static string SpmPath => Path.Combine(RepoPaths.ModelesReranker, "sentencepiece.bpe.model");
 
     [Fact]
-    public async Task RerankAsync_DocumentPertinentEtNonPertinent_ClasseLePertinentEnPremier()
+    public async Task RerankAsync_RelevantAndIrrelevantDocument_RanksTheRelevantOneFirst()
     {
-        if (!File.Exists(CheminOnnx) || !File.Exists(CheminSpm)) return;
+        if (!File.Exists(OnnxPath) || !File.Exists(SpmPath)) return;
 
-        using var reranker = new OnnxRerankerAdapter(CheminOnnx, CheminSpm);
+        using var reranker = new OnnxRerankerAdapter(OnnxPath, SpmPath);
 
-        var pertinent = new ChunkDocumentaire(
+        var relevant = new DocumentChunk(
             Guid.NewGuid(), "test.md", 0, "Onboarding",
             "Le RH du pôle crée la fiche du collaborateur et déclenche l'instanciation de la checklist d'onboarding lors de son arrivée.");
-        var nonPertinent = new ChunkDocumentaire(
+        var irrelevant = new DocumentChunk(
             Guid.NewGuid(), "test.md", 1, "Cuisine",
             "La recette de la tarte aux pommes nécessite du beurre, du sucre et des pommes coupées en fines lamelles.");
 
-        var resultats = await reranker.RerankAsync(
+        var results = await reranker.RerankAsync(
             "Comment se déroule l'intégration d'un nouveau collaborateur ?",
-            new[] { nonPertinent, pertinent }); // volontairement dans le mauvais ordre en entree
+            new[] { irrelevant, relevant }); // volontairement dans le mauvais ordre en entree
 
-        resultats.Should().HaveCount(2);
-        resultats[0].ChunkIndex.Should().Be(0, "le chunk sur l'onboarding est sémantiquement pertinent pour la requête");
-        resultats[0].Score.Should().BeGreaterThan(resultats[1].Score);
+        results.Should().HaveCount(2);
+        results[0].ChunkIndex.Should().Be(0, "le chunk sur l'onboarding est sémantiquement pertinent pour la requête");
+        results[0].Score.Should().BeGreaterThan(results[1].Score);
     }
 
     [Fact]
-    public async Task RerankAsync_AucunCandidat_RetourneUneListeVide()
+    public async Task RerankAsync_NoCandidate_ReturnsAnEmptyList()
     {
-        if (!File.Exists(CheminOnnx) || !File.Exists(CheminSpm)) return;
+        if (!File.Exists(OnnxPath) || !File.Exists(SpmPath)) return;
 
-        using var reranker = new OnnxRerankerAdapter(CheminOnnx, CheminSpm);
+        using var reranker = new OnnxRerankerAdapter(OnnxPath, SpmPath);
 
-        var resultats = await reranker.RerankAsync("requête", Array.Empty<ChunkDocumentaire>());
+        var results = await reranker.RerankAsync("requête", Array.Empty<DocumentChunk>());
 
-        resultats.Should().BeEmpty();
+        results.Should().BeEmpty();
     }
 }
