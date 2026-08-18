@@ -405,3 +405,23 @@
 - Contrôle visuel pixel de `/chat`, routeur conversationnel, jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8, calendrier réel du stage, `docs/APPRENTISSAGE/principal.pdf` non identifié — tous inchangés, sans rapport avec cette session.
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-18 (suite 2) — Poste de travail (Windows), session en remote-control
+
+**Fait :**
+- **Patch 3/4 de la migration vocabulaire français → anglais exécuté et poussé**, sur demande explicite du porteur du projet ("Continue"). Renommage complet de l'orchestration conversationnelle (`RepondreConversationUseCase`→`AnswerConversationUseCase` et tous ses types associés : `EvenementConversation`/`FragmentTexte`/`ReponseTerminee`→`ConversationEvent`/`TextFragment`/`ResponseCompleted`, `IntentionConversation`→`ConversationIntent`, `ReponseConversation`→`ConversationResponse`), du pipeline RAG (`ChunkDocumentaire`→`DocumentChunk`, tous les ports Llm/Rag, tous les adapters Ollama*/Onnx*/Qdrant*/Tokenizer/Chunker, `IngererCorpusUseCase`→`IngestCorpusUseCase`), `ChatController` (route `demander`→`ask`, wire SSE `termine`→`done`, `texte`/`sourcee`→`text`/`sourced`), `AdminController` terminé. Frontend : route BFF renommée (`app/api/chat/ask`), mêmes champs wire mis à jour (`chat-widget.tsx`, `chat-message.tsx`). Détail complet dans `NEXT_SESSION.md`.
+- **Décision technique documentée sans interrompre le porteur du projet** : le prompt de classification du routeur (`OllamaRouterAdapter`) garde ses libellés `DOCUMENTAIRE`/`STATUT_DOSSIER`/`HORS_PERIMETRE` en français — contrat de prompt calibré empiriquement avec le modèle, pas du vocabulaire de code ; le traduire risquait de dégrader silencieusement un routage déjà imparfait (~27% d'erreur connu) sans bénéfice mesurable.
+- Fix temporaire du Patch 2 (`StatutEnFrancais`) retiré proprement et remplacé par sa version définitive (`FormatStatusInFrench`), intégrée normalement maintenant que le fichier est réécrit en entier.
+- Bug mineur du Patch 2 corrigé au passage : `notification-bar.tsx` lisait encore `dateReference` alors que le Patch 2 avait renommé `Notification.DateReference`→`ReferenceDate` côté backend — aucun impact visuel (champ jamais affiché dans l'UI), corrigé pour cohérence (`referenceDate`).
+- **Pendant cette session, le porteur du projet est passé en pilotage à distance** ("remote-control") pour garder un œil sur la progression sans être physiquement présent. Configuration `powercfg` ajustée sur sa demande (PC branché secteur) : mise en veille et extinction d'écran désactivées sur l'alimentation secteur (AC) uniquement — l'hibernation était déjà désactivée par défaut sur ce poste ; réglages batterie (DC) non touchés.
+- Vérifications : `dotnet build` 0 erreur/0 warning, `dotnet test` 211/211 verts (même total qu'avant), `npx tsc --noEmit` et `npm run build` (frontend) verts. Commit unique poussé sur `master`.
+
+**Reste :**
+- **Patch 4 (Finalisation) — pas commencé, contient une opération destructive locale** (`dotnet ef database drop`/`update` sur `agirh-sql`) : ne pas lancer sans confirmation fraîche et explicite du porteur du projet, au-delà d'un simple "continue" générique — voir `NEXT_SESSION.md` pour le détail complet du contenu restant.
+- **Qdrant non revérifié en conditions réelles** : les clés de payload ont changé (`cheminTitres`/`contenu`→`titlePath`/`content`). Docker n'était pas démarré sur ce poste pendant la session (`docker ps` a échoué, daemon non lancé), donc pas de test live possible. Une collection Qdrant indexée avant ce patch cassera la branche RAG documentaire du chat tant que `POST api/admin/reindex-corpus` n'est pas relancé — à faire avant tout test manuel du chat, et avant le Patch 4.
+- `docs/**/*.md` toujours pas retouchés (prévu au Patch 4).
+- Contrôle visuel pixel de `/chat`, routeur conversationnel, jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8, calendrier réel du stage, `docs/APPRENTISSAGE/principal.pdf` non identifié — tous inchangés, sans rapport avec cette session.
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
