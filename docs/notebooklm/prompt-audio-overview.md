@@ -29,8 +29,8 @@ FONDATIONS :
 2. Ports (interfaces Core) et adaptateurs (implementations Infrastructure) : exemple concret IWorkflowInstanceRepository/EfWorkflowInstanceRepository.
 3. Program.cs comme composition root : seul endroit qui choisit quel adaptateur brancher derriere quel port.
 4. Testabilite : la logique metier testee avec des doubles (Moq/FluentAssertions), sans infrastructure reelle.
-5. RBAC a 3 roles : Collaborateur (ses donnees), RH (son pole), Admin-Qualite (portee globale).
-6. PoleScopeGuard : portee verifiee AVANT le role, un RH hors de son pole est refuse quel que soit son role.
+5. RBAC a 3 roles : Employee (ses donnees), RH (son pole), QualityAdmin (portee globale).
+6. DepartmentScopeGuard : portee verifiee AVANT le role, un RH hors de son pole est refuse quel que soit son role.
 7. Pattern BFF : le navigateur ne parle jamais directement a l'API, le JWT n'est jamais expose, cookie httpOnly.
 8. JWT stateless : payload, signature, duree de validite, compromis avec la revocation instantanee d'une session classique.
 

@@ -49,10 +49,10 @@ lever d'erreur explicite — juste un flux qui semble muet puis déverse tout d'
 Ce parcours traverse la quasi-totalité des couches décrites dans les documents précédents :
 
 1. Le navigateur ouvre un objet `EventSource` vers une route interne Next.js
-   (`app/api/chat/demander`) — c'est le pattern BFF (document 01) : le navigateur ne parle jamais
+   (`app/api/chat/ask`) — c'est le pattern BFF (document 01) : le navigateur ne parle jamais
    directement au backend .NET.
 2. Cette route, exécutée côté serveur, relaie la requête vers `Agirh.Api`
-   (`GET /api/chat/demander?question=...`, traité par `ChatController.Demander`), en y joignant le
+   (`GET /api/chat/ask?question=...`, traité par `ChatController.Ask`), en y joignant le
    JWT récupéré du cookie httpOnly — jamais transmis au navigateur en clair.
 3. Le use case correspondant appelle le **Router** (document 03), qui classe la question comme
    `DOCUMENTAIRE`.
@@ -63,19 +63,19 @@ Ce parcours traverse la quasi-totalité des couches décrites dans les documents
    ce cas, empêchant structurellement toute tentative d'invention de réponse.
 6. Sinon, les chunks rerankés sont transmis au **Generator**, qui écrit la réponse. Chaque
    fragment de texte généré part immédiatement en frame SSE nommée `fragment`.
-7. Une fois la génération terminée, une frame finale `termine` porte deux informations : si la
-   réponse est effectivement sourcée (`sourcee`), et la liste des sources utilisées.
+7. Une fois la génération terminée, une frame finale `done` porte deux informations : si la
+   réponse est effectivement sourcée (`sourced`), et la liste des sources utilisées.
 
 Code réel de l'écriture d'une frame (`src/Agirh.Api/Controllers/ChatController.cs`) — chaque événement
-métier (`FragmentTexte`, `ReponseTerminee`) est traduit en une frame SSE nommée :
+métier (`TextFragment`, `ResponseCompleted`) est traduit en une frame SSE nommée :
 
 ```csharp
-private async Task EcrireEvenementAsync(EvenementConversation evenement, CancellationToken ct)
+private async Task WriteEventAsync(ConversationEvent conversationEvent, CancellationToken ct)
 {
-    var (type, donnees) = evenement switch
+    var (type, data) = conversationEvent switch
     {
-        FragmentTexte f => ("fragment", (object)new { texte = f.Texte }),
-        ReponseTerminee r => ("termine", new { sourcee = r.Sourcee, sources = r.Sources }),
+        TextFragment f => ("fragment", (object)new { text = f.Text }),
+        ResponseCompleted r => ("done", new { sourced = r.Sourced, sources = r.Sources }),
         _ => throw new InvalidOperationException()
     };
     // écrit "event: {type}\ndata: {json}\n\n" et flush immédiatement la réponse HTTP
@@ -97,16 +97,16 @@ d'une exigence de conformité qualité (contexte SMSI réel du porteur du projet
 de procédure ne peut pas être appliquée sans révision indépendante.
 
 1. Un RH propose une nouvelle version d'un template (`POST /api/templates`,
-   `TemplateController.Proposer`) — statut initial : `Brouillon`.
+   `TemplateController.Propose`) — statut initial : `Draft`.
 2. Un rôle Admin/Qualité, agissant comme **Vérificateur**, valide une première fois
-   (`POST /api/templates/{id}/verifier`) — le statut passe à vérifié/en validation.
+   (`POST /api/templates/{id}/verify`) — le statut passe à vérifié/en validation.
 3. Un rôle Admin/Qualité, agissant comme **Approbateur** (une étape distincte, même si porteur
    par la même population de rôle dans la pratique actuelle), approuve définitivement
-   (`POST /api/templates/{id}/approuver`) — le statut final devient `Approuve`, et cette version
+   (`POST /api/templates/{id}/approve`) — le statut final devient `Approved`, et cette version
    est figée.
-4. Une route de rejet existe symétriquement (`POST /api/templates/{id}/rejeter`), qui renvoie le
+4. Une route de rejet existe symétriquement (`POST /api/templates/{id}/reject`), qui renvoie le
    template en amont dans le circuit plutôt que de l'approuver.
-5. **Contrainte structurelle clé** : seul un template au statut `Approuve` peut servir à
+5. **Contrainte structurelle clé** : seul un template au statut `Approved` peut servir à
    instancier un `WorkflowInstance` (voir trace n°3) — un onboarding réel ne peut jamais partir
    d'un brouillon non validé. Cette contrainte est vérifiée par le use case lui-même, pas
    seulement documentée : c'est une règle métier encodée, pas une convention qu'on espère
@@ -122,18 +122,18 @@ principe de contrôle interne classique, transposé ici en contrainte logicielle
 ## Trace complète n°3 : l'onboarding d'un collaborateur
 
 1. Un RH crée une fiche collaborateur (`POST /api/workflows`,
-   `WorkflowController.Instancier`) avec les informations qui déterminent quel parcours
+   `WorkflowController.Instantiate`) avec les informations qui déterminent quel parcours
    s'applique : Poste, Pôle, Contrat, Date.
-2. Le use case `ResoudreReferentielItems` calcule la liste précise des items de checklist attendus,
-   en croisant ces trois dimensions (**Poste × Pôle × Contrat**) contre le template *approuvé*
-   correspondant (contrainte héritée directement de la trace n°2).
+2. La méthode `WorkflowTemplate.ResolveApplicableItems` calcule la liste précise des items de
+   checklist attendus, en croisant ces dimensions (**Poste × Pôle × Contrat**) contre le template
+   *approuvé* correspondant (contrainte héritée directement de la trace n°2).
 3. Une `WorkflowInstance` et son ensemble de `ChecklistItem` sont persistés en base, statut
-   initial `EnCours`.
+   initial `InProgress`.
 4. Chaque item se coche indépendamment au fil du temps
-   (`POST /api/workflows/{id}/items/{itemId}/cocher`) — chaque action est enregistrée dans
+   (`POST /api/workflows/{id}/items/{itemId}/check`) — chaque action est enregistrée dans
    l'**audit trail** (voir plus bas), pas seulement dans le log technique.
-5. Le cycle de vie se termine par une clôture (`POST /api/workflows/{id}/cloturer`) puis, plus
-   tard, un archivage (`POST /api/workflows/{id}/archiver`) qui rend le dossier définitivement
+5. Le cycle de vie se termine par une clôture (`POST /api/workflows/{id}/close`) puis, plus
+   tard, un archivage (`POST /api/workflows/{id}/archive`) qui rend le dossier définitivement
    consultable en lecture seule — un dossier archivé ne peut plus être modifié, garantissant
    l'intégrité de l'historique pour un usage de conformité.
 
@@ -161,7 +161,7 @@ Les trois flux tracés dans ce document partagent une structure commune, révél
 philosophie de conception du système entier : une **action utilisateur déclenche un use case**
 (couche Core, document 01), qui **traverse des ports vers des adaptateurs concrets**
 (Infrastructure), avec des **vérifications de portée/rôle appliquées avant toute écriture**
-(RBAC/PoleScopeGuard), et une **notification en temps réel** de l'événement qui en résulte (SSE)
+(RBAC/DepartmentScopeGuard), et une **notification en temps réel** de l'événement qui en résulte (SSE)
 quand un autre acteur du système doit en être informé. Comprendre un seul de ces flux en
 profondeur — n'importe lequel des trois — donne une compréhension transférable des deux autres,
 parce que la structure sous-jacente est la même à chaque fois.

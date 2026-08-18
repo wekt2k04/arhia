@@ -31,15 +31,15 @@ niveau (base de données, réseau, fournisseurs externes) ; les deux doivent dé
 Le code est rangé en quatre projets .NET, avec une règle de dépendance à sens unique :
 
 ```
-Agirh.Domain          → entités pures (Collaborateur, Pole, WorkflowTemplate, WorkflowInstance,
-                         ChecklistItem, Notification, CompteUtilisateur). Zéro paquet NuGet
+Agirh.Domain          → entités pures (Employee, Department, WorkflowTemplate, WorkflowInstance,
+                         ChecklistItem, Notification, UserAccount). Zéro paquet NuGet
                          externe. Ce projet ne sait même pas qu'une base de données existe.
 
 Agirh.Core            → les "ports" (des interfaces C# : IWorkflowInstanceRepository,
                          ITemplateRepository, ILlmRouterPort, ILlmGeneratorPort,
                          IVectorSearchPort...), les use cases (la logique métier elle-même :
-                         CreerFicheCollaborateur, InstancierWorkflow, ValiderTemplate...), et le
-                         RBAC (RbacMatrix, PoleScopeGuard). Ce projet ne connaît que Domain.
+                         CreateEmployeeRecord, InstantiateWorkflow, ValiderTemplate...), et le
+                         RBAC (RbacMatrix, DepartmentScopeGuard). Ce projet ne connaît que Domain.
 
 Agirh.Infrastructure   → un adaptateur concret par port : EF Core implémente
                          IWorkflowInstanceRepository, Qdrant implémente IVectorSearchPort, Ollama
@@ -53,7 +53,7 @@ Agirh.Api              → les Controllers ASP.NET Core (AuthController, Workflo
                          décide quel adaptateur concret brancher derrière chaque port.
 ```
 
-Un exemple concret pour rendre ça tangible : le use case `InstancierWorkflow` (dans `Agirh.Core`)
+Un exemple concret pour rendre ça tangible : le use case `InstantiateWorkflow` (dans `Agirh.Core`)
 a besoin de sauvegarder un dossier. Il ne sait pas que ce sera fait avec SQL Server — il dépend
 juste de l'interface `IWorkflowInstanceRepository`. C'est `Agirh.Infrastructure` qui fournit
 `EfWorkflowInstanceRepository`, une classe qui implémente cette interface avec du vrai EF Core.
@@ -99,10 +99,10 @@ plutôt que "qu'est-ce que Camille peut faire ?".
 
 AGIRH définit 3 rôles, avec une portée strictement croissante :
 
-- **Collaborateur** — accès à ses propres données uniquement (son dossier, sa checklist).
+- **Employee** — accès à ses propres données uniquement (son dossier, sa checklist).
 - **RH** — gère les collaborateurs de **son pôle uniquement**. Un pôle correspond à un
   département/une équipe métier.
-- **AdminQualite** — portée globale sur toute l'organisation ; seul rôle habilité à élever le rôle
+- **QualityAdmin** — portée globale sur toute l'organisation ; seul rôle habilité à élever le rôle
   d'un compte, et seul rôle impliqué dans le circuit de validation des templates (voir document
   5 pour le détail du circuit).
 
@@ -111,7 +111,7 @@ le rôle) ne suffit pas ici, parce qu'un RH n'a pas accès à *tout* ce qu'un RH
 faire — seulement à son pôle. C'est un cas où RBAC pur atteint sa limite et doit être complété par
 une vérification de **portée** (parfois appelée ABAC — Attribute-Based Access Control — quand la
 permission dépend d'un attribut de la ressource, ici son pôle, comparé à un attribut de
-l'utilisateur). AGIRH implémente ça avec `PoleScopeGuard`, une vérification **séparée** du rôle,
+l'utilisateur). AGIRH implémente ça avec `DepartmentScopeGuard`, une vérification **séparée** du rôle,
 appliquée **avant** même la vérification RBAC : un RH qui cible un dossier hors de son pôle est
 refusé, indépendamment du fait qu'il ait techniquement le bon rôle. Cette séparation en deux
 vérifications distinctes (rôle, puis portée) rend chacune plus simple à raisonner et à tester
@@ -127,22 +127,22 @@ public static class RbacMatrix
     private static readonly IReadOnlyDictionary<ResourceAction, IReadOnlySet<RoleType>> Default =
         new Dictionary<ResourceAction, IReadOnlySet<RoleType>>
         {
-            [ResourceAction.CollaborateurCreer] = Roles(RoleType.RH),
-            [ResourceAction.WorkflowInstancier] = Roles(RoleType.RH),
-            [ResourceAction.WorkflowInstanceLire] = Roles(RoleType.Collaborateur, RoleType.RH, RoleType.AdminQualite),
-            [ResourceAction.WorkflowInstanceCocher] = Roles(RoleType.RH),
-            [ResourceAction.WorkflowInstanceCloturer] = Roles(RoleType.RH),
-            [ResourceAction.WorkflowInstanceArchiver] = Roles(RoleType.RH, RoleType.AdminQualite),
-            [ResourceAction.TemplateProposer] = Roles(RoleType.RH),
-            [ResourceAction.TemplateVerifier] = Roles(RoleType.AdminQualite),
-            [ResourceAction.TemplateApprouver] = Roles(RoleType.AdminQualite),
-            [ResourceAction.TemplateRejeter] = Roles(RoleType.AdminQualite),
-            [ResourceAction.CompteElevRole] = Roles(RoleType.AdminQualite),
-            [ResourceAction.CorpusIngerer] = Roles(RoleType.AdminQualite)
+            [ResourceAction.EmployeeCreate] = Roles(RoleType.HR),
+            [ResourceAction.WorkflowInstantiate] = Roles(RoleType.HR),
+            [ResourceAction.WorkflowInstanceRead] = Roles(RoleType.Employee, RoleType.HR, RoleType.QualityAdmin),
+            [ResourceAction.WorkflowInstanceCheck] = Roles(RoleType.HR),
+            [ResourceAction.WorkflowInstanceClose] = Roles(RoleType.HR),
+            [ResourceAction.WorkflowInstanceArchive] = Roles(RoleType.HR, RoleType.QualityAdmin),
+            [ResourceAction.TemplatePropose] = Roles(RoleType.HR),
+            [ResourceAction.TemplateVerify] = Roles(RoleType.QualityAdmin),
+            [ResourceAction.TemplateApprove] = Roles(RoleType.QualityAdmin),
+            [ResourceAction.TemplateReject] = Roles(RoleType.QualityAdmin),
+            [ResourceAction.UserAccountElevateRole] = Roles(RoleType.QualityAdmin),
+            [ResourceAction.CorpusIngest] = Roles(RoleType.QualityAdmin)
         };
 
-    public static bool EstAutorise(RoleType role, ResourceAction action) =>
-        Default.TryGetValue(action, out var rolesAutorises) && rolesAutorises.Contains(role);
+    public static bool IsAuthorized(RoleType role, ResourceAction action) =>
+        Default.TryGetValue(action, out var authorizedRoles) && authorizedRoles.Contains(role);
 }
 ```
 
@@ -151,35 +151,35 @@ action absente du dictionnaire (`TryGetValue` échoue) retourne `false` — **de
 default-allow. Ajouter une nouvelle capacité au système exige une entrée explicite ici ; l'oublier
 signifie que personne ne peut l'utiliser (erreur silencieuse mais jamais une faille de sécurité).
 
-Et le code réel de `PoleScopeGuard` (`src/Agirh.Core/Security/PoleScopeGuard.cs`) — la vérification de
+Et le code réel de `DepartmentScopeGuard` (`src/Agirh.Core/Security/DepartmentScopeGuard.cs`) — la vérification de
 portée qui complète cette matrice :
 
 ```csharp
-public static class PoleScopeGuard
+public static class DepartmentScopeGuard
 {
-    public static bool PeutAccederAuPole(CompteUtilisateur acteur, Guid poleCibleId) =>
-        acteur.Role switch
+    public static bool CanAccessDepartment(UserAccount actor, Guid targetDepartmentId) =>
+        actor.Role switch
         {
-            RoleType.AdminQualite => true,
-            RoleType.RH => acteur.PoleId == poleCibleId,
+            RoleType.QualityAdmin => true,
+            RoleType.HR => actor.DepartmentId == targetDepartmentId,
             _ => false
         };
 
-    public static bool PeutAccederAuCollaborateur(CompteUtilisateur acteur, Collaborateur cible) =>
-        acteur.Role switch
+    public static bool CanAccessEmployee(UserAccount actor, Employee target) =>
+        actor.Role switch
         {
-            RoleType.AdminQualite => true,
-            RoleType.RH => acteur.PoleId == cible.PoleId,
-            RoleType.Collaborateur => acteur.Id == cible.CompteUtilisateurId,
+            RoleType.QualityAdmin => true,
+            RoleType.HR => actor.DepartmentId == target.DepartmentId,
+            RoleType.Employee => actor.Id == target.UserAccountId,
             _ => false
         };
 }
 ```
 
-> **Règle métier à retenir** : un `RoleType.Collaborateur` n'apparaît **jamais** dans
-> `PeutAccederAuPole` (il retombe sur le `_ => false` par défaut) — un collaborateur n'a de portée
-> que sur ses propres données (`PeutAccederAuCollaborateur`), jamais sur un pôle entier. C'est la
-> traduction directe en code de "Collaborateur = ses propres données uniquement" : pas une phrase
+> **Règle métier à retenir** : un `RoleType.Employee` n'apparaît **jamais** dans
+> `CanAccessDepartment` (il retombe sur le `_ => false` par défaut) — un collaborateur n'a de portée
+> que sur ses propres données (`CanAccessEmployee`), jamais sur un pôle entier. C'est la
+> traduction directe en code de "Employee = ses propres données uniquement" : pas une phrase
 > de documentation qu'on espère vraie, une expression du switch qu'on peut lire et tester.
 
 Pourquoi pas un système d'identité externe plus riche (Keycloak, Auth0...) ? La décision a été
@@ -204,7 +204,7 @@ lui suffit de vérifier la signature avec sa clé secrète (`Jwt__SigningKey` da
 l'opposé d'une authentification par session, où le serveur garde en mémoire (ou en base) un
 identifiant de session associé à l'utilisateur, et doit interroger ce stockage à chaque requête.
 
-Le compromis à connaître : un JWT signé est valide jusqu'à son expiration (`DureeValiditeMinutes`,
+Le compromis à connaître : un JWT signé est valide jusqu'à son expiration (`TokenLifetimeMinutes`,
 60 minutes dans AGIRH) même si le compte est entre-temps désactivé côté serveur — contrairement à
 une session, qu'on peut invalider instantanément en la supprimant du stockage serveur. C'est
 pourquoi la durée de validité est un paramètre de sécurité important : plus elle est courte, plus
@@ -243,7 +243,7 @@ et d'usurper l'identité de l'utilisateur.
 
 Le pattern **BFF** contourne ce risque structurellement : le frontend Next.js d'AGIRH ne parle
 jamais directement à `Agirh.Api` depuis le navigateur. Le navigateur appelle des routes internes à
-Next.js (`app/api/auth/login`, `app/api/chat/demander`...), qui elles-mêmes, **côté serveur**
+Next.js (`app/api/auth/login`, `app/api/chat/ask`...), qui elles-mêmes, **côté serveur**
 (jamais exécutées dans le navigateur), appellent `Agirh.Api` avec le JWT en en-tête, puis posent
 ce JWT dans un **cookie httpOnly**. Un cookie httpOnly est explicitement inaccessible depuis
 JavaScript (`document.cookie` ne le voit pas) — même un script injecté par XSS ne peut pas le
@@ -282,7 +282,7 @@ export async function definirSession(token: string): Promise<void> {
 Architecture hexagonale, RBAC à portée, et BFF partagent un même principe de conception : **isoler
 une préoccupation critique dans un endroit unique et bien défini**, plutôt que de la disperser. Le
 métier est isolé de la technique (hexagonal), la portée d'accès est vérifiée à un seul endroit
-avant toute action (`PoleScopeGuard`), et le secret d'authentification ne vit qu'à un seul endroit
+avant toute action (`DepartmentScopeGuard`), et le secret d'authentification ne vit qu'à un seul endroit
 du système (le serveur Next.js, jamais le navigateur). C'est un fil conducteur qu'on retrouve
 aussi dans le pipeline IA et l'orchestration conversationnelle (documents 2 et 3) : centraliser un
 risque pour pouvoir le contrôler, plutôt que de faire confiance à chaque point d'usage

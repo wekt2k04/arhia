@@ -36,7 +36,7 @@ AGIRH, et comprendre pourquoi éclaire ce que RAG apporte en pratique :
 
 - Le fine-tuning **encode** la connaissance dans les poids du modèle — invisible, non traçable, on
   ne peut pas pointer précisément "cette phrase vient de ce document". RAG au contraire **cite ses
-  sources** (`sourcee`/`sources` renvoyés par AGIRH à chaque réponse), ce qui est une exigence
+  sources** (`sourced`/`sources` renvoyés par AGIRH à chaque réponse), ce qui est une exigence
   directe du contexte réel du projet (qualité SMSI, traçabilité).
 - Une mise à jour de la documentation (un document de procédure qui change) exige de **réentraîner**
   un modèle fine-tuné, une opération coûteuse et lente. Avec RAG, il suffit de réindexer le
@@ -105,15 +105,15 @@ public sealed class OnnxEmbeddingAdapter : IEmbeddingPort, IDisposable
     private readonly InferenceSession _session;
     private readonly XlmRobertaTokenizer _tokenizer;
 
-    public OnnxEmbeddingAdapter(string cheminModeleOnnx, string cheminSentencePieceModel)
+    public OnnxEmbeddingAdapter(string onnxModelPath, string sentencePieceModelPath)
     {
-        _session = new InferenceSession(cheminModeleOnnx);
-        _tokenizer = XlmRobertaTokenizer.ChargerDepuisFichier(cheminSentencePieceModel);
+        _session = new InferenceSession(onnxModelPath);
+        _tokenizer = XlmRobertaTokenizer.LoadFromFile(sentencePieceModelPath);
     }
 
-    public Task<float[]> GenererEmbeddingAsync(string texte, CancellationToken ct = default)
+    public Task<float[]> GenerateEmbeddingAsync(string text, CancellationToken ct = default)
     {
-        var ids = _tokenizer.EncoderEnIdsHuggingFace(texte);
+        var ids = _tokenizer.EncodeToHuggingFaceIds(text);
         // ... tokenisation -> tenseurs input_ids/attention_mask -> InferenceSession.Run -> ...
         // mean-pooling sur les embeddings de tokens (pondéré par attention_mask) + normalisation L2
         // -> un seul vecteur de 768 dimensions représentant la phrase entière.
@@ -177,34 +177,34 @@ Il faut distinguer deux familles de modèles ici :
 le code exact qui transforme un candidat brut Qdrant en score de pertinence final :
 
 ```csharp
-public Task<IReadOnlyList<ChunkDocumentaire>> RerankAsync(
-    string requete,
-    IReadOnlyList<ChunkDocumentaire> candidats,
+public Task<IReadOnlyList<DocumentChunk>> RerankAsync(
+    string query,
+    IReadOnlyList<DocumentChunk> candidates,
     CancellationToken ct = default)
 {
-    if (candidats.Count == 0)
-        return Task.FromResult<IReadOnlyList<ChunkDocumentaire>>(Array.Empty<ChunkDocumentaire>());
+    if (candidates.Count == 0)
+        return Task.FromResult<IReadOnlyList<DocumentChunk>>(Array.Empty<DocumentChunk>());
 
-    var resultats = candidats
-        .Select(c => c with { Score = CalculerScore(requete, c.Contenu) })
+    var results = candidates
+        .Select(c => c with { Score = ComputeScore(query, c.Content) })
         .OrderByDescending(c => c.Score)
         .ToList();
 
-    return Task.FromResult<IReadOnlyList<ChunkDocumentaire>>(resultats);
+    return Task.FromResult<IReadOnlyList<DocumentChunk>>(results);
 }
 
-private float CalculerScore(string requete, string document)
+private float ComputeScore(string query, string document)
 {
-    var ids = _tokenizer.EncoderPaireEnIdsHuggingFace(requete, document); // <s> requête </s></s> document </s>
+    var ids = _tokenizer.EncodePairToHuggingFaceIds(query, document); // <s> requête </s></s> document </s>
     // ... InferenceSession.Run ...
-    var logit = resultatsOnnx.First(r => r.Name == "logits").AsTensor<float>()[0, 0];
+    var logit = onnxResults.First(r => r.Name == "logits").AsTensor<float>()[0, 0];
     return Sigmoid(logit);
 }
 
 private static float Sigmoid(float x) => 1f / (1f + MathF.Exp(-x));
 ```
 
-Deux détails de syntaxe qui valent la peine d'être compris précisément : `EncoderPaireEnIdsHuggingFace`
+Deux détails de syntaxe qui valent la peine d'être compris précisément : `EncodePairToHuggingFaceIds`
 construit **une seule séquence de tokens** contenant requête *et* document, séparés par le format
 RoBERTa `<s> requête </s></s> document </s>` (deux tokens de séparation `</s></s>` entre les deux
 segments, pas un seul — un détail de format qui, s'il est faux, ne provoque aucune erreur mais

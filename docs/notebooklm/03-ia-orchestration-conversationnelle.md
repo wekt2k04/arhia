@@ -111,15 +111,15 @@ onboarding/offboarding.
 Puis, côté code, la sortie brute du modèle est parsée ainsi (extrait réel) :
 
 ```csharp
-var normalise = (reponseBrute ?? string.Empty).Trim().ToUpperInvariant();
+var normalized = (rawResponse ?? string.Empty).Trim().ToUpperInvariant();
 
-if (normalise.Contains("STATUT_DOSSIER"))
-    return IntentionConversation.StatutDossier;
+if (normalized.Contains("STATUT_DOSSIER"))
+    return ConversationIntent.CaseStatus;
 
-if (normalise.Contains("DOCUMENTAIRE"))
-    return IntentionConversation.QuestionDocumentaire;
+if (normalized.Contains("DOCUMENTAIRE"))
+    return ConversationIntent.DocumentaryQuestion;
 
-// tout le reste (y compris une sortie vide, un timeout, un mot halluciné) -> HorsPerimetre
+// tout le reste (y compris une sortie vide, un timeout, un mot halluciné) -> OutOfScope
 ```
 
 > **Règle métier à retenir** : la "règle clé" du prompt (mon/ma/je/j'ai/moi comme seul signal
@@ -172,46 +172,46 @@ n'ai pas trouvé cette information", sans jamais donner au modèle l'opportunit�
 réponse à partir de rien. C'est un garde-fou en code, vérifiable et testé (couvert par des tests
 unitaires dédiés), pas une simple consigne dans un prompt que le modèle pourrait ne pas suivre.
 
-**Code réel — le garde-fou complet** (`src/Agirh.Core/UseCases/RepondreConversationUseCase.cs`),
+**Code réel — le garde-fou complet** (`src/Agirh.Core/UseCases/AnswerConversationUseCase.cs`),
 retrieval → reranking → filtrage par seuil → décision d'appeler ou non le Generator :
 
 ```csharp
-private const float SeuilPertinenceMinimum = 0.01f;
+private const float MinimumRelevanceThreshold = 0.01f;
 
-private async Task<PreparationDocumentaire> PreparerContexteDocumentaireAsync(
+private async Task<DocumentaryPreparation> PrepareDocumentaryContextAsync(
     string question, CancellationToken ct)
 {
-    var vecteurRequete = await _embedding.GenererEmbeddingAsync(question, ct);
-    var candidats = await _rechercheVectorielle.RechercherAsync(vecteurRequete, TopKRecherche, ct);
+    var queryVector = await _embedding.GenerateEmbeddingAsync(question, ct);
+    var candidates = await _vectorSearch.SearchAsync(queryVector, TopKSearch, ct);
 
-    if (candidats.Count == 0)
-        return new PreparationDocumentaire(false, null, Array.Empty<ChunkDocumentaire>());
+    if (candidates.Count == 0)
+        return new DocumentaryPreparation(false, null, Array.Empty<DocumentChunk>());
 
-    var rerankes = await _reranker.RerankAsync(question, candidats, ct);
-    var meilleurs = rerankes
-        .Where(c => c.Score >= SeuilPertinenceMinimum)
-        .Take(TopKApresReranking)
+    var reranked = await _reranker.RerankAsync(question, candidates, ct);
+    var best = reranked
+        .Where(c => c.Score >= MinimumRelevanceThreshold)
+        .Take(TopKAfterReranking)
         .ToList();
 
-    if (meilleurs.Count == 0)
-        return new PreparationDocumentaire(false, null, Array.Empty<ChunkDocumentaire>());
+    if (best.Count == 0)
+        return new DocumentaryPreparation(false, null, Array.Empty<DocumentChunk>());
 
     // ... construction du system prompt avec le contexte trouvé ...
-    return new PreparationDocumentaire(true, systemPrompt, meilleurs);
+    return new DocumentaryPreparation(true, systemPrompt, best);
 }
 ```
 
-Le champ `Trouve` (premier élément du tuple `PreparationDocumentaire`) est vérifié par l'appelant
+Le champ `Found` (premier élément du tuple `DocumentaryPreparation`) est vérifié par l'appelant
 **avant** toute tentative d'appel au Generator :
 
 ```csharp
-var preparation = await PreparerContexteDocumentaireAsync(question, ct);
-if (!preparation.Trouve)
-    return ReponseNonTrouvee(); // le Generator n'est jamais invoqué dans cette branche
+var preparation = await PrepareDocumentaryContextAsync(question, ct);
+if (!preparation.Found)
+    return NotFoundResponse(); // le Generator n'est jamais invoqué dans cette branche
 ```
 
 > **Règle métier à retenir, la plus importante du document** : il existe **deux** portes de sortie
-> anticipée avant le Generator (`candidats.Count == 0` juste après Qdrant, et `meilleurs.Count == 0`
+> anticipée avant le Generator (`candidates.Count == 0` juste après Qdrant, et `best.Count == 0`
 > après filtrage par le reranker) — pas une seule. Même si Qdrant retourne des résultats, si aucun
 > ne passe le seuil de pertinence post-reranking, le Generator reste non appelé. C'est cette
 > double porte, pas une simple instruction de prompt, qui rend le mode de défaillance du système

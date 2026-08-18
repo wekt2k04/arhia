@@ -147,7 +147,7 @@ tourne **nativement sur la machine hôte**, pas dans un conteneur Compose, et c'
   reste du projet — le reconteneuriser n'aurait apporté aucune valeur immédiate.
 - Le porteur du projet a accès, via son stage, à un **second serveur Ollama distant**, sur le
   réseau de son entreprise, avec des modèles plus capables. Le nom de modèle (pas seulement
-  l'URL) est configurable indépendamment (`Ollama:RouterModele`/`Ollama:GeneratorModele`) pour
+  l'URL) est configurable indépendamment (`Ollama:RouterModel`/`Ollama:GeneratorModel`) pour
   basculer entre les deux profils sans recompiler — une flexibilité plus simple à gérer avec un
   Ollama natif qu'avec un Ollama conteneurisé supplémentaire à synchroniser.
 - Conteneuriser une charge de calcul lourde comme l'inférence LLM introduit une complexité

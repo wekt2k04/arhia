@@ -14,9 +14,9 @@ Source de vérité métier : les deux checklists qualité réelles de l'entrepri
 
 | Rôle | Description | Volume |
 |---|---|---|
-| **Collaborateur** | Consulte sa propre checklist, pose des questions à l'agent. Rôle par défaut à l'auto-inscription. | Majorité des comptes |
+| **Employee** | Consulte sa propre checklist, pose des questions à l'agent. Rôle par défaut à l'auto-inscription. | Majorité des comptes |
 | **RH** | Un RH par pôle (département). Crée les fiches de ses collaborateurs assignés, coche les items RH, joue le rôle de **Rédacteur** dans le circuit de validation des templates, et sert de point de contact managérial (alertes). Un RH peut cumuler un tag "spécialisé IT" pour traiter les items techniques de son pôle. | ~5 comptes (1 par pôle) |
-| **Admin/Qualité** | Joue **Vérificateur** + **Approbateur** dans le circuit de validation des templates. Peut élever le rôle de n'importe quel compte (simuler une promotion, ex: Collaborateur → RH). | 2 comptes |
+| **Admin/Qualité** | Joue **Vérificateur** + **Approbateur** dans le circuit de validation des templates. Peut élever le rôle de n'importe quel compte (simuler une promotion, ex: Employee → RH). | 2 comptes |
 
 **Pas de rôle IT séparé** — le travail IT est dispatché chez le RH "spécialisé IT" de chaque pôle, pas une file d'attente ni un compte à part.
 
@@ -28,7 +28,7 @@ Source de vérité métier : les deux checklists qualité réelles de l'entrepri
 
 ### Auto-inscription
 
-Un compte créé en self-service démarre toujours en rôle **Collaborateur**. Seul un Admin/Qualité peut l'élever.
+Un compte créé en self-service démarre toujours en rôle **Employee**. Seul un Admin/Qualité peut l'élever.
 
 ## 2. Déclenchement des processus
 
@@ -90,7 +90,7 @@ Trois catégories de cas identifiées, sans comportement système tranché pour 
 | Cas | Proposition (à valider) |
 |---|---|
 | **Mutation inter-pôle** (le collaborateur change de département en cours de checklist) | Le `WorkflowInstance` en cours est réassigné au RH du nouveau pôle ; les items déjà cochés restent acquis ; un événement d'audit trace le transfert. |
-| **Annulation/suspension** (embauche annulée après le début du processus, départ repoussé) | Le `WorkflowInstance` passe à un statut `Annulé`/`Suspendu` explicite (pas de suppression) — conserve la trace, permet une reprise si le départ/l'arrivée est simplement repoussé. |
+| **Annulation/suspension** (embauche annulée après le début du processus, départ repoussé) | Le `WorkflowInstance` passe à un statut `Cancelled`/`Suspended` explicite (pas de suppression) — conserve la trace, permet une reprise si le départ/l'arrivée est simplement repoussé. |
 | **Pôle vacant** (RH en congé, poste non pourvu) | Les Admin/Qualité héritent temporairement des droits RH sur ce pôle jusqu'à réassignation. |
 
 ## 9. Portée et garde-fous de l'agent conversationnel
@@ -100,7 +100,7 @@ Trois catégories de cas identifiées, sans comportement système tranché pour 
 - **RAG toujours sourcé** : toute réponse s'appuyant sur la base de connaissances doit être traçable à un chunk source ; si l'information n'est pas dans le corpus, l'agent le dit explicitement plutôt que d'inventer (anti-hallucination — c'est précisément ce qui avait échoué silencieusement en V7, cf. `HISTORIQUE.md`).
 - **Statut de dossier = lecture seule** : l'agent peut *lire* l'état d'un `WorkflowInstance` (ex. "où en est mon onboarding ?") via un outil dédié, mais ne peut pas cocher un item à la place d'un RH/IT.
 - **Notifications** : l'agent a connaissance du flux de notifications de l'utilisateur connecté (son pôle, son domaine) et peut orienter/expliquer, mais l'exécution d'une action métier depuis une notification reste un geste utilisateur explicite, pas une action autonome de l'agent.
-- **RBAC respecté par l'agent** : un Collaborateur ne peut pas, via le chat, obtenir des informations sur le dossier d'un autre collaborateur ; seuls RH (sur son pôle) et Admin/Qualité ont une vue élargie.
+- **RBAC respecté par l'agent** : un Employee ne peut pas, via le chat, obtenir des informations sur le dossier d'un autre collaborateur ; seuls RH (sur son pôle) et Admin/Qualité ont une vue élargie.
 - **Escalade** : en cas de question ambiguë ou hors du périmètre documentaire/outillé, l'agent renvoie vers le RH du pôle plutôt que de répondre au jugé.
 
 ## 10. Priorités de développement

@@ -82,27 +82,27 @@ builder.Services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
 // Pipeline RAG (docs/STACK_TECHNIQUE.md #4) + orchestration conversationnelle (#5).
 // Racine du depot resolue dynamiquement (pas de chemin absolu fige) pour retrouver rag/models/ et
 // rag/corpus/ quel que soit le repertoire de travail depuis lequel l'Api est lancee.
-var racineDepot = TrouverRacineDepot(AppContext.BaseDirectory);
-var modelesEmbeddingDir = Path.Combine(racineDepot, "rag", "models", "embedding");
-var modelesRerankerDir = Path.Combine(racineDepot, "rag", "models", "reranker");
+var repoRoot = FindRepoRoot(AppContext.BaseDirectory);
+var embeddingModelsDir = Path.Combine(repoRoot, "rag", "models", "embedding");
+var rerankerModelsDir = Path.Combine(repoRoot, "rag", "models", "reranker");
 
 builder.Services.AddSingleton<IEmbeddingPort>(_ => new OnnxEmbeddingAdapter(
-    Path.Combine(modelesEmbeddingDir, "model_quantized.onnx"),
-    Path.Combine(modelesEmbeddingDir, "sentencepiece.bpe.model")));
+    Path.Combine(embeddingModelsDir, "model_quantized.onnx"),
+    Path.Combine(embeddingModelsDir, "sentencepiece.bpe.model")));
 
 builder.Services.AddSingleton<IRerankerPort>(_ => new OnnxRerankerAdapter(
-    Path.Combine(modelesRerankerDir, "model_quantized.onnx"),
-    Path.Combine(modelesRerankerDir, "sentencepiece.bpe.model")));
+    Path.Combine(rerankerModelsDir, "model_quantized.onnx"),
+    Path.Combine(rerankerModelsDir, "sentencepiece.bpe.model")));
 
 builder.Services.AddSingleton(_ => new QdrantClient(builder.Configuration["Qdrant:Host"] ?? "localhost"));
 builder.Services.AddSingleton<IVectorSearchPort>(sp =>
     new QdrantVectorSearchAdapter(sp.GetRequiredService<QdrantClient>(), sp.GetRequiredService<IEmbeddingPort>().Dimension));
 
 builder.Services.AddSingleton(_ => XlmRobertaTokenizer.LoadFromFile(
-    Path.Combine(modelesEmbeddingDir, "sentencepiece.bpe.model")));
+    Path.Combine(embeddingModelsDir, "sentencepiece.bpe.model")));
 builder.Services.AddSingleton<IDocumentChunkerPort>(sp =>
     new MarkdownChunkerAdapter(sp.GetRequiredService<XlmRobertaTokenizer>()));
-builder.Services.AddSingleton(new Agirh.Api.Controllers.CorpusOptions(Path.Combine(racineDepot, "rag", "corpus")));
+builder.Services.AddSingleton(new Agirh.Api.Controllers.CorpusOptions(Path.Combine(repoRoot, "rag", "corpus")));
 builder.Services.AddScoped<IngestCorpusUseCase>();
 
 builder.Services.AddHttpClient<OllamaClient>(client =>
@@ -166,13 +166,13 @@ app.MapControllers();
 
 app.Run();
 
-static string TrouverRacineDepot(string depart)
+static string FindRepoRoot(string start)
 {
-    var repertoire = depart;
-    while (repertoire is not null && !File.Exists(Path.Combine(repertoire, "Agirh.sln")))
+    var directory = start;
+    while (directory is not null && !File.Exists(Path.Combine(directory, "Agirh.sln")))
     {
-        repertoire = Directory.GetParent(repertoire)?.FullName;
+        directory = Directory.GetParent(directory)?.FullName;
     }
 
-    return repertoire ?? throw new InvalidOperationException("Agirh.sln introuvable en remontant depuis " + depart);
+    return directory ?? throw new InvalidOperationException("Agirh.sln introuvable en remontant depuis " + start);
 }

@@ -12,15 +12,15 @@ namespace Agirh.Infrastructure.Persistence.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Poles",
+                name: "Departments",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Nom = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Poles", x => x.Id);
+                    table.PrimaryKey("PK_Departments", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -30,12 +30,12 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Type = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Version = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Statut = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    RedacteurId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    VerificateurId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    ApprobateurId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    MotifRejet = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    DateCreation = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    AuthorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    VerifierId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ApproverId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    RejectionReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -43,24 +43,24 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ComptesUtilisateurs",
+                name: "UserAccounts",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    PoleId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    EstActif = table.Column<bool>(type: "bit", nullable: false),
-                    DateCreation = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    DepartmentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ComptesUtilisateurs", x => x.Id);
+                    table.PrimaryKey("PK_UserAccounts", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ComptesUtilisateurs_Poles_PoleId",
-                        column: x => x.PoleId,
-                        principalTable: "Poles",
+                        name: "FK_UserAccounts_Departments_DepartmentId",
+                        column: x => x.DepartmentId,
+                        principalTable: "Departments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -70,8 +70,8 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Nom = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Ordre = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Order = table.Column<int>(type: "int", nullable: false),
                     WorkflowTemplateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -86,35 +86,35 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Collaborateurs",
+                name: "Employees",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Matricule = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Nom = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Prenom = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Poste = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    PoleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TypeContrat = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    DateIntegration = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DateDepart = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    CompteUtilisateurId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    EmployeeNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    JobTitle = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    DepartmentId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ContractType = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DepartureDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UserAccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Collaborateurs", x => x.Id);
+                    table.PrimaryKey("PK_Employees", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Collaborateurs_ComptesUtilisateurs_CompteUtilisateurId",
-                        column: x => x.CompteUtilisateurId,
-                        principalTable: "ComptesUtilisateurs",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_Collaborateurs_Poles_PoleId",
-                        column: x => x.PoleId,
-                        principalTable: "Poles",
+                        name: "FK_Employees_Departments_DepartmentId",
+                        column: x => x.DepartmentId,
+                        principalTable: "Departments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Employees_UserAccounts_UserAccountId",
+                        column: x => x.UserAccountId,
+                        principalTable: "UserAccounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -122,9 +122,9 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Libelle = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
-                    Ordre = table.Column<int>(type: "int", nullable: false),
-                    ConditionsTypeContrat = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Label = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
+                    Order = table.Column<int>(type: "int", nullable: false),
+                    ApplicableContractTypes = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TemplateSectionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -143,21 +143,21 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CollaborateurId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EmployeeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     TemplateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     TemplateVersion = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Type = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Statut = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    DateCreation = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DateCloture = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ClosureDate = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_WorkflowInstances", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_WorkflowInstances_Collaborateurs_CollaborateurId",
-                        column: x => x.CollaborateurId,
-                        principalTable: "Collaborateurs",
+                        name: "FK_WorkflowInstances_Employees_EmployeeId",
+                        column: x => x.EmployeeId,
+                        principalTable: "Employees",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -174,11 +174,11 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     TemplateItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Libelle = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
-                    Etat = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Commentaire = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    CochePar = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    DateCoche = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Label = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    CheckedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    CheckedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     WorkflowInstanceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -198,37 +198,26 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                 column: "WorkflowInstanceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Collaborateurs_CompteUtilisateurId",
-                table: "Collaborateurs",
-                column: "CompteUtilisateurId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Collaborateurs_Matricule",
-                table: "Collaborateurs",
-                column: "Matricule",
+                name: "IX_Departments_Name",
+                table: "Departments",
+                column: "Name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Collaborateurs_PoleId",
-                table: "Collaborateurs",
-                column: "PoleId");
+                name: "IX_Employees_DepartmentId",
+                table: "Employees",
+                column: "DepartmentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ComptesUtilisateurs_Email",
-                table: "ComptesUtilisateurs",
-                column: "Email",
+                name: "IX_Employees_EmployeeNumber",
+                table: "Employees",
+                column: "EmployeeNumber",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ComptesUtilisateurs_PoleId",
-                table: "ComptesUtilisateurs",
-                column: "PoleId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Poles_Nom",
-                table: "Poles",
-                column: "Nom",
-                unique: true);
+                name: "IX_Employees_UserAccountId",
+                table: "Employees",
+                column: "UserAccountId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TemplateItems_TemplateSectionId",
@@ -241,9 +230,20 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                 column: "WorkflowTemplateId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WorkflowInstances_CollaborateurId",
+                name: "IX_UserAccounts_DepartmentId",
+                table: "UserAccounts",
+                column: "DepartmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserAccounts_Email",
+                table: "UserAccounts",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkflowInstances_EmployeeId",
                 table: "WorkflowInstances",
-                column: "CollaborateurId");
+                column: "EmployeeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkflowInstances_TemplateId",
@@ -273,16 +273,16 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                 name: "TemplateSections");
 
             migrationBuilder.DropTable(
-                name: "Collaborateurs");
+                name: "Employees");
 
             migrationBuilder.DropTable(
                 name: "WorkflowTemplates");
 
             migrationBuilder.DropTable(
-                name: "ComptesUtilisateurs");
+                name: "UserAccounts");
 
             migrationBuilder.DropTable(
-                name: "Poles");
+                name: "Departments");
         }
     }
 }

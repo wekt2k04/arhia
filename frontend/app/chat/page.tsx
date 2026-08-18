@@ -8,7 +8,7 @@ import { BoutonDeconnexion } from "./bouton-deconnexion";
 import { ChatWidget } from "./chat-widget";
 import { NotificationBar } from "./notification-bar";
 
-// RoleType côté Agirh.Api (Agirh.Domain/Enums.cs) : 0=Collaborateur, 1=RH, 2=AdminQualite.
+// RoleType côté Agirh.Api (Agirh.Domain/Enums.cs) : 0=Employee, 1=HR, 2=QualityAdmin.
 const NOMS_ROLE = ["Collaborateur", "RH", "Admin/Qualité"];
 
 export default async function PageChat() {

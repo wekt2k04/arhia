@@ -22,84 +22,103 @@ namespace Agirh.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Agirh.Domain.Entities.Collaborateur", b =>
+            modelBuilder.Entity("Agirh.Domain.Entities.Department", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("CompteUtilisateurId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DateDepart")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DateIntegration")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Matricule")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("Nom")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<Guid>("PoleId")
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Departments", (string)null);
+                });
+
+            modelBuilder.Entity("Agirh.Domain.Entities.Employee", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Poste")
+                    b.Property<string>("ContractType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<Guid>("DepartmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DepartureDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EmployeeNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("JobTitle")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<string>("Prenom")
+                    b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("TypeContrat")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UserAccountId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompteUtilisateurId");
+                    b.HasIndex("DepartmentId");
 
-                    b.HasIndex("Matricule")
+                    b.HasIndex("EmployeeNumber")
                         .IsUnique();
 
-                    b.HasIndex("PoleId");
+                    b.HasIndex("UserAccountId");
 
-                    b.ToTable("Collaborateurs", (string)null);
+                    b.ToTable("Employees", (string)null);
                 });
 
-            modelBuilder.Entity("Agirh.Domain.Entities.CompteUtilisateur", b =>
+            modelBuilder.Entity("Agirh.Domain.Entities.UserAccount", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("DateCreation")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DepartmentId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<bool>("EstActif")
+                    b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("PoleId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Role")
                         .IsRequired()
@@ -108,31 +127,12 @@ namespace Agirh.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DepartmentId");
+
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.HasIndex("PoleId");
-
-                    b.ToTable("ComptesUtilisateurs", (string)null);
-                });
-
-            modelBuilder.Entity("Agirh.Domain.Entities.Pole", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Nom")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Nom")
-                        .IsUnique();
-
-                    b.ToTable("Poles", (string)null);
+                    b.ToTable("UserAccounts", (string)null);
                 });
 
             modelBuilder.Entity("Agirh.Domain.Entities.WorkflowInstance", b =>
@@ -141,16 +141,16 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("CollaborateurId")
+                    b.Property<DateTime?>("ClosureDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("EmployeeId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("DateCloture")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DateCreation")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Statut")
+                    b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -170,7 +170,7 @@ namespace Agirh.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CollaborateurId");
+                    b.HasIndex("EmployeeId");
 
                     b.HasIndex("TemplateId");
 
@@ -183,20 +183,20 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ApprobateurId")
+                    b.Property<Guid?>("ApproverId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("DateCreation")
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("MotifRejet")
+                    b.Property<string>("RejectionReason")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<Guid>("RedacteurId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Statut")
+                    b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -206,7 +206,7 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<Guid?>("VerificateurId")
+                    b.Property<Guid?>("VerifierId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Version")
@@ -222,33 +222,33 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                     b.ToTable("WorkflowTemplates", (string)null);
                 });
 
-            modelBuilder.Entity("Agirh.Domain.Entities.Collaborateur", b =>
+            modelBuilder.Entity("Agirh.Domain.Entities.Employee", b =>
                 {
-                    b.HasOne("Agirh.Domain.Entities.CompteUtilisateur", null)
+                    b.HasOne("Agirh.Domain.Entities.Department", null)
                         .WithMany()
-                        .HasForeignKey("CompteUtilisateurId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Agirh.Domain.Entities.Pole", null)
-                        .WithMany()
-                        .HasForeignKey("PoleId")
+                        .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("Agirh.Domain.Entities.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("UserAccountId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
-            modelBuilder.Entity("Agirh.Domain.Entities.CompteUtilisateur", b =>
+            modelBuilder.Entity("Agirh.Domain.Entities.UserAccount", b =>
                 {
-                    b.HasOne("Agirh.Domain.Entities.Pole", null)
+                    b.HasOne("Agirh.Domain.Entities.Department", null)
                         .WithMany()
-                        .HasForeignKey("PoleId")
+                        .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Agirh.Domain.Entities.WorkflowInstance", b =>
                 {
-                    b.HasOne("Agirh.Domain.Entities.Collaborateur", null)
+                    b.HasOne("Agirh.Domain.Entities.Employee", null)
                         .WithMany()
-                        .HasForeignKey("CollaborateurId")
+                        .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -264,25 +264,25 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("uniqueidentifier");
 
-                            b1.Property<Guid?>("CochePar")
+                            b1.Property<Guid?>("CheckedBy")
                                 .HasColumnType("uniqueidentifier");
 
-                            b1.Property<string>("Commentaire")
+                            b1.Property<DateTime?>("CheckedDate")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<string>("Comment")
                                 .HasMaxLength(1000)
                                 .HasColumnType("nvarchar(1000)");
 
-                            b1.Property<DateTime?>("DateCoche")
-                                .HasColumnType("datetime2");
-
-                            b1.Property<string>("Etat")
-                                .IsRequired()
-                                .HasMaxLength(20)
-                                .HasColumnType("nvarchar(20)");
-
-                            b1.Property<string>("Libelle")
+                            b1.Property<string>("Label")
                                 .IsRequired()
                                 .HasMaxLength(300)
                                 .HasColumnType("nvarchar(300)");
+
+                            b1.Property<string>("Status")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("nvarchar(20)");
 
                             b1.Property<Guid>("TemplateItemId")
                                 .HasColumnType("uniqueidentifier");
@@ -311,12 +311,12 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("uniqueidentifier");
 
-                            b1.Property<string>("Nom")
+                            b1.Property<string>("Name")
                                 .IsRequired()
                                 .HasMaxLength(100)
                                 .HasColumnType("nvarchar(100)");
 
-                            b1.Property<int>("Ordre")
+                            b1.Property<int>("Order")
                                 .HasColumnType("int");
 
                             b1.Property<Guid>("WorkflowTemplateId")
@@ -337,16 +337,16 @@ namespace Agirh.Infrastructure.Persistence.Migrations
                                         .ValueGeneratedOnAdd()
                                         .HasColumnType("uniqueidentifier");
 
-                                    b2.Property<string>("ConditionsTypeContrat")
+                                    b2.Property<string>("ApplicableContractTypes")
                                         .IsRequired()
                                         .HasColumnType("nvarchar(max)");
 
-                                    b2.Property<string>("Libelle")
+                                    b2.Property<string>("Label")
                                         .IsRequired()
                                         .HasMaxLength(300)
                                         .HasColumnType("nvarchar(300)");
 
-                                    b2.Property<int>("Ordre")
+                                    b2.Property<int>("Order")
                                         .HasColumnType("int");
 
                                     b2.Property<Guid>("TemplateSectionId")

@@ -12,7 +12,7 @@ pour ce format), **difficulté = Difficile**, **nombre de cartes = Plus** (le su
 Genere des flashcards Question/Reponse couvrant les 5 documents source, avec une repartition privilegiant les deux volets IA/ML (pipeline RAG et orchestration conversationnelle) sans negliger architecture/securite, Docker et workflows/temps reel.
 
 Priorites de contenu, par ordre :
-1. Regles metier et garde-fous explicitement encodes en code (pas de simples definitions) : RBAC/PoleScopeGuard, seuil de pertinence RAG, garde-fou anti-hallucination (double porte de sortie), fail-safe du Router, contraintes de circuit (template Approuve requis, dossier archive = lecture seule).
+1. Regles metier et garde-fous explicitement encodes en code (pas de simples definitions) : RBAC/DepartmentScopeGuard, seuil de pertinence RAG, garde-fou anti-hallucination (double porte de sortie), fail-safe du Router, contraintes de circuit (template Approved requis, dossier archive = lecture seule).
 2. Syntaxe et signatures de code reelles citees dans les sources (noms de classes/methodes, format des donnees, valeurs de constantes) - pas seulement les concepts generaux autour.
 3. Choix d'architecture et leurs justifications (pourquoi ce choix plutot qu'une alternative plausible).
 

@@ -425,3 +425,26 @@
 - Contrôle visuel pixel de `/chat`, routeur conversationnel, jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8, calendrier réel du stage, `docs/APPRENTISSAGE/principal.pdf` non identifié — tous inchangés, sans rapport avec cette session.
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-18 (suite 3) — Poste de travail (Windows), session en remote-control
+
+**Fait :**
+- **Patch 4/4 (Finalisation) exécuté et poussé, sur confirmation explicite du porteur du projet** ("go for the last step") — la migration vocabulaire français → anglais est maintenant **complète** (4/4 patches).
+- `Program.cs` réécrit (derniers identifiants français), `RegisterUseCaseTests.cs` (oubli réel du Patch 1 corrigé : `motDePasse`→`password` dans un nom de paramètre de théorie), commentaire obsolète corrigé dans `frontend/app/chat/page.tsx`.
+- **Migration EF Core régénérée à neuf** (`InitialCreate` unique, schéma 100% anglais vérifié) et **appliquée réellement** sur `agirh-sql` (`dotnet ef database drop --force` + `update`) — opération destructive locale délibérée et signalée à l'avance, aucune donnée de prod derrière.
+- **Qdrant réindexé réellement** après changement des clés de payload (`cheminTitres`/`contenu`→`titlePath`/`content`) : ancienne collection supprimée (stale, causait un `KeyNotFoundException`), reconstruite via un vrai appel HTTP `POST api/admin/reindex-corpus` (smoke test complet register→promotion SQL→login→reindex, `{"documentsRead":6,"chunksIndexed":72}`).
+- **Toutes les citations de code dans `docs/**/*.md` mises à jour** (dernière étape du plan, volontairement différée à la fin) : `ARCHITECTURE.md`, `LOGIQUE_METIER.md`, `STACK_TECHNIQUE.md`, `CHECKLIST.md`, les 5 documents `docs/notebooklm/`, les 2 prompts NotebookLM, `docs/APPRENTISSAGE/principal.md` (blocs de code revérifiés contre le vrai source, pas seulement les noms), `docs/presentations/script_orateur.md`. Un grep final large (glossaire complet) a rattrapé quelques oublis d'une première passe (config JWT dans le doc fondations, citation d'enum routeur dans `CHECKLIST.md`, `PoleScopeGuard` dans le prompt audio).
+- **Exception délibérée** : dans `script_orateur.md` (script **parlé**), les noms de rôles restent en français (traité comme texte utilisateur final à prononcer, pas une citation de code) — contrairement aux mêmes rôles dans les documents de référence écrits, traduits pour cohérence avec `RoleType`.
+- **Incident fork et récupération** : 3 forks ont échoué immédiatement (cap de session, indépendant du contenu) — travail repris directement en conversation principale. Le 4ᵉ fork (seul à terminer) est sorti de son périmètre sur `docs/notebooklm/prompt-audio-overview.md` (a réécrit tout le prompt en version condensée au lieu de corriger seulement les citations, contredisant la note de conception "V2 = plus explicite" du fichier). **Repéré avant tout commit** par relecture attentive du diff, annulé précisément via le côté `-` du diff déjà capturé — zéro perte confirmée (`git diff`/`git log`).
+- **Vérifications** : `dotnet build -c Release` 0 warning/0 erreur. `dotnet test -c Release` : 210/211 puis 211/211 en isolant le seul échec (`OllamaRouterAdapterTests`, "Mon dossier est-il clôturé ?") — flake connu et déjà documenté (~27% d'erreur du routeur), reconfirmé comme tel en relançant isolément (5/5 verts), pas une régression.
+- **Document de vérification créé pour le porteur du projet** : `docs/VERIFICATION_MIGRATION_ANGLAIS.md`, demandé explicitement en cours de session — steps concrets pour confirmer visuellement/fonctionnellement que la migration est terminée.
+- Serveurs laissés démarrés en fin de session (Api port 5080, frontend port 3000, Docker déjà up) pour permettre une vérification visuelle immédiate à distance.
+
+**Reste :**
+- Le endpoint chat SSE (`GET api/chat/ask`) n'a pas été testé en direct cette session — seule l'ingestion Qdrant l'a été. À faire en suivant `docs/VERIFICATION_MIGRATION_ANGLAIS.md`.
+- **Nouvelle demande du porteur du projet, pas encore commencée à ce checkpoint** : refaire `docs/Rapport_Avancement_PFA_AGIRH_Wilfried_TSETSE.pdf` (3 pages max, nouveaux diagrammes `.puml`, focus IA, pour l'encadrant de stage).
+- Sujets pré-existants toujours ouverts (indépendants de la migration) : vérification visuelle pixel du chat, routeur conversationnel (~27%), jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8.
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.

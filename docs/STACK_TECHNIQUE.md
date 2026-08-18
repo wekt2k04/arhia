@@ -11,7 +11,7 @@ Les choix de framework (backend/frontend) sont conservés de V7 — expertise d�
 - **.NET 8** (LTS) en pratique — seul SDK installé sur la machine de développement au moment de démarrer l'implémentation (vérifié via `dotnet --list-sdks`, milestone 3). La décision d'origine (`HISTORIQUE.md`) visait .NET 10 (LTS plus récent) ; à réévaluer si le SDK .NET 10 est installé plus tard — changement de TFM à faible coût, pas structurant.
 - ASP.NET Core, EF Core.
 - Architecture hexagonale (Domain/Core/Infrastructure/Api) — détail complet dans `ARCHITECTURE.md`.
-- **Authentification** : JWT + ASP.NET Identity. Keycloak (envisagé dans l'historique V7→V8) est abandonné — hors de proportion pour l'échelle du prototype (3 rôles, ~5 RH + 2 Admin/Qualité + collaborateurs, LOGIQUE_METIER.md §1). Auto-inscription → rôle Collaborateur par défaut ; élévation de rôle réservée à Admin/Qualité.
+- **Authentification** : JWT + ASP.NET Identity. Keycloak (envisagé dans l'historique V7→V8) est abandonné — hors de proportion pour l'échelle du prototype (3 rôles, ~5 RH + 2 Admin/Qualité + collaborateurs, LOGIQUE_METIER.md §1). Auto-inscription → rôle Employee par défaut ; élévation de rôle réservée à Admin/Qualité.
 - **Temps réel** : SSE (Server-Sent Events), pour le flux de chat et pour la barre de notifications par pôle/domaine (LOGIQUE_METIER.md §9). Un seul mécanisme de transport pour les deux usages.
 
 ## 2. Frontend
@@ -25,7 +25,7 @@ Les choix de framework (backend/frontend) sont conservés de V7 — expertise d�
 
 Deux services de données, tous deux en Docker :
 
-- **SQL Server** — entités relationnelles métier : Collaborateur, Pôle, WorkflowTemplate/Instance, Item, comptes/rôles. Réutilise l'infra et l'expertise EF Core déjà en place.
+- **SQL Server** — entités relationnelles métier : Employee, Department, WorkflowTemplate/Instance, Item, comptes/rôles. Réutilise l'infra et l'expertise EF Core déjà en place.
 - **Qdrant** — index vectoriel du pipeline RAG (recherche ANN via HNSW, similarité cosinus). Décision confirmée malgré un corpus volontairement restreint (documents rédigés par le porteur du projet) : la valorisation de la compétence infra IA dans le rendu du PFA prime sur la simplicité d'une solution embarquée.
 
 ## 4. Pipeline RAG — 4 phases, toutes obligatoires

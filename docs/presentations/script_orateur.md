@@ -124,7 +124,7 @@ Et le déploiement se fait via **Docker Compose**, quatre services. »
 
 ### Slide 10 — Sécurité *(~60 s)*
 « Deux mécanismes structurent la sécurité. `[clic]` D'abord, le **RBAC à portée** : au-delà du
-simple rôle, `PoleScopeGuard` vérifie qu'un RH cible bien un dossier de **son** pôle — et cette
+simple rôle, `DepartmentScopeGuard` vérifie qu'un RH cible bien un dossier de **son** pôle — et cette
 vérification est faite **avant** même de regarder le rôle. Un RH qui sort de son pôle est refusé,
 point final.
 `[clic]` Ensuite, le pattern **BFF** : le navigateur ne parle **jamais** directement à l'API .NET.
@@ -279,7 +279,7 @@ souhaitez, pour une démonstration en direct de l'application. »
 - *« Pourquoi Ollama en local plutôt qu'une API cloud ? »* → souveraineté des données RH,
   disponibilité hors-ligne, coût prévisible pendant le développement ; le modèle est configurable
   (nom + URL) pour basculer vers un serveur plus capable sans recompiler.
-- *« Qui peut voir/modifier les données de qui ? »* → RBAC + `PoleScopeGuard`, vérifié **avant** le
+- *« Qui peut voir/modifier les données de qui ? »* → RBAC + `DepartmentScopeGuard`, vérifié **avant** le
   rôle. Un RH hors de son pôle est refusé, quel que soit son rôle par ailleurs.
 - *« Le JWT est-il exposé au navigateur ? »* → jamais — pattern BFF, cookie httpOnly posé côté
   serveur uniquement, invisible même à un script XSS.

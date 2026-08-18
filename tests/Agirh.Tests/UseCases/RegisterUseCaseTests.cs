@@ -45,13 +45,13 @@ public class RegisterUseCaseTests
     [Theory]
     [InlineData("")]
     [InlineData("court")]
-    public async Task ExecuteAsync_PasswordTooShort_ThrowsArgumentException(string motDePasse)
+    public async Task ExecuteAsync_PasswordTooShort_ThrowsArgumentException(string password)
     {
         var accounts = new Mock<IUserAccountRepository>();
         var hasher = new Mock<IPasswordHasher>();
         var useCase = new RegisterUseCase(accounts.Object, hasher.Object);
 
-        var act = () => useCase.ExecuteAsync("test@agirh.test", motDePasse, Maintenant);
+        var act = () => useCase.ExecuteAsync("test@agirh.test", password, Maintenant);
 
         await act.Should().ThrowAsync<ArgumentException>();
         accounts.Verify(r => r.GetByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);

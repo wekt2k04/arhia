@@ -23,19 +23,21 @@ endroit qui choisit quel adaptateur brancher derrière chaque port.
 
 ## 2. RBAC : qui a le droit de faire quoi
 
-3 rôles, portée croissante : **Collaborateur** (ses données), **RH** (son pôle uniquement, vérifié
-par `PoleScopeGuard` *avant* le rôle), **AdminQualite** (portée globale, seul rôle qui élève un
+3 rôles, portée croissante : **Employee** (ses données), **RH** (son pôle uniquement, vérifié
+par `DepartmentScopeGuard` *avant* le rôle), **QualityAdmin** (portée globale, seul rôle qui élève un
 compte ou valide un template).
 
 ```csharp
-// src/Agirh.Core/Security/PoleScopeGuard.cs, lignes 8-16
-public static bool PeutAccederAuPole(CompteUtilisateur acteur, Guid poleCibleId) =>
-    acteur.Role switch
+// src/Agirh.Core/Security/DepartmentScopeGuard.cs, lignes 8-16
+public static bool CanAccessDepartment(UserAccount actor, Guid targetDepartmentId)
+{
+    return actor.Role switch
     {
-        RoleType.AdminQualite => true,
-        RoleType.RH => acteur.PoleId == poleCibleId,
-        _ => false  // Collaborateur n'a jamais de portée sur un pôle entier
+        RoleType.QualityAdmin => true,
+        RoleType.HR => actor.DepartmentId == targetDepartmentId,
+        _ => false  // Employee n'a jamais de portée sur un département entier
     };
+}
 ```
 
 ## 3. Le frontend ne détient jamais le JWT — pattern BFF
@@ -73,11 +75,11 @@ Orchestration (Agirh.Infrastructure/Llm/ + Agirh.Core/UseCases/) : quoi faire de
 | `src/Agirh.Infrastructure/Rag/OnnxEmbeddingAdapter.cs` | Phase 2 — texte → vecteur 768d |
 | `src/Agirh.Infrastructure/Rag/QdrantVectorSearchAdapter.cs` | Phase 3 — indexation + recherche ANN |
 | `src/Agirh.Infrastructure/Rag/OnnxRerankerAdapter.cs` | Phase 4 — réordonnancement cross-encodeur |
-| `src/Agirh.Core/UseCases/IngererCorpusUseCase.cs` | Orchestre 1→2→3 à l'ingestion du corpus |
+| `src/Agirh.Core/UseCases/IngestCorpusUseCase.cs` | Orchestre 1→2→3 à l'ingestion du corpus |
 | `src/Agirh.Infrastructure/Llm/OllamaClient.cs` | Client HTTP bas niveau partagé vers Ollama |
 | `src/Agirh.Infrastructure/Llm/OllamaRouterAdapter.cs` | Router — classification d'intention |
 | `src/Agirh.Infrastructure/Llm/OllamaGeneratorAdapter.cs` | Generator — écriture de la réponse |
-| `src/Agirh.Core/UseCases/RepondreConversationUseCase.cs` | Orchestrateur central + garde-fous |
+| `src/Agirh.Core/UseCases/AnswerConversationUseCase.cs` | Orchestrateur central + garde-fous |
 | `src/Agirh.Api/Controllers/ChatController.cs` | Endpoint SSE qui déclenche tout le pipeline |
 | `src/Agirh.Api/Controllers/AdminController.cs` | Endpoint de réindexation du corpus (Admin/Qualité) |
 
@@ -88,19 +90,20 @@ recouvrement** entre chunks voisins, pour ne pas perdre une info à cheval sur u
 
 ```csharp
 // src/Agirh.Infrastructure/Rag/MarkdownChunker.cs, lignes 18-28
-public MarkdownChunker(Func<string, int> compterTokens, int maxTokensParChunk = 400, double tauxRecouvrement = 0.15)
+public MarkdownChunker(Func<string, int> countTokens, int maxTokensPerChunk = 400, double overlapRatio = 0.15)
 {
-    if (maxTokensParChunk <= 0)
-        throw new ArgumentOutOfRangeException(nameof(maxTokensParChunk), "Le budget de tokens doit être positif.");
-    if (tauxRecouvrement < 0 || tauxRecouvrement >= 1)
-        throw new ArgumentOutOfRangeException(nameof(tauxRecouvrement), "Le taux de recouvrement doit être dans [0, 1[.");
-    _compterTokens = compterTokens ?? throw new ArgumentNullException(nameof(compterTokens));
-    _maxTokensParChunk = maxTokensParChunk;
-    _tauxRecouvrement = tauxRecouvrement;
+    if (maxTokensPerChunk <= 0)
+        throw new ArgumentOutOfRangeException(nameof(maxTokensPerChunk), "Le budget de tokens doit être positif.");
+    if (overlapRatio < 0 || overlapRatio >= 1)
+        throw new ArgumentOutOfRangeException(nameof(overlapRatio), "Le taux de recouvrement doit être dans [0, 1[.");
+
+    _countTokens = countTokens ?? throw new ArgumentNullException(nameof(countTokens));
+    _maxTokensPerChunk = maxTokensPerChunk;
+    _overlapRatio = overlapRatio;
 }
 ```
 
-Budget par défaut : 400 tokens/chunk, 15% de recouvrement. `Decouper()` (ligne 30) extrait les
+Budget par défaut : 400 tokens/chunk, 15% de recouvrement. `Chunk()` (ligne 30) extrait les
 sections, et ne sous-découpe par paragraphe (avec recouvrement) que si une section dépasse le
 budget — la plupart des sections courtes restent un seul chunk.
 
@@ -118,34 +121,34 @@ public sealed class OnnxEmbeddingAdapter : IEmbeddingPort, IDisposable
     private readonly InferenceSession _session;
     private readonly XlmRobertaTokenizer _tokenizer;
 
-    public OnnxEmbeddingAdapter(string cheminModeleOnnx, string cheminSentencePieceModel)
+    public OnnxEmbeddingAdapter(string onnxModelPath, string sentencePieceModelPath)
     {
-        _session = new InferenceSession(cheminModeleOnnx);
-        _tokenizer = XlmRobertaTokenizer.ChargerDepuisFichier(cheminSentencePieceModel);
+        _session = new InferenceSession(onnxModelPath);
+        _tokenizer = XlmRobertaTokenizer.LoadFromFile(sentencePieceModelPath);
     }
 ```
 
 `Dimension` (768) est une propriété vérifiable, pas une constante magique dispersée — un mismatch
 avec Qdrant serait détecté explicitement plutôt que de casser silencieusement la recherche.
-`GenererEmbeddingAsync` (ligne 25, pas reproduit ici) fait ensuite : tokenisation → tenseurs
+`GenerateEmbeddingAsync` (ligne 25, pas reproduit ici) fait ensuite : tokenisation → tenseurs
 `input_ids`/`attention_mask` → `InferenceSession.Run` → mean-pooling masqué + normalisation L2 sur
 les embeddings de tokens → un seul vecteur de phrase.
 
 ### Phase 3 — Storage (Qdrant, ANN/HNSW, cosinus)
 
 ```csharp
-// src/Agirh.Infrastructure/Rag/QdrantVectorSearchAdapter.cs, lignes 47-55
-public async Task<IReadOnlyList<ChunkDocumentaire>> RechercherAsync(float[] vecteurRequete, int topK, CancellationToken ct = default)
+// src/Agirh.Infrastructure/Rag/QdrantVectorSearchAdapter.cs, lignes 47-64
+public async Task<IReadOnlyList<DocumentChunk>> SearchAsync(float[] queryVector, int topK, CancellationToken ct = default)
 {
-    var resultats = await _client.QueryAsync(
-        NomCollection, query: vecteurRequete, limit: (ulong)topK,
+    var results = await _client.QueryAsync(
+        CollectionName, query: queryVector, limit: (ulong)topK,
         payloadSelector: true, cancellationToken: ct);
 
-    return resultats.Select(r => new ChunkDocumentaire(/* Id, DocumentSource, ChunkIndex, CheminTitres, Contenu, Score */)).ToList();
+    return results.Select(r => new DocumentChunk(/* Id, DocumentSource, ChunkIndex, TitlePath, Content, Score */)).ToList();
 }
 ```
 
-Collection `"agirh-corpus"` (ligne 9), distance cosinus fixée à l'indexation (`PreparerAsync`,
+Collection `"agirh-corpus"` (ligne 9), distance cosinus fixée à l'indexation (`PrepareAsync`,
 ligne 27). Recherche **ANN** (Approximate Nearest Neighbor, HNSW côté Qdrant) : on perd la
 garantie d'exactitude en échange d'une vitesse largement supérieure — pas strictement nécessaire
 à cette échelle de corpus, mais démontre une vraie compétence d'infra IA.
@@ -159,16 +162,16 @@ réordonner finement les survivants.
 
 ```csharp
 // src/Agirh.Infrastructure/Rag/OnnxRerankerAdapter.cs, lignes 32-35 + 40-65
-var resultats = candidats
-    .Select(c => c with { Score = CalculerScore(requete, c.Contenu) })
+var results = candidates
+    .Select(c => c with { Score = ComputeScore(query, c.Content) })
     .OrderByDescending(c => c.Score)
     .ToList();
 
-private float CalculerScore(string requete, string document)
+private float ComputeScore(string query, string document)
 {
-    var ids = _tokenizer.EncoderPaireEnIdsHuggingFace(requete, document); // <s>requête</s></s>document</s>
+    var ids = _tokenizer.EncodePairToHuggingFaceIds(query, document); // <s>requête</s></s>document</s>
     // ... tenseurs -> InferenceSession.Run ...
-    var logit = resultatsOnnx.First(r => r.Name == "logits").AsTensor<float>()[0, 0];
+    var logit = onnxResults.First(r => r.Name == "logits").AsTensor<float>()[0, 0];
     return Sigmoid(logit);
 }
 
@@ -183,7 +186,7 @@ décision finale « sourcé ou non » (§6) relit le texte réellement généré
 ### Router — classification d'intention (fail-safe, pas fail-open)
 
 ```csharp
-// src/Agirh.Infrastructure/Llm/OllamaRouterAdapter.cs, lignes 20-41 (prompt système complet)
+// src/Agirh.Infrastructure/Llm/OllamaRouterAdapter.cs, lignes 24-45 (extrait du prompt système)
 Tu es un classifieur d'intention pour un assistant RH interne. Classe la question dans EXACTEMENT
 une categorie parmi les trois suivantes. Reponds UNIQUEMENT par un de ces 3 mots exacts, en
 majuscules, rien d'autre : DOCUMENTAIRE, STATUT_DOSSIER, HORS_PERIMETRE.
@@ -193,22 +196,22 @@ en DOCUMENTAIRE (jamais STATUT_DOSSIER), meme si elle parle de dossier, fiche ou
 general.
 ```
 ```csharp
-// src/Agirh.Infrastructure/Llm/OllamaRouterAdapter.cs, lignes 57-68 (parsing de la sortie brute)
-private static IntentionConversation ParserIntention(string? reponseBrute)
+// src/Agirh.Infrastructure/Llm/OllamaRouterAdapter.cs, lignes 61-72 (parsing de la sortie brute)
+private static ConversationIntent ParseIntent(string? rawResponse)
 {
-    var normalise = (reponseBrute ?? string.Empty).Trim().ToUpperInvariant();
+    var normalized = (rawResponse ?? string.Empty).Trim().ToUpperInvariant();
 
-    if (normalise.Contains("STATUT_DOSSIER"))
-        return IntentionConversation.StatutDossier;
-    if (normalise.Contains("DOCUMENTAIRE"))
-        return IntentionConversation.QuestionDocumentaire;
+    if (normalized.Contains("STATUT_DOSSIER"))
+        return ConversationIntent.CaseStatus;
+    if (normalized.Contains("DOCUMENTAIRE"))
+        return ConversationIntent.DocumentaryQuestion;
 
-    return IntentionConversation.HorsPerimetre; // tout le reste : vide, timeout, mot halluciné
+    return ConversationIntent.OutOfScope; // tout le reste : vide, timeout, mot halluciné
 }
 ```
 
 **Fail-safe, pas fail-open** : la sortie brute n'est jamais utilisée telle quelle — validée contre
-un enum fermé à 3 valeurs, tout ce qui ne matche pas exactement retombe sur `HorsPerimetre` par
+un enum fermé à 3 valeurs, tout ce qui ne matche pas exactement retombe sur `OutOfScope` par
 défaut. Un flou ou une panne du LLM ne peut jamais accidentellement ouvrir l'accès à quelque chose.
 
 **Limite mesurée et assumée** : ~27% de mauvais classement sur 48 questions de test. Doubler les
@@ -219,31 +222,31 @@ compense pas une limite de raisonnement du modèle lui-même.
 ### Generator + le garde-fou anti-hallucination (le code le plus important de tout le projet)
 
 ```csharp
-// src/Agirh.Core/UseCases/RepondreConversationUseCase.cs, ligne 22 + lignes 179-194 (double porte de sortie)
-private const float SeuilPertinenceMinimum = 0.01f;
+// src/Agirh.Core/UseCases/AnswerConversationUseCase.cs, ligne 22 + lignes 179-194 (double porte de sortie)
+private const float MinimumRelevanceThreshold = 0.01f;
 
-private async Task<PreparationDocumentaire> PreparerContexteDocumentaireAsync(string question, CancellationToken ct)
+private async Task<DocumentaryPreparation> PrepareDocumentaryContextAsync(string question, CancellationToken ct)
 {
-    var vecteurRequete = await _embedding.GenererEmbeddingAsync(question, ct);
-    var candidats = await _rechercheVectorielle.RechercherAsync(vecteurRequete, TopKRecherche, ct);
+    var queryVector = await _embedding.GenerateEmbeddingAsync(question, ct);
+    var candidates = await _vectorSearch.SearchAsync(queryVector, TopKSearch, ct);
 
-    if (candidats.Count == 0)
-        return new PreparationDocumentaire(false, null, Array.Empty<ChunkDocumentaire>());
+    if (candidates.Count == 0)
+        return new DocumentaryPreparation(false, null, Array.Empty<DocumentChunk>());
 
-    var rerankes = await _reranker.RerankAsync(question, candidats, ct);
-    var meilleurs = rerankes
-        .Where(c => c.Score >= SeuilPertinenceMinimum)
-        .Take(TopKApresReranking)
+    var reranked = await _reranker.RerankAsync(question, candidates, ct);
+    var best = reranked
+        .Where(c => c.Score >= MinimumRelevanceThreshold)
+        .Take(TopKAfterReranking)
         .ToList();
 
-    if (meilleurs.Count == 0)
-        return new PreparationDocumentaire(false, null, Array.Empty<ChunkDocumentaire>());
+    if (best.Count == 0)
+        return new DocumentaryPreparation(false, null, Array.Empty<DocumentChunk>());
     // ... construction du system prompt avec le contexte trouvé, puis appel au Generator ...
 }
 ```
 
 **La règle à retenir avant tout le reste** : il y a **deux portes de sortie anticipée** avant même
-d'appeler le Generator — `candidats.Count == 0` (rien trouvé dans Qdrant) et `meilleurs.Count == 0`
+d'appeler le Generator — `candidates.Count == 0` (rien trouvé dans Qdrant) et `best.Count == 0`
 (rien ne passe le seuil après reranking). Si l'une ou l'autre se déclenche, le Generator **n'est
 jamais invoqué** : le système répond directement "je n'ai pas trouvé cette information". C'est un
 garde-fou **en code**, vérifiable et testé — pas une consigne dans un prompt que le modèle
@@ -265,15 +268,15 @@ séparés parce qu'un audit de conformité (SMSI) ne doit pas être noyé dans d
 
 **Chat documentaire** : `EventSource` (BFF) → `ChatController` (JWT du cookie) → **Router** →
 si `DOCUMENTAIRE` : pipeline RAG (§5) → 0 résultat pertinent ? refus sans Generator (§6) → sinon
-**Generator** en streaming, frame `fragment` par fragment, frame finale `termine` (sourcée +
+**Generator** en streaming, frame `fragment` par fragment, frame finale `done` (sourcée +
 sources).
 
-**Circuit de validation d'un template** : RH propose (`Brouillon`) → Admin/Qualité vérifie →
-Admin/Qualité approuve (`Approuve`, figé) — **seul un template `Approuve` peut instancier un
+**Circuit de validation d'un template** : RH propose (`Draft`) → Admin/Qualité vérifie →
+Admin/Qualité approuve (`Approved`, figé) — **seul un template `Approved` peut instancier un
 `WorkflowInstance`**, contrainte vérifiée par le use case, pas juste documentée.
 
 **Onboarding d'un collaborateur** : RH crée une fiche (Poste, Pôle, Contrat, Date) →
-`ResoudreReferentielItems` calcule les items attendus (**Poste × Pôle × Contrat** contre le
+`WorkflowTemplate.ResolveApplicableItems` calcule les items attendus (**Poste × Pôle × Contrat** contre le
 template approuvé) → `WorkflowInstance` + `ChecklistItem[]` persistés → items cochés
 indépendamment (audit trail) → clôture puis archivage (lecture seule définitive).
 
