@@ -2,12 +2,12 @@ namespace Agirh.Domain;
 
 public enum RoleType
 {
-    Collaborateur,
-    RH,
-    AdminQualite
+    Employee,
+    HR,
+    QualityAdmin
 }
 
-public enum TypeContrat
+public enum ContractType
 {
     CDI,
     CDD,

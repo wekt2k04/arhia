@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Agirh.Api.Controllers;
 
-public record TemplateItemRequest(string Libelle, int Ordre, IReadOnlyCollection<TypeContrat>? ConditionsTypeContrat);
+public record TemplateItemRequest(string Libelle, int Ordre, IReadOnlyCollection<ContractType>? ConditionsTypeContrat);
 
 public record TemplateSectionRequest(string Nom, int Ordre, IReadOnlyCollection<TemplateItemRequest> Items);
 
@@ -46,7 +46,7 @@ public class TemplateController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<TemplateResponse>> Proposer(ProposerTemplateRequest request, CancellationToken ct)
     {
-        var acteur = await _currentUser.ObtenirActeurAsync(ct);
+        var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
@@ -57,10 +57,10 @@ public class TemplateController : ControllerBase
                 s.Items.Select(i => new TemplateItem(Guid.NewGuid(), i.Libelle, i.Ordre, i.ConditionsTypeContrat)).ToList()
             )).ToList();
 
-            var template = await _proposer.ExecuterAsync(acteur, request.Type, request.Version, sections, DateTime.UtcNow, ct);
+            var template = await _proposer.ExecuteAsync(actor, request.Type, request.Version, sections, DateTime.UtcNow, ct);
             return Ok(new TemplateResponse(template.Id, template.Type, template.Version, template.Statut));
         }
-        catch (AccesRefuseException)
+        catch (AccessDeniedException)
         {
             return Forbid();
         }
@@ -77,14 +77,14 @@ public class TemplateController : ControllerBase
     [HttpPost("{id:guid}/verifier")]
     public async Task<IActionResult> Verifier(Guid id, CancellationToken ct)
     {
-        var acteur = await _currentUser.ObtenirActeurAsync(ct);
+        var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
-            await _verifier.ExecuterAsync(acteur, id, ct);
+            await _verifier.ExecuteAsync(actor, id, ct);
             return NoContent();
         }
-        catch (AccesRefuseException)
+        catch (AccessDeniedException)
         {
             return Forbid();
         }
@@ -97,14 +97,14 @@ public class TemplateController : ControllerBase
     [HttpPost("{id:guid}/approuver")]
     public async Task<IActionResult> Approuver(Guid id, CancellationToken ct)
     {
-        var acteur = await _currentUser.ObtenirActeurAsync(ct);
+        var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
-            await _approuver.ExecuterAsync(acteur, id, ct);
+            await _approuver.ExecuteAsync(actor, id, ct);
             return NoContent();
         }
-        catch (AccesRefuseException)
+        catch (AccessDeniedException)
         {
             return Forbid();
         }
@@ -117,14 +117,14 @@ public class TemplateController : ControllerBase
     [HttpPost("{id:guid}/rejeter")]
     public async Task<IActionResult> Rejeter(Guid id, RejeterTemplateRequest request, CancellationToken ct)
     {
-        var acteur = await _currentUser.ObtenirActeurAsync(ct);
+        var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
-            await _rejeter.ExecuterAsync(acteur, id, request.Motif, ct);
+            await _rejeter.ExecuteAsync(actor, id, request.Motif, ct);
             return NoContent();
         }
-        catch (AccesRefuseException)
+        catch (AccessDeniedException)
         {
             return Forbid();
         }

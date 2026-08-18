@@ -26,18 +26,18 @@ public class ArchiverDossierUseCaseTests
     [Fact]
     public async Task ExecuterAsync_RHSurSonPole_ArchiveLeDossier()
     {
-        var poleId = Guid.NewGuid();
-        var rh = new CompteUtilisateur(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.RH, poleId, Maintenant);
-        var collaborateur = new Collaborateur(Guid.NewGuid(), new Matricule("MAT001"), "Dupont", "Jean", "Dev", poleId, TypeContrat.CDI, Maintenant);
-        var instance = CreerInstanceCloturee(collaborateur.Id);
+        var departmentId = Guid.NewGuid();
+        var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, departmentId, Maintenant);
+        var employee = new Employee(Guid.NewGuid(), new EmployeeNumber("MAT001"), "Dupont", "Jean", "Dev", departmentId, ContractType.CDI, Maintenant);
+        var instance = CreerInstanceCloturee(employee.Id);
 
         var instances = new Mock<IWorkflowInstanceRepository>();
         instances.Setup(r => r.ObtenirParIdAsync(instance.Id, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
-        var collaborateurs = new Mock<ICollaborateurRepository>();
-        collaborateurs.Setup(r => r.ObtenirParIdAsync(collaborateur.Id, It.IsAny<CancellationToken>())).ReturnsAsync(collaborateur);
-        var useCase = new ArchiverDossierUseCase(instances.Object, collaborateurs.Object);
+        var employees = new Mock<IEmployeeRepository>();
+        employees.Setup(r => r.GetByIdAsync(employee.Id, It.IsAny<CancellationToken>())).ReturnsAsync(employee);
+        var useCase = new ArchiverDossierUseCase(instances.Object, employees.Object);
 
-        await useCase.ExecuterAsync(rh, instance.Id);
+        await useCase.ExecuteAsync(rh, instance.Id);
 
         instance.Statut.Should().Be(WorkflowStatus.Archive);
     }
@@ -45,17 +45,17 @@ public class ArchiverDossierUseCaseTests
     [Fact]
     public async Task ExecuterAsync_AdminQualite_PeutArchiverNimporteQuelPole()
     {
-        var admin = new CompteUtilisateur(Guid.NewGuid(), "admin@agirh.test", "hash", RoleType.AdminQualite, null, Maintenant);
-        var collaborateur = new Collaborateur(Guid.NewGuid(), new Matricule("MAT001"), "Dupont", "Jean", "Dev", Guid.NewGuid(), TypeContrat.CDI, Maintenant);
-        var instance = CreerInstanceCloturee(collaborateur.Id);
+        var admin = new UserAccount(Guid.NewGuid(), "admin@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
+        var employee = new Employee(Guid.NewGuid(), new EmployeeNumber("MAT001"), "Dupont", "Jean", "Dev", Guid.NewGuid(), ContractType.CDI, Maintenant);
+        var instance = CreerInstanceCloturee(employee.Id);
 
         var instances = new Mock<IWorkflowInstanceRepository>();
         instances.Setup(r => r.ObtenirParIdAsync(instance.Id, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
-        var collaborateurs = new Mock<ICollaborateurRepository>();
-        collaborateurs.Setup(r => r.ObtenirParIdAsync(collaborateur.Id, It.IsAny<CancellationToken>())).ReturnsAsync(collaborateur);
-        var useCase = new ArchiverDossierUseCase(instances.Object, collaborateurs.Object);
+        var employees = new Mock<IEmployeeRepository>();
+        employees.Setup(r => r.GetByIdAsync(employee.Id, It.IsAny<CancellationToken>())).ReturnsAsync(employee);
+        var useCase = new ArchiverDossierUseCase(instances.Object, employees.Object);
 
-        await useCase.ExecuterAsync(admin, instance.Id);
+        await useCase.ExecuteAsync(admin, instance.Id);
 
         instance.Statut.Should().Be(WorkflowStatus.Archive);
     }
@@ -63,37 +63,37 @@ public class ArchiverDossierUseCaseTests
     [Fact]
     public async Task ExecuterAsync_RHSurAutrePole_LeveAccesRefuseException()
     {
-        var rh = new CompteUtilisateur(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.RH, Guid.NewGuid(), Maintenant);
-        var collaborateur = new Collaborateur(Guid.NewGuid(), new Matricule("MAT001"), "Dupont", "Jean", "Dev", Guid.NewGuid(), TypeContrat.CDI, Maintenant);
-        var instance = CreerInstanceCloturee(collaborateur.Id);
+        var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, Guid.NewGuid(), Maintenant);
+        var employee = new Employee(Guid.NewGuid(), new EmployeeNumber("MAT001"), "Dupont", "Jean", "Dev", Guid.NewGuid(), ContractType.CDI, Maintenant);
+        var instance = CreerInstanceCloturee(employee.Id);
 
         var instances = new Mock<IWorkflowInstanceRepository>();
         instances.Setup(r => r.ObtenirParIdAsync(instance.Id, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
-        var collaborateurs = new Mock<ICollaborateurRepository>();
-        collaborateurs.Setup(r => r.ObtenirParIdAsync(collaborateur.Id, It.IsAny<CancellationToken>())).ReturnsAsync(collaborateur);
-        var useCase = new ArchiverDossierUseCase(instances.Object, collaborateurs.Object);
+        var employees = new Mock<IEmployeeRepository>();
+        employees.Setup(r => r.GetByIdAsync(employee.Id, It.IsAny<CancellationToken>())).ReturnsAsync(employee);
+        var useCase = new ArchiverDossierUseCase(instances.Object, employees.Object);
 
-        var act = () => useCase.ExecuterAsync(rh, instance.Id);
+        var act = () => useCase.ExecuteAsync(rh, instance.Id);
 
-        await act.Should().ThrowAsync<AccesRefuseException>();
+        await act.Should().ThrowAsync<AccessDeniedException>();
     }
 
     [Fact]
     public async Task ExecuterAsync_WorkflowNonCloture_LeveInvalidOperationException()
     {
-        var poleId = Guid.NewGuid();
-        var rh = new CompteUtilisateur(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.RH, poleId, Maintenant);
-        var collaborateur = new Collaborateur(Guid.NewGuid(), new Matricule("MAT001"), "Dupont", "Jean", "Dev", poleId, TypeContrat.CDI, Maintenant);
+        var departmentId = Guid.NewGuid();
+        var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, departmentId, Maintenant);
+        var employee = new Employee(Guid.NewGuid(), new EmployeeNumber("MAT001"), "Dupont", "Jean", "Dev", departmentId, ContractType.CDI, Maintenant);
         var item = new ChecklistItemStatus(Guid.NewGuid(), Guid.NewGuid(), "Item");
-        var instance = new WorkflowInstance(Guid.NewGuid(), collaborateur.Id, Guid.NewGuid(), "T0", WorkflowType.Onboarding, new[] { item }, Maintenant);
+        var instance = new WorkflowInstance(Guid.NewGuid(), employee.Id, Guid.NewGuid(), "T0", WorkflowType.Onboarding, new[] { item }, Maintenant);
 
         var instances = new Mock<IWorkflowInstanceRepository>();
         instances.Setup(r => r.ObtenirParIdAsync(instance.Id, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
-        var collaborateurs = new Mock<ICollaborateurRepository>();
-        collaborateurs.Setup(r => r.ObtenirParIdAsync(collaborateur.Id, It.IsAny<CancellationToken>())).ReturnsAsync(collaborateur);
-        var useCase = new ArchiverDossierUseCase(instances.Object, collaborateurs.Object);
+        var employees = new Mock<IEmployeeRepository>();
+        employees.Setup(r => r.GetByIdAsync(employee.Id, It.IsAny<CancellationToken>())).ReturnsAsync(employee);
+        var useCase = new ArchiverDossierUseCase(instances.Object, employees.Object);
 
-        var act = () => useCase.ExecuterAsync(rh, instance.Id);
+        var act = () => useCase.ExecuteAsync(rh, instance.Id);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }

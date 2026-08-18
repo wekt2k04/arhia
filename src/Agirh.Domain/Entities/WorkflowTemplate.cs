@@ -100,7 +100,7 @@ public class WorkflowTemplate
         MotifRejet = motif.Trim();
     }
 
-    public IReadOnlyCollection<TemplateItem> ResoudreItemsApplicables(TypeContrat typeContrat) =>
+    public IReadOnlyCollection<TemplateItem> ResoudreItemsApplicables(ContractType typeContrat) =>
         _sections
             .SelectMany(s => s.Items)
             .Where(i => i.ApplicablePour(typeContrat))

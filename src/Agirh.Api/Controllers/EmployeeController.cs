@@ -8,62 +8,62 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Agirh.Api.Controllers;
 
-public record CreerFicheCollaborateurRequest(
-    string Matricule,
-    string Nom,
-    string Prenom,
-    string Poste,
-    Guid PoleId,
-    TypeContrat TypeContrat,
-    DateTime DateIntegration);
+public record CreateEmployeeRecordRequest(
+    string EmployeeNumber,
+    string LastName,
+    string FirstName,
+    string JobTitle,
+    Guid DepartmentId,
+    ContractType ContractType,
+    DateTime StartDate);
 
-public record CollaborateurResponse(
+public record EmployeeResponse(
     Guid Id,
-    string Matricule,
-    string Nom,
-    string Prenom,
-    string Poste,
-    Guid PoleId,
-    TypeContrat TypeContrat,
-    DateTime DateIntegration);
+    string EmployeeNumber,
+    string LastName,
+    string FirstName,
+    string JobTitle,
+    Guid DepartmentId,
+    ContractType ContractType,
+    DateTime StartDate);
 
 [ApiController]
-[Route("api/collaborateurs")]
+[Route("api/employees")]
 [Authorize]
 public class EmployeeController : ControllerBase
 {
-    private readonly CreerFicheCollaborateurUseCase _creerFiche;
+    private readonly CreateEmployeeRecordUseCase _createRecord;
     private readonly ICurrentUserAccessor _currentUser;
 
-    public EmployeeController(CreerFicheCollaborateurUseCase creerFiche, ICurrentUserAccessor currentUser)
+    public EmployeeController(CreateEmployeeRecordUseCase createRecord, ICurrentUserAccessor currentUser)
     {
-        _creerFiche = creerFiche;
+        _createRecord = createRecord;
         _currentUser = currentUser;
     }
 
     [HttpPost]
-    public async Task<ActionResult<CollaborateurResponse>> Creer(CreerFicheCollaborateurRequest request, CancellationToken ct)
+    public async Task<ActionResult<EmployeeResponse>> Create(CreateEmployeeRecordRequest request, CancellationToken ct)
     {
-        var acteur = await _currentUser.ObtenirActeurAsync(ct);
+        var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
-            var collaborateur = await _creerFiche.ExecuterAsync(
-                acteur,
-                new Matricule(request.Matricule),
-                request.Nom,
-                request.Prenom,
-                request.Poste,
-                request.PoleId,
-                request.TypeContrat,
-                request.DateIntegration,
+            var employee = await _createRecord.ExecuteAsync(
+                actor,
+                new EmployeeNumber(request.EmployeeNumber),
+                request.LastName,
+                request.FirstName,
+                request.JobTitle,
+                request.DepartmentId,
+                request.ContractType,
+                request.StartDate,
                 ct);
 
-            return Ok(new CollaborateurResponse(
-                collaborateur.Id, collaborateur.Matricule.Valeur, collaborateur.Nom, collaborateur.Prenom,
-                collaborateur.Poste, collaborateur.PoleId, collaborateur.TypeContrat, collaborateur.DateIntegration));
+            return Ok(new EmployeeResponse(
+                employee.Id, employee.EmployeeNumber.Value, employee.LastName, employee.FirstName,
+                employee.JobTitle, employee.DepartmentId, employee.ContractType, employee.StartDate));
         }
-        catch (AccesRefuseException)
+        catch (AccessDeniedException)
         {
             return Forbid();
         }

@@ -7,31 +7,31 @@ namespace Agirh.Tests.Security;
 public class RbacMatrixTests
 {
     [Theory]
-    [InlineData(RoleType.RH, ResourceAction.CollaborateurCreer, true)]
-    [InlineData(RoleType.Collaborateur, ResourceAction.CollaborateurCreer, false)]
-    [InlineData(RoleType.AdminQualite, ResourceAction.CollaborateurCreer, false)]
-    [InlineData(RoleType.RH, ResourceAction.TemplateVerifier, false)]
-    [InlineData(RoleType.AdminQualite, ResourceAction.TemplateVerifier, true)]
-    [InlineData(RoleType.AdminQualite, ResourceAction.TemplateApprouver, true)]
-    [InlineData(RoleType.RH, ResourceAction.TemplateApprouver, false)]
-    [InlineData(RoleType.Collaborateur, ResourceAction.WorkflowInstanceLire, true)]
-    [InlineData(RoleType.RH, ResourceAction.WorkflowInstanceLire, true)]
-    [InlineData(RoleType.AdminQualite, ResourceAction.WorkflowInstanceLire, true)]
-    [InlineData(RoleType.Collaborateur, ResourceAction.WorkflowInstanceCocher, false)]
-    [InlineData(RoleType.RH, ResourceAction.WorkflowInstanceArchiver, true)]
-    [InlineData(RoleType.Collaborateur, ResourceAction.WorkflowInstanceArchiver, false)]
-    [InlineData(RoleType.RH, ResourceAction.CompteElevRole, false)]
-    [InlineData(RoleType.AdminQualite, ResourceAction.CompteElevRole, true)]
-    public void EstAutorise_RetourneLeResultatAttendu(RoleType role, ResourceAction action, bool attendu)
+    [InlineData(RoleType.HR, ResourceAction.EmployeeCreate, true)]
+    [InlineData(RoleType.Employee, ResourceAction.EmployeeCreate, false)]
+    [InlineData(RoleType.QualityAdmin, ResourceAction.EmployeeCreate, false)]
+    [InlineData(RoleType.HR, ResourceAction.TemplateVerifier, false)]
+    [InlineData(RoleType.QualityAdmin, ResourceAction.TemplateVerifier, true)]
+    [InlineData(RoleType.QualityAdmin, ResourceAction.TemplateApprouver, true)]
+    [InlineData(RoleType.HR, ResourceAction.TemplateApprouver, false)]
+    [InlineData(RoleType.Employee, ResourceAction.WorkflowInstanceLire, true)]
+    [InlineData(RoleType.HR, ResourceAction.WorkflowInstanceLire, true)]
+    [InlineData(RoleType.QualityAdmin, ResourceAction.WorkflowInstanceLire, true)]
+    [InlineData(RoleType.Employee, ResourceAction.WorkflowInstanceCocher, false)]
+    [InlineData(RoleType.HR, ResourceAction.WorkflowInstanceArchiver, true)]
+    [InlineData(RoleType.Employee, ResourceAction.WorkflowInstanceArchiver, false)]
+    [InlineData(RoleType.HR, ResourceAction.UserAccountElevateRole, false)]
+    [InlineData(RoleType.QualityAdmin, ResourceAction.UserAccountElevateRole, true)]
+    public void IsAuthorized_ReturnsExpectedResult(RoleType role, ResourceAction action, bool attendu)
     {
-        RbacMatrix.EstAutorise(role, action).Should().Be(attendu);
+        RbacMatrix.IsAuthorized(role, action).Should().Be(attendu);
     }
 
     [Fact]
-    public void EstAutorise_ActionNonMappee_EstRefuseeParDefaut()
+    public void IsAuthorized_UnmappedAction_IsDeniedByDefault()
     {
         var actionInconnue = (ResourceAction)999;
 
-        RbacMatrix.EstAutorise(RoleType.AdminQualite, actionInconnue).Should().BeFalse();
+        RbacMatrix.IsAuthorized(RoleType.QualityAdmin, actionInconnue).Should().BeFalse();
     }
 }

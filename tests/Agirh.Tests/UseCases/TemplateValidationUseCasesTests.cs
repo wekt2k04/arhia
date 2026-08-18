@@ -19,11 +19,11 @@ public class TemplateValidationUseCasesTests
     [Fact]
     public async Task ProposerTemplateUseCase_ActeurRH_CreeUnTemplateEnValidation()
     {
-        var rh = new CompteUtilisateur(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.RH, Guid.NewGuid(), Maintenant);
+        var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, Guid.NewGuid(), Maintenant);
         var repo = new Mock<IWorkflowTemplateRepository>();
         var useCase = new ProposerTemplateUseCase(repo.Object);
 
-        var template = await useCase.ExecuterAsync(rh, WorkflowType.Onboarding, "T0", SectionsMinimales(), Maintenant);
+        var template = await useCase.ExecuteAsync(rh, WorkflowType.Onboarding, "T0", SectionsMinimales(), Maintenant);
 
         template.Statut.Should().Be(TemplateStatut.EnValidation);
         template.RedacteurId.Should().Be(rh.Id);
@@ -33,26 +33,26 @@ public class TemplateValidationUseCasesTests
     [Fact]
     public async Task ProposerTemplateUseCase_ActeurAdminQualite_LeveAccesRefuseException()
     {
-        var admin = new CompteUtilisateur(Guid.NewGuid(), "admin@agirh.test", "hash", RoleType.AdminQualite, null, Maintenant);
+        var admin = new UserAccount(Guid.NewGuid(), "admin@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
         var repo = new Mock<IWorkflowTemplateRepository>();
         var useCase = new ProposerTemplateUseCase(repo.Object);
 
-        var act = () => useCase.ExecuterAsync(admin, WorkflowType.Onboarding, "T0", SectionsMinimales(), Maintenant);
+        var act = () => useCase.ExecuteAsync(admin, WorkflowType.Onboarding, "T0", SectionsMinimales(), Maintenant);
 
-        await act.Should().ThrowAsync<AccesRefuseException>();
+        await act.Should().ThrowAsync<AccessDeniedException>();
     }
 
     [Fact]
     public async Task VerifierTemplateUseCase_ActeurAdminQualite_VerifieLeTemplate()
     {
-        var admin = new CompteUtilisateur(Guid.NewGuid(), "admin@agirh.test", "hash", RoleType.AdminQualite, null, Maintenant);
+        var admin = new UserAccount(Guid.NewGuid(), "admin@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
         var template = new WorkflowTemplate(Guid.NewGuid(), WorkflowType.Onboarding, "T0", Guid.NewGuid(), SectionsMinimales(), Maintenant);
         template.Soumettre();
         var repo = new Mock<IWorkflowTemplateRepository>();
         repo.Setup(r => r.ObtenirParIdAsync(template.Id, It.IsAny<CancellationToken>())).ReturnsAsync(template);
         var useCase = new VerifierTemplateUseCase(repo.Object);
 
-        await useCase.ExecuterAsync(admin, template.Id);
+        await useCase.ExecuteAsync(admin, template.Id);
 
         template.VerificateurId.Should().Be(admin.Id);
         repo.Verify(r => r.MettreAJourAsync(template, It.IsAny<CancellationToken>()), Times.Once);
@@ -61,21 +61,21 @@ public class TemplateValidationUseCasesTests
     [Fact]
     public async Task VerifierTemplateUseCase_ActeurRH_LeveAccesRefuseException()
     {
-        var rh = new CompteUtilisateur(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.RH, Guid.NewGuid(), Maintenant);
+        var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, Guid.NewGuid(), Maintenant);
         var repo = new Mock<IWorkflowTemplateRepository>();
         var useCase = new VerifierTemplateUseCase(repo.Object);
 
-        var act = () => useCase.ExecuterAsync(rh, Guid.NewGuid());
+        var act = () => useCase.ExecuteAsync(rh, Guid.NewGuid());
 
-        await act.Should().ThrowAsync<AccesRefuseException>();
+        await act.Should().ThrowAsync<AccessDeniedException>();
         repo.Verify(r => r.ObtenirParIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task ApprouverTemplateUseCase_ApresVerification_ApprouveLeTemplate()
     {
-        var verificateur = new CompteUtilisateur(Guid.NewGuid(), "verif@agirh.test", "hash", RoleType.AdminQualite, null, Maintenant);
-        var approbateur = new CompteUtilisateur(Guid.NewGuid(), "approb@agirh.test", "hash", RoleType.AdminQualite, null, Maintenant);
+        var verificateur = new UserAccount(Guid.NewGuid(), "verif@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
+        var approbateur = new UserAccount(Guid.NewGuid(), "approb@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
         var template = new WorkflowTemplate(Guid.NewGuid(), WorkflowType.Onboarding, "T0", Guid.NewGuid(), SectionsMinimales(), Maintenant);
         template.Soumettre();
         template.Verifier(verificateur.Id);
@@ -83,7 +83,7 @@ public class TemplateValidationUseCasesTests
         repo.Setup(r => r.ObtenirParIdAsync(template.Id, It.IsAny<CancellationToken>())).ReturnsAsync(template);
         var useCase = new ApprouverTemplateUseCase(repo.Object);
 
-        await useCase.ExecuterAsync(approbateur, template.Id);
+        await useCase.ExecuteAsync(approbateur, template.Id);
 
         template.Statut.Should().Be(TemplateStatut.Approuve);
     }
@@ -91,14 +91,14 @@ public class TemplateValidationUseCasesTests
     [Fact]
     public async Task RejeterTemplateUseCase_ActeurAdminQualite_RejetteLeTemplate()
     {
-        var admin = new CompteUtilisateur(Guid.NewGuid(), "admin@agirh.test", "hash", RoleType.AdminQualite, null, Maintenant);
+        var admin = new UserAccount(Guid.NewGuid(), "admin@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
         var template = new WorkflowTemplate(Guid.NewGuid(), WorkflowType.Onboarding, "T0", Guid.NewGuid(), SectionsMinimales(), Maintenant);
         template.Soumettre();
         var repo = new Mock<IWorkflowTemplateRepository>();
         repo.Setup(r => r.ObtenirParIdAsync(template.Id, It.IsAny<CancellationToken>())).ReturnsAsync(template);
         var useCase = new RejeterTemplateUseCase(repo.Object);
 
-        await useCase.ExecuterAsync(admin, template.Id, "Items incohérents");
+        await useCase.ExecuteAsync(admin, template.Id, "Items incohérents");
 
         template.Statut.Should().Be(TemplateStatut.Rejete);
     }

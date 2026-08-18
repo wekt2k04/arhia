@@ -2,10 +2,10 @@ import { AGIRH_API_URL } from "./config";
 import { obtenirToken } from "./session";
 
 export type UtilisateurCourant = {
-  compteId: string;
+  accountId: string;
   email: string;
   role: number;
-  poleId: string | null;
+  departmentId: string | null;
 };
 
 // Réutilisé par la route BFF /api/auth/me (pour les composants client) et directement par les
@@ -23,9 +23,9 @@ export async function obtenirUtilisateurCourant(): Promise<UtilisateurCourant | 
 
   const donnees = await reponse.json();
   return {
-    compteId: donnees.compteId,
+    accountId: donnees.accountId,
     email: donnees.email,
     role: donnees.role,
-    poleId: donnees.poleId,
+    departmentId: donnees.departmentId,
   };
 }

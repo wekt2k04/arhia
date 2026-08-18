@@ -14,16 +14,16 @@ public class ObtenirNotificationsUseCaseTests
     private static readonly DateTime Maintenant = new(2026, 8, 15);
 
     private static (
-        Mock<ICollaborateurRepository> Collaborateurs,
+        Mock<IEmployeeRepository> Employees,
         Mock<IWorkflowInstanceRepository> Instances,
         Mock<IWorkflowTemplateRepository> Templates,
         ObtenirNotificationsUseCase UseCase) CreerUseCase()
     {
-        var collaborateurs = new Mock<ICollaborateurRepository>();
+        var employees = new Mock<IEmployeeRepository>();
         var instances = new Mock<IWorkflowInstanceRepository>();
         var templates = new Mock<IWorkflowTemplateRepository>();
-        var useCase = new ObtenirNotificationsUseCase(collaborateurs.Object, instances.Object, templates.Object);
-        return (collaborateurs, instances, templates, useCase);
+        var useCase = new ObtenirNotificationsUseCase(employees.Object, instances.Object, templates.Object);
+        return (employees, instances, templates, useCase);
     }
 
     private static WorkflowInstance CreerInstanceEnCours(Guid collaborateurId, WorkflowType type, DateTime dateCreation)
@@ -35,17 +35,17 @@ public class ObtenirNotificationsUseCaseTests
     [Fact]
     public async Task ExecuterAsync_RH_ItemEnAttenteDepuisPlusDe3Jours_ProduitUneNotification()
     {
-        var poleId = Guid.NewGuid();
-        var rh = new CompteUtilisateur(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.RH, poleId, Maintenant);
-        var collaborateur = new Collaborateur(Guid.NewGuid(), new Matricule("MAT001"), "Dupont", "Jean", "Dev", poleId, TypeContrat.CDI, Maintenant.AddDays(-10));
-        var instance = CreerInstanceEnCours(collaborateur.Id, WorkflowType.Onboarding, Maintenant.AddDays(-4));
+        var departmentId = Guid.NewGuid();
+        var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, departmentId, Maintenant);
+        var employee = new Employee(Guid.NewGuid(), new EmployeeNumber("MAT001"), "Dupont", "Jean", "Dev", departmentId, ContractType.CDI, Maintenant.AddDays(-10));
+        var instance = CreerInstanceEnCours(employee.Id, WorkflowType.Onboarding, Maintenant.AddDays(-4));
 
-        var (collaborateurs, instances, _, useCase) = CreerUseCase();
-        collaborateurs.Setup(c => c.ListerParPoleAsync(poleId, It.IsAny<CancellationToken>())).ReturnsAsync(new[] { collaborateur });
-        instances.Setup(i => i.ObtenirParCollaborateurAsync(collaborateur.Id, WorkflowType.Onboarding, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
-        instances.Setup(i => i.ObtenirParCollaborateurAsync(collaborateur.Id, WorkflowType.Offboarding, It.IsAny<CancellationToken>())).ReturnsAsync((WorkflowInstance?)null);
+        var (employees, instances, _, useCase) = CreerUseCase();
+        employees.Setup(c => c.ListByDepartmentAsync(departmentId, It.IsAny<CancellationToken>())).ReturnsAsync(new[] { employee });
+        instances.Setup(i => i.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Onboarding, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
+        instances.Setup(i => i.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Offboarding, It.IsAny<CancellationToken>())).ReturnsAsync((WorkflowInstance?)null);
 
-        var resultat = await useCase.ExecuterAsync(rh, Maintenant);
+        var resultat = await useCase.ExecuteAsync(rh, Maintenant);
 
         resultat.Should().ContainSingle(n => n.Type == TypeNotification.ItemEnAttenteDepuisLongtemps);
     }
@@ -53,17 +53,17 @@ public class ObtenirNotificationsUseCaseTests
     [Fact]
     public async Task ExecuterAsync_RH_ItemEnAttenteDepuisMoinsDe3Jours_NeProduitRien()
     {
-        var poleId = Guid.NewGuid();
-        var rh = new CompteUtilisateur(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.RH, poleId, Maintenant);
-        var collaborateur = new Collaborateur(Guid.NewGuid(), new Matricule("MAT001"), "Dupont", "Jean", "Dev", poleId, TypeContrat.CDI, Maintenant.AddDays(-1));
-        var instance = CreerInstanceEnCours(collaborateur.Id, WorkflowType.Onboarding, Maintenant.AddDays(-1));
+        var departmentId = Guid.NewGuid();
+        var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, departmentId, Maintenant);
+        var employee = new Employee(Guid.NewGuid(), new EmployeeNumber("MAT001"), "Dupont", "Jean", "Dev", departmentId, ContractType.CDI, Maintenant.AddDays(-1));
+        var instance = CreerInstanceEnCours(employee.Id, WorkflowType.Onboarding, Maintenant.AddDays(-1));
 
-        var (collaborateurs, instances, _, useCase) = CreerUseCase();
-        collaborateurs.Setup(c => c.ListerParPoleAsync(poleId, It.IsAny<CancellationToken>())).ReturnsAsync(new[] { collaborateur });
-        instances.Setup(i => i.ObtenirParCollaborateurAsync(collaborateur.Id, WorkflowType.Onboarding, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
-        instances.Setup(i => i.ObtenirParCollaborateurAsync(collaborateur.Id, WorkflowType.Offboarding, It.IsAny<CancellationToken>())).ReturnsAsync((WorkflowInstance?)null);
+        var (employees, instances, _, useCase) = CreerUseCase();
+        employees.Setup(c => c.ListByDepartmentAsync(departmentId, It.IsAny<CancellationToken>())).ReturnsAsync(new[] { employee });
+        instances.Setup(i => i.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Onboarding, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
+        instances.Setup(i => i.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Offboarding, It.IsAny<CancellationToken>())).ReturnsAsync((WorkflowInstance?)null);
 
-        var resultat = await useCase.ExecuterAsync(rh, Maintenant);
+        var resultat = await useCase.ExecuteAsync(rh, Maintenant);
 
         resultat.Should().BeEmpty();
     }
@@ -71,17 +71,17 @@ public class ObtenirNotificationsUseCaseTests
     [Fact]
     public async Task ExecuterAsync_RH_EcheanceDepartDansMoinsDe3JoursSansOffboardingDemarre_ProduitUneNotification()
     {
-        var poleId = Guid.NewGuid();
-        var rh = new CompteUtilisateur(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.RH, poleId, Maintenant);
-        var collaborateur = new Collaborateur(Guid.NewGuid(), new Matricule("MAT001"), "Dupont", "Jean", "Dev", poleId, TypeContrat.CDI, Maintenant.AddYears(-1));
-        collaborateur.EnregistrerDepart(Maintenant.AddDays(2));
+        var departmentId = Guid.NewGuid();
+        var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, departmentId, Maintenant);
+        var employee = new Employee(Guid.NewGuid(), new EmployeeNumber("MAT001"), "Dupont", "Jean", "Dev", departmentId, ContractType.CDI, Maintenant.AddYears(-1));
+        employee.RecordDeparture(Maintenant.AddDays(2));
 
-        var (collaborateurs, instances, _, useCase) = CreerUseCase();
-        collaborateurs.Setup(c => c.ListerParPoleAsync(poleId, It.IsAny<CancellationToken>())).ReturnsAsync(new[] { collaborateur });
-        instances.Setup(i => i.ObtenirParCollaborateurAsync(collaborateur.Id, WorkflowType.Onboarding, It.IsAny<CancellationToken>())).ReturnsAsync((WorkflowInstance?)null);
-        instances.Setup(i => i.ObtenirParCollaborateurAsync(collaborateur.Id, WorkflowType.Offboarding, It.IsAny<CancellationToken>())).ReturnsAsync((WorkflowInstance?)null);
+        var (employees, instances, _, useCase) = CreerUseCase();
+        employees.Setup(c => c.ListByDepartmentAsync(departmentId, It.IsAny<CancellationToken>())).ReturnsAsync(new[] { employee });
+        instances.Setup(i => i.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Onboarding, It.IsAny<CancellationToken>())).ReturnsAsync((WorkflowInstance?)null);
+        instances.Setup(i => i.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Offboarding, It.IsAny<CancellationToken>())).ReturnsAsync((WorkflowInstance?)null);
 
-        var resultat = await useCase.ExecuterAsync(rh, Maintenant);
+        var resultat = await useCase.ExecuteAsync(rh, Maintenant);
 
         resultat.Should().ContainSingle(n => n.Type == TypeNotification.EcheanceDepartApprochante);
     }
@@ -89,18 +89,18 @@ public class ObtenirNotificationsUseCaseTests
     [Fact]
     public async Task ExecuterAsync_RH_EcheanceDepartApprochanteMaisOffboardingDejaDemarre_NeProduitRien()
     {
-        var poleId = Guid.NewGuid();
-        var rh = new CompteUtilisateur(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.RH, poleId, Maintenant);
-        var collaborateur = new Collaborateur(Guid.NewGuid(), new Matricule("MAT001"), "Dupont", "Jean", "Dev", poleId, TypeContrat.CDI, Maintenant.AddYears(-1));
-        collaborateur.EnregistrerDepart(Maintenant.AddDays(2));
-        var offboarding = CreerInstanceEnCours(collaborateur.Id, WorkflowType.Offboarding, Maintenant.AddDays(-1));
+        var departmentId = Guid.NewGuid();
+        var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, departmentId, Maintenant);
+        var employee = new Employee(Guid.NewGuid(), new EmployeeNumber("MAT001"), "Dupont", "Jean", "Dev", departmentId, ContractType.CDI, Maintenant.AddYears(-1));
+        employee.RecordDeparture(Maintenant.AddDays(2));
+        var offboarding = CreerInstanceEnCours(employee.Id, WorkflowType.Offboarding, Maintenant.AddDays(-1));
 
-        var (collaborateurs, instances, _, useCase) = CreerUseCase();
-        collaborateurs.Setup(c => c.ListerParPoleAsync(poleId, It.IsAny<CancellationToken>())).ReturnsAsync(new[] { collaborateur });
-        instances.Setup(i => i.ObtenirParCollaborateurAsync(collaborateur.Id, WorkflowType.Onboarding, It.IsAny<CancellationToken>())).ReturnsAsync((WorkflowInstance?)null);
-        instances.Setup(i => i.ObtenirParCollaborateurAsync(collaborateur.Id, WorkflowType.Offboarding, It.IsAny<CancellationToken>())).ReturnsAsync(offboarding);
+        var (employees, instances, _, useCase) = CreerUseCase();
+        employees.Setup(c => c.ListByDepartmentAsync(departmentId, It.IsAny<CancellationToken>())).ReturnsAsync(new[] { employee });
+        instances.Setup(i => i.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Onboarding, It.IsAny<CancellationToken>())).ReturnsAsync((WorkflowInstance?)null);
+        instances.Setup(i => i.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Offboarding, It.IsAny<CancellationToken>())).ReturnsAsync(offboarding);
 
-        var resultat = await useCase.ExecuterAsync(rh, Maintenant);
+        var resultat = await useCase.ExecuteAsync(rh, Maintenant);
 
         resultat.Should().NotContain(n => n.Type == TypeNotification.EcheanceDepartApprochante);
     }
@@ -108,10 +108,10 @@ public class ObtenirNotificationsUseCaseTests
     [Fact]
     public async Task ExecuterAsync_Collaborateur_RetourneListeVide()
     {
-        var collaborateurActeur = new CompteUtilisateur(Guid.NewGuid(), "collab@agirh.test", "hash", RoleType.Collaborateur, null, Maintenant);
+        var employeeActor = new UserAccount(Guid.NewGuid(), "collab@agirh.test", "hash", RoleType.Employee, null, Maintenant);
         var (_, _, _, useCase) = CreerUseCase();
 
-        var resultat = await useCase.ExecuterAsync(collaborateurActeur, Maintenant);
+        var resultat = await useCase.ExecuteAsync(employeeActor, Maintenant);
 
         resultat.Should().BeEmpty();
     }
@@ -119,7 +119,7 @@ public class ObtenirNotificationsUseCaseTests
     [Fact]
     public async Task ExecuterAsync_AdminQualite_TemplateEnValidation_ProduitUneNotification()
     {
-        var admin = new CompteUtilisateur(Guid.NewGuid(), "admin@agirh.test", "hash", RoleType.AdminQualite, null, Maintenant);
+        var admin = new UserAccount(Guid.NewGuid(), "admin@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
         var section = new TemplateSection(Guid.NewGuid(), "Section", 0, new[] { new TemplateItem(Guid.NewGuid(), "Item", 0) });
         var template = new WorkflowTemplate(Guid.NewGuid(), WorkflowType.Onboarding, "T1", Guid.NewGuid(), new[] { section }, Maintenant);
         template.Soumettre();
@@ -127,7 +127,7 @@ public class ObtenirNotificationsUseCaseTests
         var (_, _, templates, useCase) = CreerUseCase();
         templates.Setup(t => t.ListerParStatutAsync(TemplateStatut.EnValidation, It.IsAny<CancellationToken>())).ReturnsAsync(new[] { template });
 
-        var resultat = await useCase.ExecuterAsync(admin, Maintenant);
+        var resultat = await useCase.ExecuteAsync(admin, Maintenant);
 
         resultat.Should().ContainSingle(n => n.Type == TypeNotification.TemplateEnAttenteValidation);
     }
@@ -135,11 +135,11 @@ public class ObtenirNotificationsUseCaseTests
     [Fact]
     public async Task ExecuterAsync_AdminQualite_AucunTemplateEnValidation_RetourneListeVide()
     {
-        var admin = new CompteUtilisateur(Guid.NewGuid(), "admin@agirh.test", "hash", RoleType.AdminQualite, null, Maintenant);
+        var admin = new UserAccount(Guid.NewGuid(), "admin@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
         var (_, _, templates, useCase) = CreerUseCase();
         templates.Setup(t => t.ListerParStatutAsync(TemplateStatut.EnValidation, It.IsAny<CancellationToken>())).ReturnsAsync(Array.Empty<WorkflowTemplate>());
 
-        var resultat = await useCase.ExecuterAsync(admin, Maintenant);
+        var resultat = await useCase.ExecuteAsync(admin, Maintenant);
 
         resultat.Should().BeEmpty();
     }

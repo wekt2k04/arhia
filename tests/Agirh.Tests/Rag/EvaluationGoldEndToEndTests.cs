@@ -54,11 +54,11 @@ public class EvaluationGoldEndToEndTests : IClassFixture<GoldCorpusFixture>
 
         return new RepondreConversationUseCase(
             router, generateur, _fixture.Embedder!, _fixture.VectorSearch!, _fixture.Reranker!,
-            Mock.Of<ICollaborateurRepository>(), Mock.Of<IWorkflowInstanceRepository>());
+            Mock.Of<IEmployeeRepository>(), Mock.Of<IWorkflowInstanceRepository>());
     }
 
-    private static CompteUtilisateur CreerActeur() =>
-        new(Guid.NewGuid(), "eval@agirh.test", "hash", RoleType.AdminQualite, null, Maintenant);
+    private static UserAccount CreerActeur() =>
+        new(Guid.NewGuid(), "eval@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
 
     public static IEnumerable<object[]> ToutesLesQuestions() => GoldQa.Charger().Select(q => new object[] { q });
 
@@ -70,9 +70,9 @@ public class EvaluationGoldEndToEndTests : IClassFixture<GoldCorpusFixture>
         if (!await OllamaDisponibleAsync()) return;
 
         var useCase = CreerUseCase();
-        var acteur = CreerActeur();
+        var actor = CreerActeur();
 
-        var reponse = await useCase.ExecuterAsync(acteur, gold.Question, null);
+        var reponse = await useCase.ExecuteAsync(actor, gold.Question, null);
 
         reponse.Sourcee.Should().Be(gold.SourceeAttendu,
             $"{gold.Id} ({gold.Question}) — catégorie {gold.Categorie} : \"{reponse.Texte}\"");

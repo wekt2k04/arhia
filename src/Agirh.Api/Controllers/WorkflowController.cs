@@ -51,14 +51,14 @@ public class WorkflowController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<WorkflowInstanceResponse>> Instancier(InstancierWorkflowRequest request, CancellationToken ct)
     {
-        var acteur = await _currentUser.ObtenirActeurAsync(ct);
+        var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
-            var instance = await _instancier.ExecuterAsync(acteur, request.CollaborateurId, request.Type, DateTime.UtcNow, ct);
+            var instance = await _instancier.ExecuteAsync(actor, request.CollaborateurId, request.Type, DateTime.UtcNow, ct);
             return Ok(VersReponse(instance));
         }
-        catch (AccesRefuseException)
+        catch (AccessDeniedException)
         {
             return Forbid();
         }
@@ -71,14 +71,14 @@ public class WorkflowController : ControllerBase
     [HttpPost("{id:guid}/items/{itemId:guid}/cocher")]
     public async Task<IActionResult> CocherItem(Guid id, Guid itemId, CocherItemRequest request, CancellationToken ct)
     {
-        var acteur = await _currentUser.ObtenirActeurAsync(ct);
+        var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
-            await _cocherItem.ExecuterAsync(acteur, id, itemId, request.Etat, request.Commentaire, DateTime.UtcNow, ct);
+            await _cocherItem.ExecuteAsync(actor, id, itemId, request.Etat, request.Commentaire, DateTime.UtcNow, ct);
             return NoContent();
         }
-        catch (AccesRefuseException)
+        catch (AccessDeniedException)
         {
             return Forbid();
         }
@@ -95,14 +95,14 @@ public class WorkflowController : ControllerBase
     [HttpPost("{id:guid}/cloturer")]
     public async Task<IActionResult> Cloturer(Guid id, CancellationToken ct)
     {
-        var acteur = await _currentUser.ObtenirActeurAsync(ct);
+        var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
-            await _cloturerDossier.ExecuterAsync(acteur, id, DateTime.UtcNow, ct);
+            await _cloturerDossier.ExecuteAsync(actor, id, DateTime.UtcNow, ct);
             return NoContent();
         }
-        catch (AccesRefuseException)
+        catch (AccessDeniedException)
         {
             return Forbid();
         }
@@ -115,14 +115,14 @@ public class WorkflowController : ControllerBase
     [HttpPost("{id:guid}/archiver")]
     public async Task<IActionResult> Archiver(Guid id, CancellationToken ct)
     {
-        var acteur = await _currentUser.ObtenirActeurAsync(ct);
+        var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
-            await _archiverDossier.ExecuterAsync(acteur, id, ct);
+            await _archiverDossier.ExecuteAsync(actor, id, ct);
             return NoContent();
         }
-        catch (AccesRefuseException)
+        catch (AccessDeniedException)
         {
             return Forbid();
         }

@@ -39,7 +39,7 @@ public class WorkflowTemplateConfiguration : IEntityTypeConfiguration<WorkflowTe
                 item.Property(i => i.Libelle).IsRequired().HasMaxLength(300);
                 item.Property(i => i.Ordre).IsRequired();
 
-                var conditionsComparer = new ValueComparer<IReadOnlyCollection<TypeContrat>>(
+                var conditionsComparer = new ValueComparer<IReadOnlyCollection<ContractType>>(
                     (a, b) => a!.SequenceEqual(b!),
                     c => c.Aggregate(0, (hash, v) => HashCode.Combine(hash, v)),
                     c => c.ToList());
@@ -48,8 +48,8 @@ public class WorkflowTemplateConfiguration : IEntityTypeConfiguration<WorkflowTe
                     .HasConversion(
                         list => string.Join(',', list.Select(c => c.ToString())),
                         text => string.IsNullOrEmpty(text)
-                            ? new List<TypeContrat>()
-                            : text.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Enum.Parse<TypeContrat>).ToList())
+                            ? new List<ContractType>()
+                            : text.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Enum.Parse<ContractType>).ToList())
                     .Metadata.SetValueComparer(conditionsComparer);
             });
 

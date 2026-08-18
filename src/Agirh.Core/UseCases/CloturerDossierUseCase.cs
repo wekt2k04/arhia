@@ -9,27 +9,27 @@ namespace Agirh.Core.UseCases;
 public sealed class CloturerDossierUseCase
 {
     private readonly IWorkflowInstanceRepository _instances;
-    private readonly ICollaborateurRepository _collaborateurs;
+    private readonly IEmployeeRepository _employees;
 
-    public CloturerDossierUseCase(IWorkflowInstanceRepository instances, ICollaborateurRepository collaborateurs)
+    public CloturerDossierUseCase(IWorkflowInstanceRepository instances, IEmployeeRepository employees)
     {
         _instances = instances;
-        _collaborateurs = collaborateurs;
+        _employees = employees;
     }
 
-    public async Task ExecuterAsync(CompteUtilisateur acteur, Guid workflowInstanceId, DateTime dateCloture, CancellationToken ct = default)
+    public async Task ExecuteAsync(UserAccount actor, Guid workflowInstanceId, DateTime dateCloture, CancellationToken ct = default)
     {
-        if (!RbacMatrix.EstAutorise(acteur.Role, ResourceAction.WorkflowInstanceCloturer))
-            throw new AccesRefuseException("Seul un RH peut clôturer un dossier.");
+        if (!RbacMatrix.IsAuthorized(actor.Role, ResourceAction.WorkflowInstanceCloturer))
+            throw new AccessDeniedException("Seul un RH peut clôturer un dossier.");
 
         var instance = await _instances.ObtenirParIdAsync(workflowInstanceId, ct)
             ?? throw new InvalidOperationException($"Workflow {workflowInstanceId} introuvable.");
 
-        var collaborateur = await _collaborateurs.ObtenirParIdAsync(instance.CollaborateurId, ct)
+        var employee = await _employees.GetByIdAsync(instance.CollaborateurId, ct)
             ?? throw new InvalidOperationException($"Collaborateur {instance.CollaborateurId} introuvable.");
 
-        if (!PoleScopeGuard.PeutAccederAuCollaborateur(acteur, collaborateur))
-            throw new AccesRefuseException("Un RH ne peut clôturer un dossier que pour un collaborateur de son pôle.");
+        if (!DepartmentScopeGuard.CanAccessEmployee(actor, employee))
+            throw new AccessDeniedException("Un RH ne peut clôturer un dossier que pour un collaborateur de son pôle.");
 
         instance.Cloturer(dateCloture);
         await _instances.MettreAJourAsync(instance, ct);

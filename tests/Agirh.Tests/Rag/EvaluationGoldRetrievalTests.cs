@@ -59,8 +59,8 @@ public sealed class GoldCorpusFixture : IAsyncLifetime
             documents[Path.GetFileName(fichier)] = await File.ReadAllTextAsync(fichier);
         NomsDocumentsReels = documents.Keys.ToHashSet();
 
-        var acteur = new CompteUtilisateur(Guid.NewGuid(), "eval-admin@agirh.test", "hash", RoleType.AdminQualite, null, DateTime.UtcNow);
-        await ingestion.ExecuterAsync(acteur, documents);
+        var actor = new UserAccount(Guid.NewGuid(), "eval-admin@agirh.test", "hash", RoleType.QualityAdmin, null, DateTime.UtcNow);
+        await ingestion.ExecuteAsync(actor, documents);
         await Task.Delay(500);
 
         PrerequisDisponibles = true;

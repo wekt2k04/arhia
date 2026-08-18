@@ -29,7 +29,7 @@ public class AdminController : ControllerBase
     [HttpPost("reindexer-corpus")]
     public async Task<ActionResult<ReindexerCorpusResponse>> ReindexerCorpus(CancellationToken ct)
     {
-        var acteur = await _currentUser.ObtenirActeurAsync(ct);
+        var actor = await _currentUser.GetActorAsync(ct);
 
         if (!Directory.Exists(_corpusOptions.Repertoire))
             return NotFound($"Répertoire corpus introuvable : {_corpusOptions.Repertoire}");
@@ -42,10 +42,10 @@ public class AdminController : ControllerBase
 
         try
         {
-            var nombreChunks = await _ingererCorpus.ExecuterAsync(acteur, documents, ct);
+            var nombreChunks = await _ingererCorpus.ExecuteAsync(actor, documents, ct);
             return Ok(new ReindexerCorpusResponse(documents.Count, nombreChunks));
         }
-        catch (AccesRefuseException)
+        catch (AccessDeniedException)
         {
             return Forbid();
         }

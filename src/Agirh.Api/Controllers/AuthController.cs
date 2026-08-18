@@ -8,31 +8,31 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Agirh.Api.Controllers;
 
-public record RegisterRequest(string Email, string MotDePasse);
-public record LoginRequest(string Email, string MotDePasse);
-public record AuthResponse(string Token, Guid CompteId, string Email, RoleType Role, Guid? PoleId);
-public record ElevRoleRequest(Guid CompteId, RoleType NouveauRole, Guid? NouveauPoleId);
+public record RegisterRequest(string Email, string Password);
+public record LoginRequest(string Email, string Password);
+public record AuthResponse(string Token, Guid AccountId, string Email, RoleType Role, Guid? DepartmentId);
+public record ElevateRoleRequest(Guid AccountId, RoleType NewRole, Guid? NewDepartmentId);
 
 [ApiController]
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
-    private readonly InscrireUseCase _inscrire;
-    private readonly AuthentifierUseCase _authentifier;
-    private readonly ElevRoleUseCase _elevRole;
+    private readonly RegisterUseCase _register;
+    private readonly AuthenticateUseCase _authenticate;
+    private readonly ElevateRoleUseCase _elevateRole;
     private readonly JwtTokenGenerator _jwtGenerator;
     private readonly ICurrentUserAccessor _currentUser;
 
     public AuthController(
-        InscrireUseCase inscrire,
-        AuthentifierUseCase authentifier,
-        ElevRoleUseCase elevRole,
+        RegisterUseCase register,
+        AuthenticateUseCase authenticate,
+        ElevateRoleUseCase elevateRole,
         JwtTokenGenerator jwtGenerator,
         ICurrentUserAccessor currentUser)
     {
-        _inscrire = inscrire;
-        _authentifier = authentifier;
-        _elevRole = elevRole;
+        _register = register;
+        _authenticate = authenticate;
+        _elevateRole = elevateRole;
         _jwtGenerator = jwtGenerator;
         _currentUser = currentUser;
     }
@@ -43,9 +43,9 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var compte = await _inscrire.ExecuterAsync(request.Email, request.MotDePasse, DateTime.UtcNow, ct);
-            var token = _jwtGenerator.GenererToken(compte, DateTime.UtcNow);
-            return Ok(new AuthResponse(token, compte.Id, compte.Email, compte.Role, compte.PoleId));
+            var account = await _register.ExecuteAsync(request.Email, request.Password, DateTime.UtcNow, ct);
+            var token = _jwtGenerator.GenerateToken(account, DateTime.UtcNow);
+            return Ok(new AuthResponse(token, account.Id, account.Email, account.Role, account.DepartmentId));
         }
         catch (InvalidOperationException ex)
         {
@@ -63,11 +63,11 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var compte = await _authentifier.ExecuterAsync(request.Email, request.MotDePasse, ct);
-            var token = _jwtGenerator.GenererToken(compte, DateTime.UtcNow);
-            return Ok(new AuthResponse(token, compte.Id, compte.Email, compte.Role, compte.PoleId));
+            var account = await _authenticate.ExecuteAsync(request.Email, request.Password, ct);
+            var token = _jwtGenerator.GenerateToken(account, DateTime.UtcNow);
+            return Ok(new AuthResponse(token, account.Id, account.Email, account.Role, account.DepartmentId));
         }
-        catch (AccesRefuseException)
+        catch (AccessDeniedException)
         {
             return Unauthorized("Email ou mot de passe incorrect.");
         }
@@ -77,22 +77,22 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<ActionResult<AuthResponse>> Me(CancellationToken ct)
     {
-        var acteur = await _currentUser.ObtenirActeurAsync(ct);
-        return Ok(new AuthResponse(string.Empty, acteur.Id, acteur.Email, acteur.Role, acteur.PoleId));
+        var actor = await _currentUser.GetActorAsync(ct);
+        return Ok(new AuthResponse(string.Empty, actor.Id, actor.Email, actor.Role, actor.DepartmentId));
     }
 
-    [HttpPost("elever-role")]
+    [HttpPost("elevate-role")]
     [Authorize]
-    public async Task<ActionResult<AuthResponse>> ElevRole(ElevRoleRequest request, CancellationToken ct)
+    public async Task<ActionResult<AuthResponse>> ElevateRole(ElevateRoleRequest request, CancellationToken ct)
     {
-        var acteur = await _currentUser.ObtenirActeurAsync(ct);
+        var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
-            var compte = await _elevRole.ExecuterAsync(acteur, request.CompteId, request.NouveauRole, request.NouveauPoleId, ct);
-            return Ok(new AuthResponse(string.Empty, compte.Id, compte.Email, compte.Role, compte.PoleId));
+            var account = await _elevateRole.ExecuteAsync(actor, request.AccountId, request.NewRole, request.NewDepartmentId, ct);
+            return Ok(new AuthResponse(string.Empty, account.Id, account.Email, account.Role, account.DepartmentId));
         }
-        catch (AccesRefuseException)
+        catch (AccessDeniedException)
         {
             return Forbid();
         }

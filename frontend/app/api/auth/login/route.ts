@@ -23,9 +23,9 @@ export async function POST(request: NextRequest) {
   await definirSession(donnees.token);
 
   return NextResponse.json({
-    compteId: donnees.compteId,
+    accountId: donnees.accountId,
     email: donnees.email,
     role: donnees.role,
-    poleId: donnees.poleId,
+    departmentId: donnees.departmentId,
   });
 }

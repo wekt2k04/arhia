@@ -15,7 +15,7 @@ public class WorkflowInstanceConfiguration : IEntityTypeConfiguration<WorkflowIn
         builder.Property(i => i.Statut).HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(i => i.DateCreation).IsRequired();
         builder.Property(i => i.DateCloture);
-        builder.HasOne<Collaborateur>().WithMany().HasForeignKey(i => i.CollaborateurId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Employee>().WithMany().HasForeignKey(i => i.CollaborateurId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<WorkflowTemplate>().WithMany().HasForeignKey(i => i.TemplateId).OnDelete(DeleteBehavior.Restrict);
 
         builder.OwnsMany(i => i.Items, item =>

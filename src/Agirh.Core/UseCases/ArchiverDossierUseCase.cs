@@ -8,27 +8,27 @@ namespace Agirh.Core.UseCases;
 public sealed class ArchiverDossierUseCase
 {
     private readonly IWorkflowInstanceRepository _instances;
-    private readonly ICollaborateurRepository _collaborateurs;
+    private readonly IEmployeeRepository _employees;
 
-    public ArchiverDossierUseCase(IWorkflowInstanceRepository instances, ICollaborateurRepository collaborateurs)
+    public ArchiverDossierUseCase(IWorkflowInstanceRepository instances, IEmployeeRepository employees)
     {
         _instances = instances;
-        _collaborateurs = collaborateurs;
+        _employees = employees;
     }
 
-    public async Task ExecuterAsync(Domain.Entities.CompteUtilisateur acteur, Guid workflowInstanceId, CancellationToken ct = default)
+    public async Task ExecuteAsync(Domain.Entities.UserAccount actor, Guid workflowInstanceId, CancellationToken ct = default)
     {
-        if (!RbacMatrix.EstAutorise(acteur.Role, ResourceAction.WorkflowInstanceArchiver))
-            throw new AccesRefuseException("Seuls RH et Admin/Qualité peuvent archiver un dossier.");
+        if (!RbacMatrix.IsAuthorized(actor.Role, ResourceAction.WorkflowInstanceArchiver))
+            throw new AccessDeniedException("Seuls RH et Admin/Qualité peuvent archiver un dossier.");
 
         var instance = await _instances.ObtenirParIdAsync(workflowInstanceId, ct)
             ?? throw new InvalidOperationException($"Workflow {workflowInstanceId} introuvable.");
 
-        var collaborateur = await _collaborateurs.ObtenirParIdAsync(instance.CollaborateurId, ct)
+        var employee = await _employees.GetByIdAsync(instance.CollaborateurId, ct)
             ?? throw new InvalidOperationException($"Collaborateur {instance.CollaborateurId} introuvable.");
 
-        if (!PoleScopeGuard.PeutAccederAuCollaborateur(acteur, collaborateur))
-            throw new AccesRefuseException("Un RH ne peut archiver un dossier que pour un collaborateur de son pôle.");
+        if (!DepartmentScopeGuard.CanAccessEmployee(actor, employee))
+            throw new AccessDeniedException("Un RH ne peut archiver un dossier que pour un collaborateur de son pôle.");
 
         instance.Archiver();
         await _instances.MettreAJourAsync(instance, ct);

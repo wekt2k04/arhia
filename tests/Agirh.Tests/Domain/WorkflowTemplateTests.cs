@@ -160,11 +160,11 @@ public class WorkflowTemplateTests
     public void ResoudreItemsApplicables_FiltreParTypeContrat()
     {
         var itemCommun = new TemplateItem(Guid.NewGuid(), "Bitlocker activé", 0);
-        var itemCdiUniquement = new TemplateItem(Guid.NewGuid(), "Processus disciplinaire signé", 1, new[] { TypeContrat.CDI });
+        var itemCdiUniquement = new TemplateItem(Guid.NewGuid(), "Processus disciplinaire signé", 1, new[] { ContractType.CDI });
         var section = new TemplateSection(Guid.NewGuid(), "IT", 0, new[] { itemCommun, itemCdiUniquement });
         var template = new WorkflowTemplate(Guid.NewGuid(), WorkflowType.Onboarding, "T0", Guid.NewGuid(), new[] { section }, Maintenant);
 
-        var itemsStage = template.ResoudreItemsApplicables(TypeContrat.Stage);
+        var itemsStage = template.ResoudreItemsApplicables(ContractType.Stage);
 
         itemsStage.Should().ContainSingle().Which.Should().Be(itemCommun);
     }

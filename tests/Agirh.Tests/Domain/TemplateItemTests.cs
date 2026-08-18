@@ -11,17 +11,17 @@ public class TemplateItemTests
     {
         var item = new TemplateItem(Guid.NewGuid(), "Compte SELFRH créé", 0);
 
-        item.ApplicablePour(TypeContrat.CDI).Should().BeTrue();
-        item.ApplicablePour(TypeContrat.Stage).Should().BeTrue();
+        item.ApplicablePour(ContractType.CDI).Should().BeTrue();
+        item.ApplicablePour(ContractType.Stage).Should().BeTrue();
     }
 
     [Fact]
     public void ApplicablePour_AvecCondition_EstApplicableUniquementAuxContratsListes()
     {
-        var item = new TemplateItem(Guid.NewGuid(), "Processus disciplinaire signé", 0, new[] { TypeContrat.CDI, TypeContrat.CDD });
+        var item = new TemplateItem(Guid.NewGuid(), "Processus disciplinaire signé", 0, new[] { ContractType.CDI, ContractType.CDD });
 
-        item.ApplicablePour(TypeContrat.CDI).Should().BeTrue();
-        item.ApplicablePour(TypeContrat.Stage).Should().BeFalse();
+        item.ApplicablePour(ContractType.CDI).Should().BeTrue();
+        item.ApplicablePour(ContractType.Stage).Should().BeFalse();
     }
 
     [Fact]

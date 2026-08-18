@@ -43,7 +43,7 @@ public sealed class RepondreConversationUseCase
     private readonly IEmbeddingPort _embedding;
     private readonly IVectorSearchPort _rechercheVectorielle;
     private readonly IRerankerPort _reranker;
-    private readonly ICollaborateurRepository _collaborateurs;
+    private readonly IEmployeeRepository _employees;
     private readonly IWorkflowInstanceRepository _workflowInstances;
 
     public RepondreConversationUseCase(
@@ -52,7 +52,7 @@ public sealed class RepondreConversationUseCase
         IEmbeddingPort embedding,
         IVectorSearchPort rechercheVectorielle,
         IRerankerPort reranker,
-        ICollaborateurRepository collaborateurs,
+        IEmployeeRepository employees,
         IWorkflowInstanceRepository workflowInstances)
     {
         _router = router;
@@ -60,12 +60,12 @@ public sealed class RepondreConversationUseCase
         _embedding = embedding;
         _rechercheVectorielle = rechercheVectorielle;
         _reranker = reranker;
-        _collaborateurs = collaborateurs;
+        _employees = employees;
         _workflowInstances = workflowInstances;
     }
 
-    public async Task<ReponseConversation> ExecuterAsync(
-        CompteUtilisateur acteur,
+    public async Task<ReponseConversation> ExecuteAsync(
+        UserAccount actor,
         string question,
         Guid? collaborateurCibleId,
         CancellationToken ct = default)
@@ -78,13 +78,13 @@ public sealed class RepondreConversationUseCase
         return intention switch
         {
             IntentionConversation.QuestionDocumentaire => await RepondreDocumentaireAsync(question, ct),
-            IntentionConversation.StatutDossier => await RepondreStatutDossierAsync(acteur, collaborateurCibleId, ct),
+            IntentionConversation.StatutDossier => await RepondreStatutDossierAsync(actor, collaborateurCibleId, ct),
             _ => ReponseHorsPerimetre()
         };
     }
 
     /// <summary>
-    /// Équivalent streamé de <see cref="ExecuterAsync"/>, pour le chat SSE (docs/STACK_TECHNIQUE.md
+    /// Équivalent streamé de <see cref="ExecuteAsync"/>, pour le chat SSE (docs/STACK_TECHNIQUE.md
     /// §1). Émet un FragmentTexte par fragment de texte reçu du générateur (branche
     /// documentaire) ou un seul FragmentTexte pour les branches déjà synchrones (statut de
     /// dossier, hors périmètre — pas de generation LLM a etaler dans le temps), puis exactement
@@ -93,7 +93,7 @@ public sealed class RepondreConversationUseCase
     /// deux partagent la même préparation de contexte (PreparerContexteDocumentaireAsync).
     /// </summary>
     public async IAsyncEnumerable<EvenementConversation> ExecuterEnStreamingAsync(
-        CompteUtilisateur acteur,
+        UserAccount actor,
         string question,
         Guid? collaborateurCibleId,
         [EnumeratorCancellation] CancellationToken ct = default)
@@ -111,7 +111,7 @@ public sealed class RepondreConversationUseCase
                 break;
 
             case IntentionConversation.StatutDossier:
-                var reponseStatut = await RepondreStatutDossierAsync(acteur, collaborateurCibleId, ct);
+                var reponseStatut = await RepondreStatutDossierAsync(actor, collaborateurCibleId, ct);
                 yield return new FragmentTexte(reponseStatut.Texte);
                 yield return new ReponseTerminee(reponseStatut.Sourcee, reponseStatut.DocumentsSources);
                 break;
@@ -220,23 +220,23 @@ public sealed class RepondreConversationUseCase
         IndicateursRefusGenerateur.Any(indicateur => texte.Contains(indicateur, StringComparison.OrdinalIgnoreCase));
 
     private async Task<ReponseConversation> RepondreStatutDossierAsync(
-        CompteUtilisateur acteur,
+        UserAccount actor,
         Guid? collaborateurCibleId,
         CancellationToken ct)
     {
-        var idCible = collaborateurCibleId ?? await ResoudreDossierPersonnelAsync(acteur, ct);
+        var idCible = collaborateurCibleId ?? await ResoudreDossierPersonnelAsync(actor, ct);
         if (idCible is null)
             return ReponseDossierIntrouvable();
 
-        var collaborateur = await _collaborateurs.ObtenirParIdAsync(idCible.Value, ct);
-        if (collaborateur is null)
+        var employee = await _employees.GetByIdAsync(idCible.Value, ct);
+        if (employee is null)
             return ReponseDossierIntrouvable();
 
-        if (!PoleScopeGuard.PeutAccederAuCollaborateur(acteur, collaborateur))
-            throw new AccesRefuseException("Vous n'avez pas accès au dossier de ce collaborateur.");
+        if (!DepartmentScopeGuard.CanAccessEmployee(actor, employee))
+            throw new AccessDeniedException("Vous n'avez pas accès au dossier de ce collaborateur.");
 
-        var instance = await _workflowInstances.ObtenirParCollaborateurAsync(collaborateur.Id, WorkflowType.Onboarding, ct)
-            ?? await _workflowInstances.ObtenirParCollaborateurAsync(collaborateur.Id, WorkflowType.Offboarding, ct);
+        var instance = await _workflowInstances.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Onboarding, ct)
+            ?? await _workflowInstances.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Offboarding, ct);
 
         if (instance is null)
             return new ReponseConversation(
@@ -249,19 +249,19 @@ public sealed class RepondreConversationUseCase
             ? $"{itemsRestants} item(s) restent en attente sur {instance.Items.Count}."
             : "Tous les items ont été traités.";
 
-        var texte = $"Le dossier {instance.Type} de {collaborateur.Prenom} {collaborateur.Nom} " +
+        var texte = $"Le dossier {instance.Type} de {employee.FirstName} {employee.LastName} " +
                      $"est au statut {instance.Statut}. {suffixe}";
 
         return new ReponseConversation(texte, Sourcee: false, Array.Empty<string>());
     }
 
-    private async Task<Guid?> ResoudreDossierPersonnelAsync(CompteUtilisateur acteur, CancellationToken ct)
+    private async Task<Guid?> ResoudreDossierPersonnelAsync(UserAccount actor, CancellationToken ct)
     {
-        if (acteur.Role != RoleType.Collaborateur)
+        if (actor.Role != RoleType.Employee)
             return null; // RH/Admin doivent préciser explicitement quel collaborateur (collaborateurCibleId)
 
-        var collaborateur = await _collaborateurs.ObtenirParCompteUtilisateurIdAsync(acteur.Id, ct);
-        return collaborateur?.Id;
+        var employee = await _employees.GetByUserAccountIdAsync(actor.Id, ct);
+        return employee?.Id;
     }
 
     private static ReponseConversation ReponseDossierIntrouvable() => new(

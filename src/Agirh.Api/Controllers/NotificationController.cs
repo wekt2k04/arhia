@@ -28,7 +28,7 @@ public class NotificationController : ControllerBase
     [HttpGet("stream")]
     public async Task Stream(CancellationToken ct)
     {
-        var acteur = await _currentUser.ObtenirActeurAsync(ct);
+        var actor = await _currentUser.GetActorAsync(ct);
 
         Response.Headers.Append("Content-Type", "text/event-stream");
         Response.Headers.Append("Cache-Control", "no-cache");
@@ -38,7 +38,7 @@ public class NotificationController : ControllerBase
         {
             await _broadcaster.DiffuserAsync(
                 Response.Body,
-                innerCt => _obtenirNotifications.ExecuterAsync(acteur, DateTime.UtcNow, innerCt),
+                innerCt => _obtenirNotifications.ExecuteAsync(actor, DateTime.UtcNow, innerCt),
                 ct);
         }
         catch (OperationCanceledException)

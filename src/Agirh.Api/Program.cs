@@ -44,9 +44,9 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddDbContext<AgirhDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AgirhDb")));
 
-builder.Services.AddScoped<IPoleRepository, PoleRepository>();
-builder.Services.AddScoped<ICompteUtilisateurRepository, CompteUtilisateurRepository>();
-builder.Services.AddScoped<ICollaborateurRepository, CollaborateurRepository>();
+builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IWorkflowTemplateRepository, WorkflowTemplateRepository>();
 builder.Services.AddScoped<IWorkflowInstanceRepository, WorkflowInstanceRepository>();
 
@@ -57,15 +57,15 @@ var jwtOptions = new JwtOptions
     Issuer = builder.Configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("Configuration Jwt:Issuer manquante."),
     Audience = builder.Configuration["Jwt:Audience"] ?? throw new InvalidOperationException("Configuration Jwt:Audience manquante."),
     SigningKey = builder.Configuration["Jwt:SigningKey"] ?? throw new InvalidOperationException("Configuration Jwt:SigningKey manquante."),
-    DureeValiditeMinutes = builder.Configuration.GetValue("Jwt:DureeValiditeMinutes", 60)
+    TokenLifetimeMinutes = builder.Configuration.GetValue("Jwt:TokenLifetimeMinutes", 60)
 };
 builder.Services.AddSingleton(jwtOptions);
 builder.Services.AddSingleton<JwtTokenGenerator>();
 
-builder.Services.AddScoped<InscrireUseCase>();
-builder.Services.AddScoped<AuthentifierUseCase>();
-builder.Services.AddScoped<ElevRoleUseCase>();
-builder.Services.AddScoped<CreerFicheCollaborateurUseCase>();
+builder.Services.AddScoped<RegisterUseCase>();
+builder.Services.AddScoped<AuthenticateUseCase>();
+builder.Services.AddScoped<ElevateRoleUseCase>();
+builder.Services.AddScoped<CreateEmployeeRecordUseCase>();
 builder.Services.AddScoped<InstancierWorkflowUseCase>();
 builder.Services.AddScoped<CocherItemUseCase>();
 builder.Services.AddScoped<CloturerDossierUseCase>();
@@ -115,10 +115,10 @@ builder.Services.AddHttpClient<OllamaClient>(client =>
 // pas seulement une autre URL avec le même modèle) sans recompiler.
 builder.Services.AddScoped<ILlmRouterPort>(sp => new OllamaRouterAdapter(
     sp.GetRequiredService<OllamaClient>(),
-    builder.Configuration["Ollama:RouterModele"] ?? "phi4-mini:3.8b"));
+    builder.Configuration["Ollama:RouterModel"] ?? "phi4-mini:3.8b"));
 builder.Services.AddScoped<ILlmGeneratorPort>(sp => new OllamaGeneratorAdapter(
     sp.GetRequiredService<OllamaClient>(),
-    builder.Configuration["Ollama:GeneratorModele"] ?? "phi4-mini:3.8b"));
+    builder.Configuration["Ollama:GeneratorModel"] ?? "phi4-mini:3.8b"));
 
 builder.Services.AddScoped<RepondreConversationUseCase>();
 

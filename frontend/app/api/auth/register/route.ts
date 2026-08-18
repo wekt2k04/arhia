@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AGIRH_API_URL } from "@/lib/api/config";
 import { definirSession } from "@/lib/api/session";
 
-// Auto-inscription -> rôle Collaborateur par défaut, jamais élevé à l'inscription
+// Auto-inscription -> rôle Employee par défaut, jamais élevé à l'inscription
 // (docs/LOGIQUE_METIER.md §1) — décidé et appliqué côté Agirh.Api, pas ici.
 export async function POST(request: NextRequest) {
   const corps = await request.json();
@@ -22,9 +22,9 @@ export async function POST(request: NextRequest) {
   await definirSession(donnees.token);
 
   return NextResponse.json({
-    compteId: donnees.compteId,
+    accountId: donnees.accountId,
     email: donnees.email,
     role: donnees.role,
-    poleId: donnees.poleId,
+    departmentId: donnees.departmentId,
   });
 }

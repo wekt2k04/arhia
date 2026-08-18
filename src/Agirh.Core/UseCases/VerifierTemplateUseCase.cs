@@ -14,15 +14,15 @@ public sealed class VerifierTemplateUseCase
         _templates = templates;
     }
 
-    public async Task ExecuterAsync(Domain.Entities.CompteUtilisateur acteur, Guid templateId, CancellationToken ct = default)
+    public async Task ExecuteAsync(Domain.Entities.UserAccount actor, Guid templateId, CancellationToken ct = default)
     {
-        if (!RbacMatrix.EstAutorise(acteur.Role, ResourceAction.TemplateVerifier))
-            throw new AccesRefuseException("Seul un compte Admin/Qualité peut vérifier un template.");
+        if (!RbacMatrix.IsAuthorized(actor.Role, ResourceAction.TemplateVerifier))
+            throw new AccessDeniedException("Seul un compte Admin/Qualité peut vérifier un template.");
 
         var template = await _templates.ObtenirParIdAsync(templateId, ct)
             ?? throw new InvalidOperationException($"Template {templateId} introuvable.");
 
-        template.Verifier(acteur.Id);
+        template.Verifier(actor.Id);
         await _templates.MettreAJourAsync(template, ct);
     }
 }

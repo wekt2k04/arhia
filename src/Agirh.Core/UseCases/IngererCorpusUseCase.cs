@@ -24,13 +24,13 @@ public sealed class IngererCorpusUseCase
         _rechercheVectorielle = rechercheVectorielle;
     }
 
-    public async Task<int> ExecuterAsync(
-        CompteUtilisateur acteur,
+    public async Task<int> ExecuteAsync(
+        UserAccount actor,
         IReadOnlyDictionary<string, string> documents,
         CancellationToken ct = default)
     {
-        if (!RbacMatrix.EstAutorise(acteur.Role, ResourceAction.CorpusIngerer))
-            throw new AccesRefuseException("Seul un compte Admin/Qualité peut réindexer le corpus documentaire.");
+        if (!RbacMatrix.IsAuthorized(actor.Role, ResourceAction.CorpusIngerer))
+            throw new AccessDeniedException("Seul un compte Admin/Qualité peut réindexer le corpus documentaire.");
 
         await _rechercheVectorielle.PreparerAsync(ct);
 

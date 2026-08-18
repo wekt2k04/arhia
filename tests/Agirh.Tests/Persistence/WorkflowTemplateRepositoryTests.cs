@@ -19,7 +19,7 @@ public class WorkflowTemplateRepositoryTests
     {
         var options = CreerOptions();
         var itemCommun = new TemplateItem(Guid.NewGuid(), "Bitlocker activé", 0);
-        var itemCdiSeulement = new TemplateItem(Guid.NewGuid(), "Processus disciplinaire signé", 1, new[] { TypeContrat.CDI });
+        var itemCdiSeulement = new TemplateItem(Guid.NewGuid(), "Processus disciplinaire signé", 1, new[] { ContractType.CDI });
         var section = new TemplateSection(Guid.NewGuid(), "IT", 0, new[] { itemCommun, itemCdiSeulement });
         var template = new WorkflowTemplate(Guid.NewGuid(), WorkflowType.Onboarding, "T0", Guid.NewGuid(), new[] { section }, new DateTime(2026, 8, 15));
         var verificateur = Guid.NewGuid();
@@ -41,7 +41,7 @@ public class WorkflowTemplateRepositoryTests
         recharge.Sections.Should().ContainSingle();
         recharge.Sections[0].Items.Should().HaveCount(2);
         recharge.Sections[0].Items.Should().Contain(i =>
-            i.Libelle == itemCdiSeulement.Libelle && i.ConditionsTypeContrat.Contains(TypeContrat.CDI));
+            i.Libelle == itemCdiSeulement.Libelle && i.ConditionsTypeContrat.Contains(ContractType.CDI));
         recharge.Sections[0].Items.Should().Contain(i =>
             i.Libelle == itemCommun.Libelle && i.ConditionsTypeContrat.Count == 0);
     }

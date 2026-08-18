@@ -6,6 +6,6 @@
     "Issuer": "Agirh",
     "Audience": "Agirh.Clients",
     "SigningKey": "<clé secrète locale, 32 caractères minimum, jamais committée>",
-    "DureeValiditeMinutes": 60
+    "TokenLifetimeMinutes": 60
   }
 }

@@ -27,22 +27,22 @@ public class InstancierWorkflowUseCaseTests
     [Fact]
     public async Task ExecuterAsync_RHSurSonPole_InstancieLeWorkflowAvecItemsFiltres()
     {
-        var poleId = Guid.NewGuid();
-        var rh = new CompteUtilisateur(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.RH, poleId, Maintenant);
-        var collaborateur = new Collaborateur(Guid.NewGuid(), new Matricule("MAT001"), "Dupont", "Jean", "Dev", poleId, TypeContrat.Stage, Maintenant);
+        var departmentId = Guid.NewGuid();
+        var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, departmentId, Maintenant);
+        var employee = new Employee(Guid.NewGuid(), new EmployeeNumber("MAT001"), "Dupont", "Jean", "Dev", departmentId, ContractType.Stage, Maintenant);
         var itemCommun = new TemplateItem(Guid.NewGuid(), "Bitlocker activé", 0);
-        var itemCdiSeulement = new TemplateItem(Guid.NewGuid(), "Processus disciplinaire signé", 1, new[] { TypeContrat.CDI });
+        var itemCdiSeulement = new TemplateItem(Guid.NewGuid(), "Processus disciplinaire signé", 1, new[] { ContractType.CDI });
         var template = CreerTemplateApprouve(itemCommun, itemCdiSeulement);
 
-        var collaborateurs = new Mock<ICollaborateurRepository>();
-        collaborateurs.Setup(r => r.ObtenirParIdAsync(collaborateur.Id, It.IsAny<CancellationToken>())).ReturnsAsync(collaborateur);
+        var employees = new Mock<IEmployeeRepository>();
+        employees.Setup(r => r.GetByIdAsync(employee.Id, It.IsAny<CancellationToken>())).ReturnsAsync(employee);
         var templates = new Mock<IWorkflowTemplateRepository>();
         templates.Setup(r => r.ObtenirDernierApprouveAsync(WorkflowType.Onboarding, It.IsAny<CancellationToken>())).ReturnsAsync(template);
         var instances = new Mock<IWorkflowInstanceRepository>();
 
-        var useCase = new InstancierWorkflowUseCase(collaborateurs.Object, templates.Object, instances.Object);
+        var useCase = new InstancierWorkflowUseCase(employees.Object, templates.Object, instances.Object);
 
-        var resultat = await useCase.ExecuterAsync(rh, collaborateur.Id, WorkflowType.Onboarding, Maintenant);
+        var resultat = await useCase.ExecuteAsync(rh, employee.Id, WorkflowType.Onboarding, Maintenant);
 
         resultat.Items.Should().ContainSingle(i => i.Libelle == itemCommun.Libelle);
         instances.Verify(r => r.AjouterAsync(It.IsAny<WorkflowInstance>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -51,36 +51,36 @@ public class InstancierWorkflowUseCaseTests
     [Fact]
     public async Task ExecuterAsync_RHSurAutrePole_LeveAccesRefuseException()
     {
-        var rh = new CompteUtilisateur(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.RH, Guid.NewGuid(), Maintenant);
-        var collaborateur = new Collaborateur(Guid.NewGuid(), new Matricule("MAT001"), "Dupont", "Jean", "Dev", Guid.NewGuid(), TypeContrat.CDI, Maintenant);
+        var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, Guid.NewGuid(), Maintenant);
+        var employee = new Employee(Guid.NewGuid(), new EmployeeNumber("MAT001"), "Dupont", "Jean", "Dev", Guid.NewGuid(), ContractType.CDI, Maintenant);
 
-        var collaborateurs = new Mock<ICollaborateurRepository>();
-        collaborateurs.Setup(r => r.ObtenirParIdAsync(collaborateur.Id, It.IsAny<CancellationToken>())).ReturnsAsync(collaborateur);
+        var employees = new Mock<IEmployeeRepository>();
+        employees.Setup(r => r.GetByIdAsync(employee.Id, It.IsAny<CancellationToken>())).ReturnsAsync(employee);
         var templates = new Mock<IWorkflowTemplateRepository>();
         var instances = new Mock<IWorkflowInstanceRepository>();
-        var useCase = new InstancierWorkflowUseCase(collaborateurs.Object, templates.Object, instances.Object);
+        var useCase = new InstancierWorkflowUseCase(employees.Object, templates.Object, instances.Object);
 
-        var act = () => useCase.ExecuterAsync(rh, collaborateur.Id, WorkflowType.Onboarding, Maintenant);
+        var act = () => useCase.ExecuteAsync(rh, employee.Id, WorkflowType.Onboarding, Maintenant);
 
-        await act.Should().ThrowAsync<AccesRefuseException>();
+        await act.Should().ThrowAsync<AccessDeniedException>();
         instances.Verify(r => r.AjouterAsync(It.IsAny<WorkflowInstance>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task ExecuterAsync_AucunTemplateApprouve_LeveInvalidOperationException()
     {
-        var poleId = Guid.NewGuid();
-        var rh = new CompteUtilisateur(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.RH, poleId, Maintenant);
-        var collaborateur = new Collaborateur(Guid.NewGuid(), new Matricule("MAT001"), "Dupont", "Jean", "Dev", poleId, TypeContrat.CDI, Maintenant);
+        var departmentId = Guid.NewGuid();
+        var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, departmentId, Maintenant);
+        var employee = new Employee(Guid.NewGuid(), new EmployeeNumber("MAT001"), "Dupont", "Jean", "Dev", departmentId, ContractType.CDI, Maintenant);
 
-        var collaborateurs = new Mock<ICollaborateurRepository>();
-        collaborateurs.Setup(r => r.ObtenirParIdAsync(collaborateur.Id, It.IsAny<CancellationToken>())).ReturnsAsync(collaborateur);
+        var employees = new Mock<IEmployeeRepository>();
+        employees.Setup(r => r.GetByIdAsync(employee.Id, It.IsAny<CancellationToken>())).ReturnsAsync(employee);
         var templates = new Mock<IWorkflowTemplateRepository>();
         templates.Setup(r => r.ObtenirDernierApprouveAsync(WorkflowType.Onboarding, It.IsAny<CancellationToken>())).ReturnsAsync((WorkflowTemplate?)null);
         var instances = new Mock<IWorkflowInstanceRepository>();
-        var useCase = new InstancierWorkflowUseCase(collaborateurs.Object, templates.Object, instances.Object);
+        var useCase = new InstancierWorkflowUseCase(employees.Object, templates.Object, instances.Object);
 
-        var act = () => useCase.ExecuterAsync(rh, collaborateur.Id, WorkflowType.Onboarding, Maintenant);
+        var act = () => useCase.ExecuteAsync(rh, employee.Id, WorkflowType.Onboarding, Maintenant);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
@@ -88,14 +88,14 @@ public class InstancierWorkflowUseCaseTests
     [Fact]
     public async Task ExecuterAsync_CollaborateurInexistant_LeveInvalidOperationException()
     {
-        var rh = new CompteUtilisateur(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.RH, Guid.NewGuid(), Maintenant);
-        var collaborateurs = new Mock<ICollaborateurRepository>();
-        collaborateurs.Setup(r => r.ObtenirParIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((Collaborateur?)null);
+        var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, Guid.NewGuid(), Maintenant);
+        var employees = new Mock<IEmployeeRepository>();
+        employees.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((Employee?)null);
         var templates = new Mock<IWorkflowTemplateRepository>();
         var instances = new Mock<IWorkflowInstanceRepository>();
-        var useCase = new InstancierWorkflowUseCase(collaborateurs.Object, templates.Object, instances.Object);
+        var useCase = new InstancierWorkflowUseCase(employees.Object, templates.Object, instances.Object);
 
-        var act = () => useCase.ExecuterAsync(rh, Guid.NewGuid(), WorkflowType.Onboarding, Maintenant);
+        var act = () => useCase.ExecuteAsync(rh, Guid.NewGuid(), WorkflowType.Onboarding, Maintenant);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }

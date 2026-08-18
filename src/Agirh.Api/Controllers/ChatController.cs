@@ -30,7 +30,7 @@ public class ChatController : ControllerBase
     /// <summary>
     /// SSE (docs/STACK_TECHNIQUE.md §1) : un événement "fragment" par morceau de texte reçu du
     /// générateur au fur et à mesure de sa génération, puis exactement un événement "termine"
-    /// portant sourcee/sources. Un refus RBAC (AccesRefuseException) se traduit en message
+    /// portant sourcee/sources. Un refus RBAC (AccessDeniedException) se traduit en message
     /// conversationnel plutôt qu'une erreur HTTP au milieu du flux — même choix de design que la
     /// version JSON qu'elle remplace (docs/LOGIQUE_METIER.md §9 : l'agent est conversationnel, pas une
     /// API technique brute).
@@ -38,7 +38,7 @@ public class ChatController : ControllerBase
     [HttpGet("demander")]
     public async Task Demander([FromQuery] string question, [FromQuery] Guid? collaborateurCibleId, CancellationToken ct)
     {
-        var acteur = await _currentUser.ObtenirActeurAsync(ct);
+        var actor = await _currentUser.GetActorAsync(ct);
 
         Response.Headers.Append("Content-Type", "text/event-stream");
         Response.Headers.Append("Cache-Control", "no-cache");
@@ -46,10 +46,10 @@ public class ChatController : ControllerBase
 
         try
         {
-            await foreach (var evenement in _repondreConversation.ExecuterEnStreamingAsync(acteur, question, collaborateurCibleId, ct))
+            await foreach (var evenement in _repondreConversation.ExecuterEnStreamingAsync(actor, question, collaborateurCibleId, ct))
                 await EcrireEvenementAsync(evenement, ct);
         }
-        catch (AccesRefuseException)
+        catch (AccessDeniedException)
         {
             await EcrireEvenementAsync(new FragmentTexte("Vous n'avez pas accès à ce dossier. Contactez le RH de votre pôle si besoin."), ct);
             await EcrireEvenementAsync(new ReponseTerminee(Sourcee: false, Array.Empty<string>()), ct);

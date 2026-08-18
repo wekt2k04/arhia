@@ -23,9 +23,9 @@ import { AuthNav } from "@/components/auth-nav";
 export default function PageInscription() {
   const router = useRouter();
   const emailId = useId();
-  const motDePasseId = useId();
+  const passwordId = useId();
   const [email, setEmail] = useState("");
-  const [motDePasse, setMotDePasse] = useState("");
+  const [password, setPassword] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
 
@@ -38,7 +38,7 @@ export default function PageInscription() {
       const reponse = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, motDePasse }),
+        body: JSON.stringify({ email, password }),
       });
 
       if (!reponse.ok) {
@@ -82,14 +82,14 @@ export default function PageInscription() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor={motDePasseId}>Mot de passe</Label>
+              <Label htmlFor={passwordId}>Mot de passe</Label>
               <Input
-                id={motDePasseId}
+                id={passwordId}
                 type="password"
                 required
                 autoComplete="new-password"
-                value={motDePasse}
-                onChange={(e) => setMotDePasse(e.target.value)}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 

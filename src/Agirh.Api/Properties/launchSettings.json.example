@@ -18,8 +18,8 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "Ollama__BaseUrl": "http://localhost:11434",
-        "Ollama__RouterModele": "phi4-mini:3.8b",
-        "Ollama__GeneratorModele": "phi4-mini:3.8b"
+        "Ollama__RouterModel": "phi4-mini:3.8b",
+        "Ollama__GeneratorModel": "phi4-mini:3.8b"
       }
     },
     "Entreprise": {
@@ -31,8 +31,8 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "Ollama__BaseUrl": "http://<ip-serveur-entreprise>:11434",
-        "Ollama__RouterModele": "phi4-mini:3.8b",
-        "Ollama__GeneratorModele": "qwen3.5:9b"
+        "Ollama__RouterModel": "phi4-mini:3.8b",
+        "Ollama__GeneratorModel": "qwen3.5:9b"
       }
     },
     "https": {

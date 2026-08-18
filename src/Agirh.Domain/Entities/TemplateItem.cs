@@ -7,9 +7,9 @@ public class TemplateItem
     public Guid Id { get; }
     public string Libelle { get; }
     public int Ordre { get; }
-    public IReadOnlyCollection<TypeContrat> ConditionsTypeContrat { get; }
+    public IReadOnlyCollection<ContractType> ConditionsTypeContrat { get; }
 
-    public TemplateItem(Guid id, string libelle, int ordre, IReadOnlyCollection<TypeContrat>? conditionsTypeContrat = null)
+    public TemplateItem(Guid id, string libelle, int ordre, IReadOnlyCollection<ContractType>? conditionsTypeContrat = null)
     {
         if (id == Guid.Empty)
             throw new ArgumentException("L'identifiant de l'item est requis.", nameof(id));
@@ -19,10 +19,10 @@ public class TemplateItem
         Id = id;
         Libelle = ValiderLibelle(libelle);
         Ordre = ordre;
-        ConditionsTypeContrat = (conditionsTypeContrat ?? Enumerable.Empty<TypeContrat>()).ToList().AsReadOnly();
+        ConditionsTypeContrat = (conditionsTypeContrat ?? Enumerable.Empty<ContractType>()).ToList().AsReadOnly();
     }
 
-    public bool ApplicablePour(TypeContrat typeContrat) =>
+    public bool ApplicablePour(ContractType typeContrat) =>
         ConditionsTypeContrat.Count == 0 || ConditionsTypeContrat.Contains(typeContrat);
 
     private static string ValiderLibelle(string libelle)

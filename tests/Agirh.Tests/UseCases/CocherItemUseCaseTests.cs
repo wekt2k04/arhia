@@ -24,18 +24,18 @@ public class CocherItemUseCaseTests
     [Fact]
     public async Task ExecuterAsync_RHSurSonPole_CocheLItem()
     {
-        var poleId = Guid.NewGuid();
-        var rh = new CompteUtilisateur(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.RH, poleId, Maintenant);
-        var collaborateur = new Collaborateur(Guid.NewGuid(), new Matricule("MAT001"), "Dupont", "Jean", "Dev", poleId, TypeContrat.CDI, Maintenant);
-        var (instance, itemId) = CreerInstance(collaborateur.Id);
+        var departmentId = Guid.NewGuid();
+        var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, departmentId, Maintenant);
+        var employee = new Employee(Guid.NewGuid(), new EmployeeNumber("MAT001"), "Dupont", "Jean", "Dev", departmentId, ContractType.CDI, Maintenant);
+        var (instance, itemId) = CreerInstance(employee.Id);
 
         var instances = new Mock<IWorkflowInstanceRepository>();
         instances.Setup(r => r.ObtenirParIdAsync(instance.Id, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
-        var collaborateurs = new Mock<ICollaborateurRepository>();
-        collaborateurs.Setup(r => r.ObtenirParIdAsync(collaborateur.Id, It.IsAny<CancellationToken>())).ReturnsAsync(collaborateur);
-        var useCase = new CocherItemUseCase(instances.Object, collaborateurs.Object);
+        var employees = new Mock<IEmployeeRepository>();
+        employees.Setup(r => r.GetByIdAsync(employee.Id, It.IsAny<CancellationToken>())).ReturnsAsync(employee);
+        var useCase = new CocherItemUseCase(instances.Object, employees.Object);
 
-        await useCase.ExecuterAsync(rh, instance.Id, itemId, ItemEtat.Ok, "RAS", Maintenant);
+        await useCase.ExecuteAsync(rh, instance.Id, itemId, ItemEtat.Ok, "RAS", Maintenant);
 
         instance.Items.Single(i => i.Id == itemId).Etat.Should().Be(ItemEtat.Ok);
         instances.Verify(r => r.MettreAJourAsync(instance, It.IsAny<CancellationToken>()), Times.Once);
@@ -44,54 +44,54 @@ public class CocherItemUseCaseTests
     [Fact]
     public async Task ExecuterAsync_RHSurAutrePole_LeveAccesRefuseException()
     {
-        var rh = new CompteUtilisateur(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.RH, Guid.NewGuid(), Maintenant);
-        var collaborateur = new Collaborateur(Guid.NewGuid(), new Matricule("MAT001"), "Dupont", "Jean", "Dev", Guid.NewGuid(), TypeContrat.CDI, Maintenant);
-        var (instance, itemId) = CreerInstance(collaborateur.Id);
+        var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, Guid.NewGuid(), Maintenant);
+        var employee = new Employee(Guid.NewGuid(), new EmployeeNumber("MAT001"), "Dupont", "Jean", "Dev", Guid.NewGuid(), ContractType.CDI, Maintenant);
+        var (instance, itemId) = CreerInstance(employee.Id);
 
         var instances = new Mock<IWorkflowInstanceRepository>();
         instances.Setup(r => r.ObtenirParIdAsync(instance.Id, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
-        var collaborateurs = new Mock<ICollaborateurRepository>();
-        collaborateurs.Setup(r => r.ObtenirParIdAsync(collaborateur.Id, It.IsAny<CancellationToken>())).ReturnsAsync(collaborateur);
-        var useCase = new CocherItemUseCase(instances.Object, collaborateurs.Object);
+        var employees = new Mock<IEmployeeRepository>();
+        employees.Setup(r => r.GetByIdAsync(employee.Id, It.IsAny<CancellationToken>())).ReturnsAsync(employee);
+        var useCase = new CocherItemUseCase(instances.Object, employees.Object);
 
-        var act = () => useCase.ExecuterAsync(rh, instance.Id, itemId, ItemEtat.Ok, null, Maintenant);
+        var act = () => useCase.ExecuteAsync(rh, instance.Id, itemId, ItemEtat.Ok, null, Maintenant);
 
-        await act.Should().ThrowAsync<AccesRefuseException>();
+        await act.Should().ThrowAsync<AccessDeniedException>();
         instances.Verify(r => r.MettreAJourAsync(It.IsAny<WorkflowInstance>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task ExecuterAsync_ActeurCollaborateur_LeveAccesRefuseException()
     {
-        var collaborateurActeur = new CompteUtilisateur(Guid.NewGuid(), "collab@agirh.test", "hash", RoleType.Collaborateur, null, Maintenant);
+        var employeeActor = new UserAccount(Guid.NewGuid(), "collab@agirh.test", "hash", RoleType.Employee, null, Maintenant);
         var instances = new Mock<IWorkflowInstanceRepository>();
-        var collaborateurs = new Mock<ICollaborateurRepository>();
-        var useCase = new CocherItemUseCase(instances.Object, collaborateurs.Object);
+        var employees = new Mock<IEmployeeRepository>();
+        var useCase = new CocherItemUseCase(instances.Object, employees.Object);
 
-        var act = () => useCase.ExecuterAsync(collaborateurActeur, Guid.NewGuid(), Guid.NewGuid(), ItemEtat.Ok, null, Maintenant);
+        var act = () => useCase.ExecuteAsync(employeeActor, Guid.NewGuid(), Guid.NewGuid(), ItemEtat.Ok, null, Maintenant);
 
-        await act.Should().ThrowAsync<AccesRefuseException>();
+        await act.Should().ThrowAsync<AccessDeniedException>();
         instances.Verify(r => r.ObtenirParIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task ExecuterAsync_WorkflowArchive_LeveInvalidOperationException()
     {
-        var poleId = Guid.NewGuid();
-        var rh = new CompteUtilisateur(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.RH, poleId, Maintenant);
-        var collaborateur = new Collaborateur(Guid.NewGuid(), new Matricule("MAT001"), "Dupont", "Jean", "Dev", poleId, TypeContrat.CDI, Maintenant);
-        var (instance, itemId) = CreerInstance(collaborateur.Id);
+        var departmentId = Guid.NewGuid();
+        var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, departmentId, Maintenant);
+        var employee = new Employee(Guid.NewGuid(), new EmployeeNumber("MAT001"), "Dupont", "Jean", "Dev", departmentId, ContractType.CDI, Maintenant);
+        var (instance, itemId) = CreerInstance(employee.Id);
         instance.Cocher(itemId, ItemEtat.Ok, Guid.NewGuid(), Maintenant, null);
         instance.Cloturer(Maintenant);
         instance.Archiver();
 
         var instances = new Mock<IWorkflowInstanceRepository>();
         instances.Setup(r => r.ObtenirParIdAsync(instance.Id, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
-        var collaborateurs = new Mock<ICollaborateurRepository>();
-        collaborateurs.Setup(r => r.ObtenirParIdAsync(collaborateur.Id, It.IsAny<CancellationToken>())).ReturnsAsync(collaborateur);
-        var useCase = new CocherItemUseCase(instances.Object, collaborateurs.Object);
+        var employees = new Mock<IEmployeeRepository>();
+        employees.Setup(r => r.GetByIdAsync(employee.Id, It.IsAny<CancellationToken>())).ReturnsAsync(employee);
+        var useCase = new CocherItemUseCase(instances.Object, employees.Object);
 
-        var act = () => useCase.ExecuterAsync(rh, instance.Id, itemId, ItemEtat.Ko, null, Maintenant);
+        var act = () => useCase.ExecuteAsync(rh, instance.Id, itemId, ItemEtat.Ko, null, Maintenant);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }

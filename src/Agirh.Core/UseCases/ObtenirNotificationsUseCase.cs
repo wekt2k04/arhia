@@ -24,39 +24,39 @@ public sealed class ObtenirNotificationsUseCase
     private const int SeuilJoursItemEnAttente = 3;
     private const int SeuilJoursEcheanceDepart = 3;
 
-    private readonly ICollaborateurRepository _collaborateurs;
+    private readonly IEmployeeRepository _employees;
     private readonly IWorkflowInstanceRepository _instances;
     private readonly IWorkflowTemplateRepository _templates;
 
     public ObtenirNotificationsUseCase(
-        ICollaborateurRepository collaborateurs,
+        IEmployeeRepository employees,
         IWorkflowInstanceRepository instances,
         IWorkflowTemplateRepository templates)
     {
-        _collaborateurs = collaborateurs;
+        _employees = employees;
         _instances = instances;
         _templates = templates;
     }
 
-    public async Task<IReadOnlyList<Notification>> ExecuterAsync(CompteUtilisateur acteur, DateTime maintenant, CancellationToken ct = default) =>
-        acteur.Role switch
+    public async Task<IReadOnlyList<Notification>> ExecuteAsync(UserAccount actor, DateTime maintenant, CancellationToken ct = default) =>
+        actor.Role switch
         {
-            RoleType.RH => await NotificationsPourRHAsync(acteur, maintenant, ct),
-            RoleType.AdminQualite => await NotificationsPourAdminAsync(maintenant, ct),
+            RoleType.HR => await NotificationsPourRHAsync(actor, maintenant, ct),
+            RoleType.QualityAdmin => await NotificationsPourAdminAsync(maintenant, ct),
             _ => Array.Empty<Notification>()
         };
 
-    private async Task<IReadOnlyList<Notification>> NotificationsPourRHAsync(CompteUtilisateur acteur, DateTime maintenant, CancellationToken ct)
+    private async Task<IReadOnlyList<Notification>> NotificationsPourRHAsync(UserAccount actor, DateTime maintenant, CancellationToken ct)
     {
-        // acteur.PoleId est garanti non-null pour un RH (CompteUtilisateur.ValiderPoleId).
-        var collaborateurs = await _collaborateurs.ListerParPoleAsync(acteur.PoleId!.Value, ct);
+        // actor.DepartmentId est garanti non-null pour un RH (UserAccount.ValidateDepartmentId).
+        var employees = await _employees.ListByDepartmentAsync(actor.DepartmentId!.Value, ct);
         var notifications = new List<Notification>();
 
-        foreach (var collaborateur in collaborateurs)
+        foreach (var employee in employees)
         {
             foreach (var type in new[] { WorkflowType.Onboarding, WorkflowType.Offboarding })
             {
-                var instance = await _instances.ObtenirParCollaborateurAsync(collaborateur.Id, type, ct);
+                var instance = await _instances.ObtenirParCollaborateurAsync(employee.Id, type, ct);
                 if (instance is null || instance.Statut != WorkflowStatus.EnCours)
                     continue;
 
@@ -65,24 +65,24 @@ public sealed class ObtenirNotificationsUseCase
                 {
                     notifications.Add(new Notification(
                         TypeNotification.ItemEnAttenteDepuisLongtemps,
-                        $"{itemsEnAttente} item(s) en attente depuis plus de {SeuilJoursItemEnAttente} jours — dossier {type} de {collaborateur.Prenom} {collaborateur.Nom}.",
+                        $"{itemsEnAttente} item(s) en attente depuis plus de {SeuilJoursItemEnAttente} jours — dossier {type} de {employee.FirstName} {employee.LastName}.",
                         instance.DateCreation,
                         instance.Id));
                 }
             }
 
-            if (collaborateur.DateDepart is { } dateDepart)
+            if (employee.DepartureDate is { } departureDate)
             {
-                var joursRestants = (dateDepart - maintenant).TotalDays;
-                var offboardingDejaDemarre = await _instances.ObtenirParCollaborateurAsync(collaborateur.Id, WorkflowType.Offboarding, ct) is not null;
+                var joursRestants = (departureDate - maintenant).TotalDays;
+                var offboardingDejaDemarre = await _instances.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Offboarding, ct) is not null;
 
                 if (!offboardingDejaDemarre && joursRestants >= 0 && joursRestants <= SeuilJoursEcheanceDepart)
                 {
                     notifications.Add(new Notification(
                         TypeNotification.EcheanceDepartApprochante,
-                        $"Départ de {collaborateur.Prenom} {collaborateur.Nom} prévu dans {(int)Math.Ceiling(joursRestants)} jour(s) — offboarding pas encore démarré.",
-                        dateDepart,
-                        collaborateur.Id));
+                        $"Départ de {employee.FirstName} {employee.LastName} prévu dans {(int)Math.Ceiling(joursRestants)} jour(s) — offboarding pas encore démarré.",
+                        departureDate,
+                        employee.Id));
                 }
             }
         }
