@@ -371,3 +371,20 @@
 - Contrôle visuel pixel de `/chat`, routeur conversationnel, jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8, calendrier réel du stage — inchangé.
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-18 — Poste de travail (Windows)
+
+**Fait :**
+- Plan de migration du vocabulaire métier français → anglais dans le code (identifiants, pas le texte utilisateur/RAG) validé avec le porteur du projet après une itération : proposition initiale à 10+ tranches jugée trop fine, consolidée en 4 patches sur demande explicite ("fais le découpage comme tu veux et applique immédiatement la première tranche"). Plan complet sauvegardé (glossaire, 4 patches, exceptions actées) — voir le fichier de plan référencé dans le contexte de session, ou reconstituer depuis `NEXT_SESSION.md` si besoin.
+- **Patch 1/4 exécuté en entier et poussé** : `Collaborateur`→`Employee`, `Pole`→`Department`, `CompteUtilisateur`→`UserAccount`, `Matricule`→`EmployeeNumber`, enums `RoleType`/`ContractType` (ex-`TypeContrat`, valeurs CDI/CDD/Stage/Alternance conservées), `AccesRefuseException`→`AccessDeniedException`, `PoleScopeGuard`→`DepartmentScopeGuard`, mécanique `ExecuterAsync`→`ExecuteAsync`/`acteur`→`actor` sur les 15 UseCases, `EmployeeController`/`AuthController` réécrits (routes `api/collaborateurs`→`api/employees`, `elever-role`→`elevate-role`), 5 autres controllers corrigés en références croisées, config Jwt/Ollama renommée, 5 fichiers frontend (`motDePasse`→`password`, `poleId`/`compteId`→`departmentId`/`accountId`), 23 des 32 fichiers de tests. Détail complet dans `NEXT_SESSION.md`.
+- Erreur mineure auto-corrigée en cours de route : un `replace_all` trop large a renommé par erreur une propriété hors périmètre (`ConditionsTypeContrat`→`ConditionsContractType` dans `TemplateItem.cs`) — repéré au diff, corrigé immédiatement avant tout commit.
+- Vérifications : `dotnet build` 0 erreur/0 warning, `dotnet test` 211/211 verts (hors catégorie Evaluation), `npx tsc --noEmit` et `npm run build` (frontend) verts. Commit unique poussé sur `master`.
+
+**Reste :**
+- Patches 2 (Workflow & Template), 3 (Conversation & RAG), 4 (Finalisation + régénération migration EF + resync base + mise à jour docs/**/*.md) — pas commencés. Confirmation du porteur du projet à demander avant d'enchaîner (l'autorisation reçue portait explicitement sur la première tranche).
+- `docs/**/*.md` volontairement pas retouchés à ce stade (prévu au Patch 4).
+- Contrôle visuel pixel de `/chat`, routeur conversationnel, jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8, calendrier réel du stage, `docs/APPRENTISSAGE/principal.pdf` non identifié — tous inchangés, sans rapport avec cette session.
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.

@@ -1,11 +1,27 @@
 # Reprise de session — AGIRH V8
 
-*Dernière mise à jour : 2026-08-17, poste de travail (Windows). Ce fichier est **réécrit** à chaque checkpoint (pas un journal) — pour l'historique complet, voir `.claude/HANDOFF/LOG.md`.*
+*Dernière mise à jour : 2026-08-18, poste de travail (Windows). Ce fichier est **réécrit** à chaque checkpoint (pas un journal) — pour l'historique complet, voir `.claude/HANDOFF/LOG.md`.*
 
 ## En une phrase
-**Milestones 0-9 et 11 terminés, application complète fonctionnelle de bout en bout, y compris en Docker Compose. Profil Ollama entreprise complet (`Maison`/`Entreprise` via `--launch-profile`). Racine du dépôt entièrement réorganisée** (documents de cadrage sous `docs/`, données RAG sous `rag/`, HANDOFF et scripts sous `.claude/`, 2 checklists SMSI sources retirées — déjà absorbées ailleurs) **et les 5 documents NotebookLM enrichis de vrai code + 2 prompts (audio/flashcards) créés.** Page de garde → connexion/inscription (cookie httpOnly) → chat en streaming réel (SSE) → notifications en direct — tout vérifié en HTTP réel, y compris Docker Compose sur base fraîche. Il reste : la vérification visuelle **pixel** du chat (seul le porteur du projet peut clore ce point), le routeur conversationnel (~27% de mauvais routage, mis de côté volontairement), le jeu de Q/R gold à reconfirmer d'un seul tenant, et des chantiers annexes.
+**Milestones 0-9 et 11 terminés, application complète fonctionnelle de bout en bout, y compris en Docker Compose.** Migration en cours du vocabulaire métier français → anglais dans le code (plan à 4 patches, voir `~/.claude/plans/jazzy-booping-lovelace.md`) : **Patch 1/4 (Identité, comptes & sécurité) terminé, committé et poussé** — 211/211 tests verts, build + `npm run build` verts. Patches 2-4 (Workflow/Template, Conversation/RAG, Finalisation) restent à faire. Le reste de l'état applicatif (Docker Compose, NotebookLM, profils Ollama) est inchangé depuis le checkpoint précédent.
 
-## Depuis le dernier checkpoint (2026-08-17, poste de travail)
+## Depuis le dernier checkpoint (2026-08-18, poste de travail)
+
+**Patch 1/4 de la migration vocabulaire métier français → anglais exécuté en entier**, sur autorisation explicite du porteur du projet ("j'te donne la main : fais le découpage comme tu veux et applique immédiatement la première tranche") après validation du plan à 4 patches (voir le plan sauvegardé pour le détail complet du glossaire et du découpage en patches).
+
+Renommages effectués — Domain → Core → Infrastructure → Api → tests, tous les renommages de type suivis par `git mv` :
+- **Entités** : `Collaborateur`→`Employee`, `Pole`→`Department`, `CompteUtilisateur`→`UserAccount`, `Matricule`→`EmployeeNumber` (value object).
+- **Enums** : `RoleType.Collaborateur/RH/AdminQualite`→`.Employee/.HR/.QualityAdmin` ; `TypeContrat`→`ContractType` (renommé, **valeurs `CDI/CDD/Stage/Alternance` volontairement conservées** — termes légaux français sans équivalent anglais propre, décision actée dans le plan).
+- **Sécurité** : `AccesRefuseException`→`AccessDeniedException`, `PoleScopeGuard`→`DepartmentScopeGuard` (`CanAccessDepartment`/`CanAccessEmployee`), `RbacMatrix.EstAutorise`→`.IsAuthorized`.
+- **UseCases** (15 fichiers) : mécanique `ExecuterAsync`→`ExecuteAsync` + paramètre `acteur`→`actor` appliquée partout ; 4 fichiers entièrement renommés (`AuthentifierUseCase`→`AuthenticateUseCase`, `CreerFicheCollaborateurUseCase`→`CreateEmployeeRecordUseCase`, `ElevRoleUseCase`→`ElevateRoleUseCase`, `InscrireUseCase`→`RegisterUseCase`) ; les 11 autres gardent leur nom français (Cocher/Cloturer/Archiver/Instancier/Proposer/Verifier/Approuver/Rejeter/ObtenirNotifications/IngererCorpus/RepondreConversation — patches 2/3) mais ont reçu les corrections de références croisées obligatoires (types renommés utilisés en paramètre).
+- **Api** : `EmployeeController`/`AuthController` réécrits en entier (dont route `api/collaborateurs`→`api/employees`, `elever-role`→`elevate-role`) ; `ChatController`/`NotificationController`/`TemplateController`/`WorkflowController`/`AdminController` corrigés en références croisées uniquement (leurs propres routes/verbes/DTO restent français, patches 2/3) ; `CurrentUserAccessor.ObtenirActeurAsync`→`GetActorAsync`.
+- **Config** : `Jwt:DureeValiditeMinutes`→`TokenLifetimeMinutes`, `Ollama:RouterModele/GeneratorModele`→`RouterModel/GeneratorModel` (dans tous les `appsettings*.json*` + `launchSettings.json*`, y compris les `.example`).
+- **Frontend (5 fichiers)** : `motDePasse`→`password` (login/register, y compris le corps JSON envoyé), `poleId`/`compteId`→`departmentId`/`accountId` dans `current-user.ts` et les 2 routes BFF auth (cascade forcée par le renommage du DTO `AuthResponse` côté Api) — `npm run build` et `npx tsc --noEmit` vérifiés verts après coup.
+- **Tests (23 des 32 fichiers touchés)** : renommage mécanique 1:1, y compris les noms de classe de test (`CollaborateurTests`→`EmployeeTests`, etc.) pour les fichiers entièrement possédés par le patch ; pour les fichiers dont le sujet principal reste français (ex. `CloturerDossierUseCaseTests`), seuls les identifiants réellement renommés sont corrigés — **les noms de méthode `[Fact]` de ces fichiers-là sont restés en français tels quels**, décision prise en cours de route pour rester mécanique et ne pas transformer un renommage de vocabulaire en réécriture de scénarios de test.
+
+**Erreur corrigée en cours de route** : un `replace_all` sur le token `TypeContrat` dans `TemplateItem.cs` a accidentellement renommé la propriété `ConditionsTypeContrat` (hors périmètre patch 1) en `ConditionsContractType` — repéré immédiatement au diff, réécrit pour ne garder que le token de type `ContractType`, propriété reredevenue `ConditionsTypeContrat`.
+
+**Documentation `docs/**/*.md` volontairement non touchée** (mentions de `Collaborateur`/`Pole`/etc. dans les docs métier restent telles quelles pour l'instant) : la mise à jour des citations de code dans la doc est explicitement prévue au Patch 4 ("Finalisation") du plan, pas avant — pour ne pas retoucher la doc à chaque patch intermédiaire.
 
 **Racine du dépôt réorganisée en deux passes**, sur demande explicite du porteur du projet ("trop de fichiers/dossiers à la racine, noms révélateurs") :
 
@@ -39,11 +55,10 @@ Conséquences code (pas seulement de la doc) et **vérifiées empiriquement, pas
 - **IP réelle jamais committée** : `launchSettings.json` réel dans `.gitignore` (comme `appsettings.Development.json`), `launchSettings.json.example` commité avec un placeholder.
 
 **Action immédiate recommandée pour la prochaine session :**
-1. ~~Vrai logo AGIRH pas encore branché~~ **→ FAIT** : `frontend/components/agirh-mark.tsx` utilise désormais `frontend/public/agirh-logo.png` (copié depuis `presentation/assets/agirh_white_rgba.png`) via `next/image`, dimensions intrinsèques respectées. Vérifié par screenshots réels (Edge headless) sur page de garde + connexion, `tsc`/`build`/`lint` verts. `AgirhMark`/`iconOnly` (placeholder inutilisé) supprimés.
-2. Le porteur du projet peut ouvrir `http://localhost:3000/chat` lui-même pour le dernier doute purement visuel (compte `chattest@agirh.test`).
-3. **En reprenant sur un autre appareil** : `git pull` fera disparaître du disque `.claude/HANDOFF/`, `.claude/scripts/download-models.ps1` réel (remplacé par ce que Git suivait avant), `launchSettings.json` et `docs/presentations/AGIRH_Soutenance.pptx` — ce ne sont pas des pertes de données, juste des fichiers gitignorés/déplacés qu'il faut régénérer localement (copier les `.example`, relancer `download-models.ps1` ou `generate_pptx.py` si besoin — ce dernier a aussi besoin du dossier `presentation/assets/` externe, non versionné). Lire ce fichier avant de supposer quoi que ce soit sur les chemins.
+1. **Demander confirmation au porteur du projet avant d'enchaîner sur le Patch 2** ("Cycle de vie Workflow & Template") — l'autorisation "j'te donne la main" reçue portait explicitement sur "la première tranche", pas sur l'enchaînement automatique des 4 patches. Une fois confirmé : exécuter le Patch 2 en entier (verbes cocher/cloturer/archiver/verifier/approuver/rejeter + reindexer-corpus, enums `WorkflowStatus`/`ItemEtat`→`ItemStatus`/`TemplateStatut`→`TemplateStatus`, `WorkflowController`/`TemplateController`/`AdminController` + routes, colonnes DB associées — voir le plan sauvegardé pour le détail), même protocole que le Patch 1 (build+tests verts, commit, push).
+2. Sujets pré-existants toujours ouverts (indépendants de la migration, voir "Ce qui reste ouvert" plus bas) : vérification visuelle pixel du chat, routeur conversationnel (~27% de mauvais routage), jeu de Q/R gold à reconfirmer.
+3. **En reprenant sur un autre appareil** : `git pull` fera disparaître du disque `.claude/HANDOFF/`, `.claude/scripts/download-models.ps1` réel, `launchSettings.json` et `docs/presentations/AGIRH_Soutenance.pptx` — pas des pertes de données, juste des fichiers gitignorés/déplacés à régénérer localement (copier les `.example`, relancer `download-models.ps1` si besoin). Lire ce fichier avant de supposer quoi que ce soit sur les chemins.
 4. Utiliser les prompts NotebookLM (`docs/notebooklm/prompt-*.md`) pour générer l'Audio Overview et les flashcards si souhaité — pas encore fait, juste préparé.
-5. Présentation prête pour répétition (`docs/presentations/script_orateur.md`) — jamais relue à voix haute pour vérifier le minutage réel (~15 min visé, pas chronométré en pratique).
 
 ## Ce qui marche déjà (vérifié en HTTP réel, pas juste écrit)
 - Socle métier, auth, pipeline RAG, orchestration conversationnelle (milestones 0-5, 7, 8) — inchangés depuis les checkpoints précédents.
@@ -71,7 +86,7 @@ Conséquences code (pas seulement de la doc) et **vérifiées empiriquement, pas
 Tentative déjà faite et abandonnée : plus d'exemples/règles dans le prompt (`OllamaRouterAdapter`), testée empiriquement sur 11 cas réels, effet net nul. **Ne pas refaire la même chose.** Pistes non explorées : modèle différent pour le routeur uniquement ; pré-filtre déterministe en complément du LLM ; accepter le taux d'erreur actuel comme limite connue du prototype.
 
 ## Prochaine action concrète
-**Pas encore décidé avec le porteur du projet.** Options pour la suite :
+**Confirmer avec le porteur du projet le passage au Patch 2** de la migration vocabulaire (voir ci-dessus). Au-delà de la migration, la suite reste **pas encore décidée** :
 1. Reprendre le routeur avec une nouvelle approche.
 2. Reconfirmer le jeu de Q/R gold complet (48 questions).
 3. Endpoints de lecture/liste + vues RH au-delà du chat.
@@ -89,7 +104,7 @@ Tentative déjà faite et abandonnée : plus d'exemples/règles dans le prompt (
    - **Docker Compose** : `.env` à la racine (copier `.env.example`), puis `docker compose up -d --build`. Arrêter `agirh-sql`/`agirh-qdrant` manuels avant (conflit de ports 1433/6333), les redémarrer après. Après le tout premier démarrage : promouvoir un compte AdminQualite en SQL puis `POST api/admin/reindexer-corpus`.
 4. Avant de coder une nouvelle logique métier ou un choix technique : relire `docs/LOGIQUE_METIER.md` / `docs/STACK_TECHNIQUE.md` / `docs/ARCHITECTURE.md` si la tâche touche à une décision déjà actée.
 5. Pour tester en HTTP depuis ce poste (Git Bash/Windows) avec des caractères accentués : passer par un fichier JSON (`curl --data-binary @fichier.json`), pas une chaîne shell.
-6. Aucun compte AdminQualite/pôle n'existe par défaut dans une base fraîche — promotion manuelle en SQL. Comptes de test existants : `chattest@agirh.test`, `admintest@agirh.test`, `frontendtest@agirh.test` (Collaborateur).
+6. Aucun compte QualityAdmin/département n'existe par défaut dans une base fraîche — promotion manuelle en SQL. Comptes de test existants : `chattest@agirh.test`, `admintest@agirh.test`, `frontendtest@agirh.test` (Employee).
 7. **Si `rag/models/` est vide sur ce poste** : lancer `.claude/scripts/download-models.ps1` (idempotent, ~850 Mo).
 8. **À la fin de la session (ou après un jalon terminé)** : mettre à jour ce fichier + `.claude/HANDOFF/LOG.md` + `docs/CHECKLIST.md`, puis `git commit` + `git push origin master`.
 
@@ -106,7 +121,7 @@ Tentative déjà faite et abandonnée : plus d'exemples/règles dans le prompt (
 - **Reranking cross-encoder** : format de paire RoBERTa = `<s> requête </s></s> document </s>`.
 - **Score de reranking ≠ présence de la réponse** : un chunk topiquement proche peut scorer très haut (jusqu'à 0.78 observé) sans traiter le fait précis demandé — c'est le texte du générateur qui fait foi, pas le score.
 - **Petit modèle + prompt long ≠ meilleur routage** : vérifié empiriquement que doubler les exemples few-shot n'a pas amélioré la classification sur `phi4-mini:3.8b`.
-- **Invariants du domaine à ne pas re-vérifier en amont** : `CompteUtilisateur` garantit déjà qu'un RH a toujours un `PoleId` — inutile d'ajouter une vérification défensive supplémentaire.
+- **Invariants du domaine à ne pas re-vérifier en amont** : `UserAccount` garantit déjà qu'un RH a toujours un `DepartmentId` — inutile d'ajouter une vérification défensive supplémentaire.
 - **Ollama** : `gemma4:12b` trop lent (pas de GPU) — Router et Generator utilisent `phi4-mini:3.8b`. JSON en minuscules requis (`JsonSerializerDefaults.Web`).
 - **curl / accents sous Windows Git Bash** : passer par un fichier (`--data-binary @fichier.json`) pour tout texte accentué en test manuel.
 - **Bootstrap du premier compte Admin/Qualité et du premier pôle** : aucun endpoint ne les crée. Promotion/création manuelle en SQL en dev.
