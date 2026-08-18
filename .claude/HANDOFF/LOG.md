@@ -388,3 +388,20 @@
 - Contrôle visuel pixel de `/chat`, routeur conversationnel, jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8, calendrier réel du stage, `docs/APPRENTISSAGE/principal.pdf` non identifié — tous inchangés, sans rapport avec cette session.
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-18 (suite) — Poste de travail (Windows)
+
+**Fait :**
+- **Patch 2/4 de la migration vocabulaire français → anglais exécuté et poussé**, sur demande explicite du porteur du projet ("Continue les corrections Patch 2"). Renommage complet de `WorkflowInstance`/`WorkflowTemplate`/`ChecklistItemStatus`/`TemplateItem`/`TemplateSection` (propriétés, méthodes), enums `ItemEtat`→`ItemStatus` et `TemplateStatut`→`TemplateStatus` (valeurs traduites), `WorkflowStatus` (valeurs traduites : EnCours/Cloture/Archive/Annule/Suspendu → InProgress/Closed/Archived/Cancelled/Suspended), les 9 UseCases du cycle Workflow/Template (tous renommés), `IWorkflowInstanceRepository`/`IWorkflowTemplateRepository`, `Notification`/`TypeNotification`→`NotificationType`, `WorkflowController`/`TemplateController` (+ routes des verbes), route `reindexer-corpus`→`reindex-corpus`. Détail complet dans `NEXT_SESSION.md`.
+- **Point d'arbitrage soulevé avant d'agir** (pas tranché seul) : renommer les valeurs de `WorkflowStatus` faisait fuiter un mot anglais dans une phrase du chat produite par `RepondreConversationUseCase` (périmètre patch 3, pas touché). Question posée avec 3 options concrètes ; porteur du projet a choisi de renommer l'enum quand même + ajouter un petit mapping français local (`StatutEnFrancais`, switch de 5 lignes) dans ce fichier pour préserver la règle "texte utilisateur final en français" en attendant sa réécriture complète au patch 3. À retirer proprement quand le patch 3 réécrira ce fichier.
+- Vérifications : `dotnet build` 0 erreur/0 warning, `dotnet test` 211/211 verts (hors catégorie Evaluation, même total qu'avant — renommage mécanique, aucun test ajouté/retiré). Pas d'impact frontend ce patch (confirmé par grep : aucun proxy BFF n'existe encore pour ces routes). Commit unique poussé sur `master`.
+
+**Reste :**
+- Patch 3 (Conversation & RAG) et Patch 4 (Finalisation) — pas commencés. Confirmation du porteur du projet à demander avant d'enchaîner (même règle qu'avant chaque patch).
+- Le mapping temporaire `StatutEnFrancais` dans `RepondreConversationUseCase.cs` doit être retiré/remplacé proprement au patch 3, pas oublié.
+- `docs/**/*.md` toujours pas retouchés (prévu au Patch 4).
+- Contrôle visuel pixel de `/chat`, routeur conversationnel, jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8, calendrier réel du stage, `docs/APPRENTISSAGE/principal.pdf` non identifié — tous inchangés, sans rapport avec cette session.
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
