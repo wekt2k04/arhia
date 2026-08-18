@@ -7,56 +7,56 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Agirh.Api.Controllers;
 
-public record InstancierWorkflowRequest(Guid CollaborateurId, WorkflowType Type);
+public record InstantiateWorkflowRequest(Guid EmployeeId, WorkflowType Type);
 
 public record WorkflowInstanceResponse(
     Guid Id,
-    Guid CollaborateurId,
+    Guid EmployeeId,
     Guid TemplateId,
     string TemplateVersion,
     WorkflowType Type,
-    WorkflowStatus Statut,
-    DateTime DateCreation,
+    WorkflowStatus Status,
+    DateTime CreatedAt,
     IReadOnlyList<ChecklistItemResponse> Items);
 
-public record ChecklistItemResponse(Guid Id, string Libelle, ItemEtat Etat, string? Commentaire);
+public record ChecklistItemResponse(Guid Id, string Label, ItemStatus Status, string? Comment);
 
-public record CocherItemRequest(ItemEtat Etat, string? Commentaire);
+public record CheckItemRequest(ItemStatus Status, string? Comment);
 
 [ApiController]
 [Route("api/workflows")]
 [Authorize]
 public class WorkflowController : ControllerBase
 {
-    private readonly InstancierWorkflowUseCase _instancier;
-    private readonly CocherItemUseCase _cocherItem;
-    private readonly CloturerDossierUseCase _cloturerDossier;
-    private readonly ArchiverDossierUseCase _archiverDossier;
+    private readonly InstantiateWorkflowUseCase _instantiate;
+    private readonly CheckItemUseCase _checkItem;
+    private readonly CloseCaseUseCase _closeCase;
+    private readonly ArchiveCaseUseCase _archiveCase;
     private readonly ICurrentUserAccessor _currentUser;
 
     public WorkflowController(
-        InstancierWorkflowUseCase instancier,
-        CocherItemUseCase cocherItem,
-        CloturerDossierUseCase cloturerDossier,
-        ArchiverDossierUseCase archiverDossier,
+        InstantiateWorkflowUseCase instantiate,
+        CheckItemUseCase checkItem,
+        CloseCaseUseCase closeCase,
+        ArchiveCaseUseCase archiveCase,
         ICurrentUserAccessor currentUser)
     {
-        _instancier = instancier;
-        _cocherItem = cocherItem;
-        _cloturerDossier = cloturerDossier;
-        _archiverDossier = archiverDossier;
+        _instantiate = instantiate;
+        _checkItem = checkItem;
+        _closeCase = closeCase;
+        _archiveCase = archiveCase;
         _currentUser = currentUser;
     }
 
     [HttpPost]
-    public async Task<ActionResult<WorkflowInstanceResponse>> Instancier(InstancierWorkflowRequest request, CancellationToken ct)
+    public async Task<ActionResult<WorkflowInstanceResponse>> Instantiate(InstantiateWorkflowRequest request, CancellationToken ct)
     {
         var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
-            var instance = await _instancier.ExecuteAsync(actor, request.CollaborateurId, request.Type, DateTime.UtcNow, ct);
-            return Ok(VersReponse(instance));
+            var instance = await _instantiate.ExecuteAsync(actor, request.EmployeeId, request.Type, DateTime.UtcNow, ct);
+            return Ok(ToResponse(instance));
         }
         catch (AccessDeniedException)
         {
@@ -68,14 +68,14 @@ public class WorkflowController : ControllerBase
         }
     }
 
-    [HttpPost("{id:guid}/items/{itemId:guid}/cocher")]
-    public async Task<IActionResult> CocherItem(Guid id, Guid itemId, CocherItemRequest request, CancellationToken ct)
+    [HttpPost("{id:guid}/items/{itemId:guid}/check")]
+    public async Task<IActionResult> CheckItem(Guid id, Guid itemId, CheckItemRequest request, CancellationToken ct)
     {
         var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
-            await _cocherItem.ExecuteAsync(actor, id, itemId, request.Etat, request.Commentaire, DateTime.UtcNow, ct);
+            await _checkItem.ExecuteAsync(actor, id, itemId, request.Status, request.Comment, DateTime.UtcNow, ct);
             return NoContent();
         }
         catch (AccessDeniedException)
@@ -92,14 +92,14 @@ public class WorkflowController : ControllerBase
         }
     }
 
-    [HttpPost("{id:guid}/cloturer")]
-    public async Task<IActionResult> Cloturer(Guid id, CancellationToken ct)
+    [HttpPost("{id:guid}/close")]
+    public async Task<IActionResult> Close(Guid id, CancellationToken ct)
     {
         var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
-            await _cloturerDossier.ExecuteAsync(actor, id, DateTime.UtcNow, ct);
+            await _closeCase.ExecuteAsync(actor, id, DateTime.UtcNow, ct);
             return NoContent();
         }
         catch (AccessDeniedException)
@@ -112,14 +112,14 @@ public class WorkflowController : ControllerBase
         }
     }
 
-    [HttpPost("{id:guid}/archiver")]
-    public async Task<IActionResult> Archiver(Guid id, CancellationToken ct)
+    [HttpPost("{id:guid}/archive")]
+    public async Task<IActionResult> Archive(Guid id, CancellationToken ct)
     {
         var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
-            await _archiverDossier.ExecuteAsync(actor, id, ct);
+            await _archiveCase.ExecuteAsync(actor, id, ct);
             return NoContent();
         }
         catch (AccessDeniedException)
@@ -132,8 +132,8 @@ public class WorkflowController : ControllerBase
         }
     }
 
-    private static WorkflowInstanceResponse VersReponse(Domain.Entities.WorkflowInstance instance) => new(
-        instance.Id, instance.CollaborateurId, instance.TemplateId, instance.TemplateVersion, instance.Type,
-        instance.Statut, instance.DateCreation,
-        instance.Items.Select(i => new ChecklistItemResponse(i.Id, i.Libelle, i.Etat, i.Commentaire)).ToList());
+    private static WorkflowInstanceResponse ToResponse(Domain.Entities.WorkflowInstance instance) => new(
+        instance.Id, instance.EmployeeId, instance.TemplateId, instance.TemplateVersion, instance.Type,
+        instance.Status, instance.CreatedAt,
+        instance.Items.Select(i => new ChecklistItemResponse(i.Id, i.Label, i.Status, i.Comment)).ToList());
 }

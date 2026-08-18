@@ -192,7 +192,7 @@ public class RepondreConversationUseCaseTests
         var item1 = new ChecklistItemStatus(Guid.NewGuid(), Guid.NewGuid(), "Item 1");
         var item2 = new ChecklistItemStatus(Guid.NewGuid(), Guid.NewGuid(), "Item 2");
         var instance = new WorkflowInstance(Guid.NewGuid(), employee.Id, Guid.NewGuid(), "T0", WorkflowType.Onboarding, new[] { item1, item2 }, Maintenant);
-        instance.Cocher(item1.Id, ItemEtat.Ok, Guid.NewGuid(), Maintenant, null);
+        instance.Check(item1.Id, ItemStatus.Done, Guid.NewGuid(), Maintenant, null);
 
         router.Setup(r => r.ClassifierAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(IntentionConversation.StatutDossier);
@@ -200,13 +200,13 @@ public class RepondreConversationUseCaseTests
             .ReturnsAsync(employee);
         employees.Setup(c => c.GetByIdAsync(employee.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(employee);
-        workflowInstances.Setup(w => w.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Onboarding, It.IsAny<CancellationToken>()))
+        workflowInstances.Setup(w => w.GetByEmployeeAsync(employee.Id, WorkflowType.Onboarding, It.IsAny<CancellationToken>()))
             .ReturnsAsync(instance);
 
         var reponse = await useCase.ExecuteAsync(actor, "Où en est mon onboarding ?", null);
 
         reponse.Sourcee.Should().BeFalse();
-        reponse.Texte.Should().Contain("EnCours").And.Contain("1").And.Contain("2");
+        reponse.Texte.Should().Contain("en cours").And.Contain("1").And.Contain("2");
     }
 
     [Fact]
@@ -323,9 +323,9 @@ public class RepondreConversationUseCaseTests
             .ReturnsAsync(IntentionConversation.StatutDossier);
         employees.Setup(c => c.GetByIdAsync(employee.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(employee);
-        workflowInstances.Setup(w => w.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Onboarding, It.IsAny<CancellationToken>()))
+        workflowInstances.Setup(w => w.GetByEmployeeAsync(employee.Id, WorkflowType.Onboarding, It.IsAny<CancellationToken>()))
             .ReturnsAsync((WorkflowInstance?)null);
-        workflowInstances.Setup(w => w.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Offboarding, It.IsAny<CancellationToken>()))
+        workflowInstances.Setup(w => w.GetByEmployeeAsync(employee.Id, WorkflowType.Offboarding, It.IsAny<CancellationToken>()))
             .ReturnsAsync((WorkflowInstance?)null);
 
         var reponse = await useCase.ExecuteAsync(rh, "Où en est son dossier ?", employee.Id);

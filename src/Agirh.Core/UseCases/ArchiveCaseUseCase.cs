@@ -5,12 +5,12 @@ using Agirh.Core.Security;
 
 namespace Agirh.Core.UseCases;
 
-public sealed class ArchiverDossierUseCase
+public sealed class ArchiveCaseUseCase
 {
     private readonly IWorkflowInstanceRepository _instances;
     private readonly IEmployeeRepository _employees;
 
-    public ArchiverDossierUseCase(IWorkflowInstanceRepository instances, IEmployeeRepository employees)
+    public ArchiveCaseUseCase(IWorkflowInstanceRepository instances, IEmployeeRepository employees)
     {
         _instances = instances;
         _employees = employees;
@@ -18,19 +18,19 @@ public sealed class ArchiverDossierUseCase
 
     public async Task ExecuteAsync(Domain.Entities.UserAccount actor, Guid workflowInstanceId, CancellationToken ct = default)
     {
-        if (!RbacMatrix.IsAuthorized(actor.Role, ResourceAction.WorkflowInstanceArchiver))
+        if (!RbacMatrix.IsAuthorized(actor.Role, ResourceAction.WorkflowInstanceArchive))
             throw new AccessDeniedException("Seuls RH et Admin/Qualité peuvent archiver un dossier.");
 
-        var instance = await _instances.ObtenirParIdAsync(workflowInstanceId, ct)
+        var instance = await _instances.GetByIdAsync(workflowInstanceId, ct)
             ?? throw new InvalidOperationException($"Workflow {workflowInstanceId} introuvable.");
 
-        var employee = await _employees.GetByIdAsync(instance.CollaborateurId, ct)
-            ?? throw new InvalidOperationException($"Collaborateur {instance.CollaborateurId} introuvable.");
+        var employee = await _employees.GetByIdAsync(instance.EmployeeId, ct)
+            ?? throw new InvalidOperationException($"Collaborateur {instance.EmployeeId} introuvable.");
 
         if (!DepartmentScopeGuard.CanAccessEmployee(actor, employee))
             throw new AccessDeniedException("Un RH ne peut archiver un dossier que pour un collaborateur de son pôle.");
 
-        instance.Archiver();
-        await _instances.MettreAJourAsync(instance, ct);
+        instance.Archive();
+        await _instances.UpdateAsync(instance, ct);
     }
 }

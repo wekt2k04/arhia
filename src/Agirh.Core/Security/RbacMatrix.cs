@@ -8,15 +8,15 @@ public static class RbacMatrix
         new Dictionary<ResourceAction, IReadOnlySet<RoleType>>
         {
             [ResourceAction.EmployeeCreate] = Roles(RoleType.HR),
-            [ResourceAction.WorkflowInstancier] = Roles(RoleType.HR),
-            [ResourceAction.WorkflowInstanceLire] = Roles(RoleType.Employee, RoleType.HR, RoleType.QualityAdmin),
-            [ResourceAction.WorkflowInstanceCocher] = Roles(RoleType.HR),
-            [ResourceAction.WorkflowInstanceCloturer] = Roles(RoleType.HR),
-            [ResourceAction.WorkflowInstanceArchiver] = Roles(RoleType.HR, RoleType.QualityAdmin),
-            [ResourceAction.TemplateProposer] = Roles(RoleType.HR),
-            [ResourceAction.TemplateVerifier] = Roles(RoleType.QualityAdmin),
-            [ResourceAction.TemplateApprouver] = Roles(RoleType.QualityAdmin),
-            [ResourceAction.TemplateRejeter] = Roles(RoleType.QualityAdmin),
+            [ResourceAction.WorkflowInstantiate] = Roles(RoleType.HR),
+            [ResourceAction.WorkflowInstanceRead] = Roles(RoleType.Employee, RoleType.HR, RoleType.QualityAdmin),
+            [ResourceAction.WorkflowInstanceCheck] = Roles(RoleType.HR),
+            [ResourceAction.WorkflowInstanceClose] = Roles(RoleType.HR),
+            [ResourceAction.WorkflowInstanceArchive] = Roles(RoleType.HR, RoleType.QualityAdmin),
+            [ResourceAction.TemplatePropose] = Roles(RoleType.HR),
+            [ResourceAction.TemplateVerify] = Roles(RoleType.QualityAdmin),
+            [ResourceAction.TemplateApprove] = Roles(RoleType.QualityAdmin),
+            [ResourceAction.TemplateReject] = Roles(RoleType.QualityAdmin),
             [ResourceAction.UserAccountElevateRole] = Roles(RoleType.QualityAdmin),
             [ResourceAction.CorpusIngerer] = Roles(RoleType.QualityAdmin)
         };

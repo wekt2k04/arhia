@@ -17,25 +17,25 @@ public class TemplateValidationUseCasesTests
         new[] { new TemplateSection(Guid.NewGuid(), "RH", 0, new[] { new TemplateItem(Guid.NewGuid(), "Compte SELFRH créé", 0) }) };
 
     [Fact]
-    public async Task ProposerTemplateUseCase_ActeurRH_CreeUnTemplateEnValidation()
+    public async Task ProposeTemplateUseCase_HRActor_CreatesATemplateInReview()
     {
         var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, Guid.NewGuid(), Maintenant);
         var repo = new Mock<IWorkflowTemplateRepository>();
-        var useCase = new ProposerTemplateUseCase(repo.Object);
+        var useCase = new ProposeTemplateUseCase(repo.Object);
 
         var template = await useCase.ExecuteAsync(rh, WorkflowType.Onboarding, "T0", SectionsMinimales(), Maintenant);
 
-        template.Statut.Should().Be(TemplateStatut.EnValidation);
-        template.RedacteurId.Should().Be(rh.Id);
-        repo.Verify(r => r.AjouterAsync(template, It.IsAny<CancellationToken>()), Times.Once);
+        template.Status.Should().Be(TemplateStatus.InReview);
+        template.AuthorId.Should().Be(rh.Id);
+        repo.Verify(r => r.AddAsync(template, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task ProposerTemplateUseCase_ActeurAdminQualite_LeveAccesRefuseException()
+    public async Task ProposeTemplateUseCase_QualityAdminActor_ThrowsAccessDeniedException()
     {
         var admin = new UserAccount(Guid.NewGuid(), "admin@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
         var repo = new Mock<IWorkflowTemplateRepository>();
-        var useCase = new ProposerTemplateUseCase(repo.Object);
+        var useCase = new ProposeTemplateUseCase(repo.Object);
 
         var act = () => useCase.ExecuteAsync(admin, WorkflowType.Onboarding, "T0", SectionsMinimales(), Maintenant);
 
@@ -43,63 +43,63 @@ public class TemplateValidationUseCasesTests
     }
 
     [Fact]
-    public async Task VerifierTemplateUseCase_ActeurAdminQualite_VerifieLeTemplate()
+    public async Task VerifyTemplateUseCase_QualityAdminActor_VerifiesTheTemplate()
     {
         var admin = new UserAccount(Guid.NewGuid(), "admin@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
         var template = new WorkflowTemplate(Guid.NewGuid(), WorkflowType.Onboarding, "T0", Guid.NewGuid(), SectionsMinimales(), Maintenant);
-        template.Soumettre();
+        template.Submit();
         var repo = new Mock<IWorkflowTemplateRepository>();
-        repo.Setup(r => r.ObtenirParIdAsync(template.Id, It.IsAny<CancellationToken>())).ReturnsAsync(template);
-        var useCase = new VerifierTemplateUseCase(repo.Object);
+        repo.Setup(r => r.GetByIdAsync(template.Id, It.IsAny<CancellationToken>())).ReturnsAsync(template);
+        var useCase = new VerifyTemplateUseCase(repo.Object);
 
         await useCase.ExecuteAsync(admin, template.Id);
 
-        template.VerificateurId.Should().Be(admin.Id);
-        repo.Verify(r => r.MettreAJourAsync(template, It.IsAny<CancellationToken>()), Times.Once);
+        template.VerifierId.Should().Be(admin.Id);
+        repo.Verify(r => r.UpdateAsync(template, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task VerifierTemplateUseCase_ActeurRH_LeveAccesRefuseException()
+    public async Task VerifyTemplateUseCase_HRActor_ThrowsAccessDeniedException()
     {
         var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, Guid.NewGuid(), Maintenant);
         var repo = new Mock<IWorkflowTemplateRepository>();
-        var useCase = new VerifierTemplateUseCase(repo.Object);
+        var useCase = new VerifyTemplateUseCase(repo.Object);
 
         var act = () => useCase.ExecuteAsync(rh, Guid.NewGuid());
 
         await act.Should().ThrowAsync<AccessDeniedException>();
-        repo.Verify(r => r.ObtenirParIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+        repo.Verify(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task ApprouverTemplateUseCase_ApresVerification_ApprouveLeTemplate()
+    public async Task ApproveTemplateUseCase_AfterVerification_ApprovesTheTemplate()
     {
-        var verificateur = new UserAccount(Guid.NewGuid(), "verif@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
-        var approbateur = new UserAccount(Guid.NewGuid(), "approb@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
+        var verifier = new UserAccount(Guid.NewGuid(), "verif@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
+        var approver = new UserAccount(Guid.NewGuid(), "approb@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
         var template = new WorkflowTemplate(Guid.NewGuid(), WorkflowType.Onboarding, "T0", Guid.NewGuid(), SectionsMinimales(), Maintenant);
-        template.Soumettre();
-        template.Verifier(verificateur.Id);
+        template.Submit();
+        template.Verify(verifier.Id);
         var repo = new Mock<IWorkflowTemplateRepository>();
-        repo.Setup(r => r.ObtenirParIdAsync(template.Id, It.IsAny<CancellationToken>())).ReturnsAsync(template);
-        var useCase = new ApprouverTemplateUseCase(repo.Object);
+        repo.Setup(r => r.GetByIdAsync(template.Id, It.IsAny<CancellationToken>())).ReturnsAsync(template);
+        var useCase = new ApproveTemplateUseCase(repo.Object);
 
-        await useCase.ExecuteAsync(approbateur, template.Id);
+        await useCase.ExecuteAsync(approver, template.Id);
 
-        template.Statut.Should().Be(TemplateStatut.Approuve);
+        template.Status.Should().Be(TemplateStatus.Approved);
     }
 
     [Fact]
-    public async Task RejeterTemplateUseCase_ActeurAdminQualite_RejetteLeTemplate()
+    public async Task RejectTemplateUseCase_QualityAdminActor_RejectsTheTemplate()
     {
         var admin = new UserAccount(Guid.NewGuid(), "admin@agirh.test", "hash", RoleType.QualityAdmin, null, Maintenant);
         var template = new WorkflowTemplate(Guid.NewGuid(), WorkflowType.Onboarding, "T0", Guid.NewGuid(), SectionsMinimales(), Maintenant);
-        template.Soumettre();
+        template.Submit();
         var repo = new Mock<IWorkflowTemplateRepository>();
-        repo.Setup(r => r.ObtenirParIdAsync(template.Id, It.IsAny<CancellationToken>())).ReturnsAsync(template);
-        var useCase = new RejeterTemplateUseCase(repo.Object);
+        repo.Setup(r => r.GetByIdAsync(template.Id, It.IsAny<CancellationToken>())).ReturnsAsync(template);
+        var useCase = new RejectTemplateUseCase(repo.Object);
 
         await useCase.ExecuteAsync(admin, template.Id, "Items incohérents");
 
-        template.Statut.Should().Be(TemplateStatut.Rejete);
+        template.Status.Should().Be(TemplateStatus.Rejected);
     }
 }

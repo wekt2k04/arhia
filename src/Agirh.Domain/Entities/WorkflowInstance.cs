@@ -5,29 +5,29 @@ namespace Agirh.Domain.Entities;
 public class WorkflowInstance
 {
     public Guid Id { get; }
-    public Guid CollaborateurId { get; }
+    public Guid EmployeeId { get; }
     public Guid TemplateId { get; }
     public string TemplateVersion { get; }
     public WorkflowType Type { get; }
-    public WorkflowStatus Statut { get; private set; }
-    public DateTime DateCreation { get; }
-    public DateTime? DateCloture { get; private set; }
+    public WorkflowStatus Status { get; private set; }
+    public DateTime CreatedAt { get; }
+    public DateTime? ClosureDate { get; private set; }
     private readonly List<ChecklistItemStatus> _items;
     public IReadOnlyList<ChecklistItemStatus> Items => _items.AsReadOnly();
 
     public WorkflowInstance(
         Guid id,
-        Guid collaborateurId,
+        Guid employeeId,
         Guid templateId,
         string templateVersion,
         WorkflowType type,
         IReadOnlyCollection<ChecklistItemStatus>? items,
-        DateTime dateCreation)
+        DateTime createdAt)
     {
         if (id == Guid.Empty)
             throw new ArgumentException("L'identifiant du workflow est requis.", nameof(id));
-        if (collaborateurId == Guid.Empty)
-            throw new ArgumentException("Le collaborateur est requis.", nameof(collaborateurId));
+        if (employeeId == Guid.Empty)
+            throw new ArgumentException("Le collaborateur est requis.", nameof(employeeId));
         if (templateId == Guid.Empty)
             throw new ArgumentException("Le template est requis.", nameof(templateId));
         if (string.IsNullOrWhiteSpace(templateVersion))
@@ -38,78 +38,78 @@ public class WorkflowInstance
             throw new ArgumentException("Un workflow doit contenir au moins un item.", nameof(items));
 
         Id = id;
-        CollaborateurId = collaborateurId;
+        EmployeeId = employeeId;
         TemplateId = templateId;
         TemplateVersion = templateVersion.Trim();
         Type = type;
         _items = itemsList;
-        DateCreation = dateCreation;
-        Statut = WorkflowStatus.EnCours;
+        CreatedAt = createdAt;
+        Status = WorkflowStatus.InProgress;
     }
 
-    private WorkflowInstance(Guid id, Guid collaborateurId, Guid templateId, string templateVersion, WorkflowType type, DateTime dateCreation)
+    private WorkflowInstance(Guid id, Guid employeeId, Guid templateId, string templateVersion, WorkflowType type, DateTime createdAt)
     {
         Id = id;
-        CollaborateurId = collaborateurId;
+        EmployeeId = employeeId;
         TemplateId = templateId;
         TemplateVersion = templateVersion;
         Type = type;
-        DateCreation = dateCreation;
-        Statut = WorkflowStatus.EnCours;
+        CreatedAt = createdAt;
+        Status = WorkflowStatus.InProgress;
         _items = new List<ChecklistItemStatus>();
     }
 
-    public void Cocher(Guid itemId, ItemEtat etat, Guid cochePar, DateTime dateCoche, string? commentaire)
+    public void Check(Guid itemId, ItemStatus status, Guid checkedBy, DateTime checkedDate, string? comment)
     {
-        GarantirModifiable();
+        EnsureModifiable();
 
         var item = _items.FirstOrDefault(i => i.Id == itemId)
             ?? throw new InvalidOperationException($"L'item {itemId} n'appartient pas à ce workflow.");
 
-        item.Cocher(etat, cochePar, dateCoche, commentaire);
+        item.Check(status, checkedBy, checkedDate, comment);
     }
 
-    public void Cloturer(DateTime dateCloture)
+    public void Close(DateTime closureDate)
     {
-        GarantirModifiable();
+        EnsureModifiable();
 
-        if (_items.Any(i => i.Etat == ItemEtat.EnAttente))
+        if (_items.Any(i => i.Status == ItemStatus.Pending))
             throw new InvalidOperationException("Tous les items doivent être cochés (Ok ou Ko) avant clôture.");
 
-        Statut = WorkflowStatus.Cloture;
-        DateCloture = dateCloture;
+        Status = WorkflowStatus.Closed;
+        ClosureDate = closureDate;
     }
 
-    public void Archiver()
+    public void Archive()
     {
-        if (Statut != WorkflowStatus.Cloture)
-            throw new InvalidOperationException($"Seul un workflow Clôturé peut être archivé (statut actuel : {Statut}).");
-        Statut = WorkflowStatus.Archive;
+        if (Status != WorkflowStatus.Closed)
+            throw new InvalidOperationException($"Seul un workflow Clôturé peut être archivé (statut actuel : {Status}).");
+        Status = WorkflowStatus.Archived;
     }
 
-    public void Annuler()
+    public void Cancel()
     {
-        if (Statut is WorkflowStatus.Archive or WorkflowStatus.Annule)
-            throw new InvalidOperationException($"Ce workflow ne peut plus être annulé (statut actuel : {Statut}).");
-        Statut = WorkflowStatus.Annule;
+        if (Status is WorkflowStatus.Archived or WorkflowStatus.Cancelled)
+            throw new InvalidOperationException($"Ce workflow ne peut plus être annulé (statut actuel : {Status}).");
+        Status = WorkflowStatus.Cancelled;
     }
 
-    public void Suspendre()
+    public void Suspend()
     {
-        GarantirModifiable();
-        Statut = WorkflowStatus.Suspendu;
+        EnsureModifiable();
+        Status = WorkflowStatus.Suspended;
     }
 
-    public void Reprendre()
+    public void Resume()
     {
-        if (Statut != WorkflowStatus.Suspendu)
-            throw new InvalidOperationException($"Seul un workflow Suspendu peut être repris (statut actuel : {Statut}).");
-        Statut = WorkflowStatus.EnCours;
+        if (Status != WorkflowStatus.Suspended)
+            throw new InvalidOperationException($"Seul un workflow Suspendu peut être repris (statut actuel : {Status}).");
+        Status = WorkflowStatus.InProgress;
     }
 
-    private void GarantirModifiable()
+    private void EnsureModifiable()
     {
-        if (Statut != WorkflowStatus.EnCours)
-            throw new InvalidOperationException($"Ce workflow n'est pas modifiable dans son état actuel ({Statut}) — archivé/clôturé en lecture seule.");
+        if (Status != WorkflowStatus.InProgress)
+            throw new InvalidOperationException($"Ce workflow n'est pas modifiable dans son état actuel ({Status}) — archivé/clôturé en lecture seule.");
     }
 }

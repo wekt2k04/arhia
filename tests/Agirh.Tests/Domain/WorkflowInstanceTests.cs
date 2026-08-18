@@ -8,7 +8,7 @@ public class WorkflowInstanceTests
 {
     private static readonly DateTime Maintenant = new(2026, 8, 15);
 
-    private static (WorkflowInstance instance, Guid itemId) CreerInstanceAvecUnItem()
+    private static (WorkflowInstance instance, Guid itemId) CreateInstanceWithOneItem()
     {
         var item = new ChecklistItemStatus(Guid.NewGuid(), Guid.NewGuid(), "Compte SELFRH créé");
         var instance = new WorkflowInstance(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "T0", WorkflowType.Onboarding, new[] { item }, Maintenant);
@@ -16,7 +16,7 @@ public class WorkflowInstanceTests
     }
 
     [Fact]
-    public void Constructeur_SansItems_LeveArgumentException()
+    public void Constructor_NoItems_ThrowsArgumentException()
     {
         var act = () => new WorkflowInstance(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "T0", WorkflowType.Onboarding, Array.Empty<ChecklistItemStatus>(), Maintenant);
 
@@ -24,124 +24,124 @@ public class WorkflowInstanceTests
     }
 
     [Fact]
-    public void Constructeur_EtatInitial_EstEnCours()
+    public void Constructor_InitialStatus_IsInProgress()
     {
-        var (instance, _) = CreerInstanceAvecUnItem();
+        var (instance, _) = CreateInstanceWithOneItem();
 
-        instance.Statut.Should().Be(WorkflowStatus.EnCours);
+        instance.Status.Should().Be(WorkflowStatus.InProgress);
     }
 
     [Fact]
-    public void Cocher_ItemExistant_MetAJourEtat()
+    public void Check_ExistingItem_UpdatesStatus()
     {
-        var (instance, itemId) = CreerInstanceAvecUnItem();
-        var cochePar = Guid.NewGuid();
+        var (instance, itemId) = CreateInstanceWithOneItem();
+        var checkedBy = Guid.NewGuid();
 
-        instance.Cocher(itemId, ItemEtat.Ok, cochePar, Maintenant, "RAS");
+        instance.Check(itemId, ItemStatus.Done, checkedBy, Maintenant, "RAS");
 
-        instance.Items.Single(i => i.Id == itemId).Etat.Should().Be(ItemEtat.Ok);
+        instance.Items.Single(i => i.Id == itemId).Status.Should().Be(ItemStatus.Done);
     }
 
     [Fact]
-    public void Cocher_ItemInexistant_LeveInvalidOperationException()
+    public void Check_UnknownItem_ThrowsInvalidOperationException()
     {
-        var (instance, _) = CreerInstanceAvecUnItem();
+        var (instance, _) = CreateInstanceWithOneItem();
 
-        var act = () => instance.Cocher(Guid.NewGuid(), ItemEtat.Ok, Guid.NewGuid(), Maintenant, null);
+        var act = () => instance.Check(Guid.NewGuid(), ItemStatus.Done, Guid.NewGuid(), Maintenant, null);
 
         act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
-    public void Cloturer_AvecItemEnAttente_LeveInvalidOperationException()
+    public void Close_WithPendingItem_ThrowsInvalidOperationException()
     {
-        var (instance, _) = CreerInstanceAvecUnItem();
+        var (instance, _) = CreateInstanceWithOneItem();
 
-        var act = () => instance.Cloturer(Maintenant);
+        var act = () => instance.Close(Maintenant);
 
         act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
-    public void Cloturer_TousItemsCoches_PasseAuStatutCloture()
+    public void Close_AllItemsChecked_MovesToClosedStatus()
     {
-        var (instance, itemId) = CreerInstanceAvecUnItem();
-        instance.Cocher(itemId, ItemEtat.Ok, Guid.NewGuid(), Maintenant, null);
+        var (instance, itemId) = CreateInstanceWithOneItem();
+        instance.Check(itemId, ItemStatus.Done, Guid.NewGuid(), Maintenant, null);
 
-        instance.Cloturer(Maintenant);
+        instance.Close(Maintenant);
 
-        instance.Statut.Should().Be(WorkflowStatus.Cloture);
-        instance.DateCloture.Should().Be(Maintenant);
+        instance.Status.Should().Be(WorkflowStatus.Closed);
+        instance.ClosureDate.Should().Be(Maintenant);
     }
 
     [Fact]
-    public void Cloturer_AvecItemKo_EstAcceptee()
+    public void Close_WithFailedItem_IsAccepted()
     {
-        var (instance, itemId) = CreerInstanceAvecUnItem();
-        instance.Cocher(itemId, ItemEtat.Ko, Guid.NewGuid(), Maintenant, "Non applicable à ce poste");
+        var (instance, itemId) = CreateInstanceWithOneItem();
+        instance.Check(itemId, ItemStatus.Failed, Guid.NewGuid(), Maintenant, "Non applicable à ce poste");
 
-        var act = () => instance.Cloturer(Maintenant);
+        var act = () => instance.Close(Maintenant);
 
         act.Should().NotThrow();
     }
 
     [Fact]
-    public void Archiver_SurWorkflowNonCloture_LeveInvalidOperationException()
+    public void Archive_OnNonClosedWorkflow_ThrowsInvalidOperationException()
     {
-        var (instance, _) = CreerInstanceAvecUnItem();
+        var (instance, _) = CreateInstanceWithOneItem();
 
-        var act = () => instance.Archiver();
+        var act = () => instance.Archive();
 
         act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
-    public void Archiver_SurWorkflowCloture_PasseAuStatutArchive()
+    public void Archive_OnClosedWorkflow_MovesToArchivedStatus()
     {
-        var (instance, itemId) = CreerInstanceAvecUnItem();
-        instance.Cocher(itemId, ItemEtat.Ok, Guid.NewGuid(), Maintenant, null);
-        instance.Cloturer(Maintenant);
+        var (instance, itemId) = CreateInstanceWithOneItem();
+        instance.Check(itemId, ItemStatus.Done, Guid.NewGuid(), Maintenant, null);
+        instance.Close(Maintenant);
 
-        instance.Archiver();
+        instance.Archive();
 
-        instance.Statut.Should().Be(WorkflowStatus.Archive);
+        instance.Status.Should().Be(WorkflowStatus.Archived);
     }
 
     [Fact]
-    public void Cocher_SurWorkflowArchive_LeveInvalidOperationException()
+    public void Check_OnArchivedWorkflow_ThrowsInvalidOperationException()
     {
-        var (instance, itemId) = CreerInstanceAvecUnItem();
-        instance.Cocher(itemId, ItemEtat.Ok, Guid.NewGuid(), Maintenant, null);
-        instance.Cloturer(Maintenant);
-        instance.Archiver();
+        var (instance, itemId) = CreateInstanceWithOneItem();
+        instance.Check(itemId, ItemStatus.Done, Guid.NewGuid(), Maintenant, null);
+        instance.Close(Maintenant);
+        instance.Archive();
 
-        var act = () => instance.Cocher(itemId, ItemEtat.Ko, Guid.NewGuid(), Maintenant, null);
+        var act = () => instance.Check(itemId, ItemStatus.Failed, Guid.NewGuid(), Maintenant, null);
 
         act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
-    public void Annuler_SurWorkflowArchive_LeveInvalidOperationException()
+    public void Cancel_OnArchivedWorkflow_ThrowsInvalidOperationException()
     {
-        var (instance, itemId) = CreerInstanceAvecUnItem();
-        instance.Cocher(itemId, ItemEtat.Ok, Guid.NewGuid(), Maintenant, null);
-        instance.Cloturer(Maintenant);
-        instance.Archiver();
+        var (instance, itemId) = CreateInstanceWithOneItem();
+        instance.Check(itemId, ItemStatus.Done, Guid.NewGuid(), Maintenant, null);
+        instance.Close(Maintenant);
+        instance.Archive();
 
-        var act = () => instance.Annuler();
+        var act = () => instance.Cancel();
 
         act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
-    public void Suspendre_PuisReprendre_RepasseEnCours()
+    public void Suspend_ThenResume_ReturnsToInProgress()
     {
-        var (instance, _) = CreerInstanceAvecUnItem();
+        var (instance, _) = CreateInstanceWithOneItem();
 
-        instance.Suspendre();
-        instance.Statut.Should().Be(WorkflowStatus.Suspendu);
+        instance.Suspend();
+        instance.Status.Should().Be(WorkflowStatus.Suspended);
 
-        instance.Reprendre();
-        instance.Statut.Should().Be(WorkflowStatus.EnCours);
+        instance.Resume();
+        instance.Status.Should().Be(WorkflowStatus.InProgress);
     }
 }

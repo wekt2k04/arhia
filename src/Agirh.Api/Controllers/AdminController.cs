@@ -26,8 +26,8 @@ public class AdminController : ControllerBase
         _corpusOptions = corpusOptions;
     }
 
-    [HttpPost("reindexer-corpus")]
-    public async Task<ActionResult<ReindexerCorpusResponse>> ReindexerCorpus(CancellationToken ct)
+    [HttpPost("reindex-corpus")]
+    public async Task<ActionResult<ReindexerCorpusResponse>> ReindexCorpus(CancellationToken ct)
     {
         var actor = await _currentUser.GetActorAsync(ct);
 

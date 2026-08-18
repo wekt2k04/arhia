@@ -19,16 +19,16 @@ namespace Agirh.Core.UseCases;
 /// file des templates en attente de validation. Un Collaborateur ne reçoit aucune notification —
 /// le document source ne décrit ce mécanisme que du point de vue du RH référent.
 /// </summary>
-public sealed class ObtenirNotificationsUseCase
+public sealed class GetNotificationsUseCase
 {
-    private const int SeuilJoursItemEnAttente = 3;
-    private const int SeuilJoursEcheanceDepart = 3;
+    private const int PendingItemThresholdDays = 3;
+    private const int DepartureThresholdDays = 3;
 
     private readonly IEmployeeRepository _employees;
     private readonly IWorkflowInstanceRepository _instances;
     private readonly IWorkflowTemplateRepository _templates;
 
-    public ObtenirNotificationsUseCase(
+    public GetNotificationsUseCase(
         IEmployeeRepository employees,
         IWorkflowInstanceRepository instances,
         IWorkflowTemplateRepository templates)
@@ -38,15 +38,15 @@ public sealed class ObtenirNotificationsUseCase
         _templates = templates;
     }
 
-    public async Task<IReadOnlyList<Notification>> ExecuteAsync(UserAccount actor, DateTime maintenant, CancellationToken ct = default) =>
+    public async Task<IReadOnlyList<Notification>> ExecuteAsync(UserAccount actor, DateTime now, CancellationToken ct = default) =>
         actor.Role switch
         {
-            RoleType.HR => await NotificationsPourRHAsync(actor, maintenant, ct),
-            RoleType.QualityAdmin => await NotificationsPourAdminAsync(maintenant, ct),
+            RoleType.HR => await NotificationsForHRAsync(actor, now, ct),
+            RoleType.QualityAdmin => await NotificationsForAdminAsync(now, ct),
             _ => Array.Empty<Notification>()
         };
 
-    private async Task<IReadOnlyList<Notification>> NotificationsPourRHAsync(UserAccount actor, DateTime maintenant, CancellationToken ct)
+    private async Task<IReadOnlyList<Notification>> NotificationsForHRAsync(UserAccount actor, DateTime now, CancellationToken ct)
     {
         // actor.DepartmentId est garanti non-null pour un RH (UserAccount.ValidateDepartmentId).
         var employees = await _employees.ListByDepartmentAsync(actor.DepartmentId!.Value, ct);
@@ -56,31 +56,31 @@ public sealed class ObtenirNotificationsUseCase
         {
             foreach (var type in new[] { WorkflowType.Onboarding, WorkflowType.Offboarding })
             {
-                var instance = await _instances.ObtenirParCollaborateurAsync(employee.Id, type, ct);
-                if (instance is null || instance.Statut != WorkflowStatus.EnCours)
+                var instance = await _instances.GetByEmployeeAsync(employee.Id, type, ct);
+                if (instance is null || instance.Status != WorkflowStatus.InProgress)
                     continue;
 
-                var itemsEnAttente = instance.Items.Count(i => i.Etat == ItemEtat.EnAttente);
-                if (itemsEnAttente > 0 && (maintenant - instance.DateCreation).TotalDays >= SeuilJoursItemEnAttente)
+                var pendingItems = instance.Items.Count(i => i.Status == ItemStatus.Pending);
+                if (pendingItems > 0 && (now - instance.CreatedAt).TotalDays >= PendingItemThresholdDays)
                 {
                     notifications.Add(new Notification(
-                        TypeNotification.ItemEnAttenteDepuisLongtemps,
-                        $"{itemsEnAttente} item(s) en attente depuis plus de {SeuilJoursItemEnAttente} jours — dossier {type} de {employee.FirstName} {employee.LastName}.",
-                        instance.DateCreation,
+                        NotificationType.ItemPendingTooLong,
+                        $"{pendingItems} item(s) en attente depuis plus de {PendingItemThresholdDays} jours — dossier {type} de {employee.FirstName} {employee.LastName}.",
+                        instance.CreatedAt,
                         instance.Id));
                 }
             }
 
             if (employee.DepartureDate is { } departureDate)
             {
-                var joursRestants = (departureDate - maintenant).TotalDays;
-                var offboardingDejaDemarre = await _instances.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Offboarding, ct) is not null;
+                var daysRemaining = (departureDate - now).TotalDays;
+                var offboardingAlreadyStarted = await _instances.GetByEmployeeAsync(employee.Id, WorkflowType.Offboarding, ct) is not null;
 
-                if (!offboardingDejaDemarre && joursRestants >= 0 && joursRestants <= SeuilJoursEcheanceDepart)
+                if (!offboardingAlreadyStarted && daysRemaining >= 0 && daysRemaining <= DepartureThresholdDays)
                 {
                     notifications.Add(new Notification(
-                        TypeNotification.EcheanceDepartApprochante,
-                        $"Départ de {employee.FirstName} {employee.LastName} prévu dans {(int)Math.Ceiling(joursRestants)} jour(s) — offboarding pas encore démarré.",
+                        NotificationType.UpcomingDeparture,
+                        $"Départ de {employee.FirstName} {employee.LastName} prévu dans {(int)Math.Ceiling(daysRemaining)} jour(s) — offboarding pas encore démarré.",
                         departureDate,
                         employee.Id));
                 }
@@ -90,15 +90,15 @@ public sealed class ObtenirNotificationsUseCase
         return notifications;
     }
 
-    private async Task<IReadOnlyList<Notification>> NotificationsPourAdminAsync(DateTime maintenant, CancellationToken ct)
+    private async Task<IReadOnlyList<Notification>> NotificationsForAdminAsync(DateTime now, CancellationToken ct)
     {
-        var enValidation = await _templates.ListerParStatutAsync(TemplateStatut.EnValidation, ct);
+        var inReview = await _templates.ListByStatusAsync(TemplateStatus.InReview, ct);
 
-        return enValidation
+        return inReview
             .Select(t => new Notification(
-                TypeNotification.TemplateEnAttenteValidation,
-                $"Template {t.Type} v{t.Version} en attente de {(t.VerificateurId is null ? "vérification" : "approbation")}.",
-                t.DateCreation,
+                NotificationType.TemplatePendingValidation,
+                $"Template {t.Type} v{t.Version} en attente de {(t.VerifierId is null ? "vérification" : "approbation")}.",
+                t.CreatedAt,
                 t.Id))
             .ToList();
     }

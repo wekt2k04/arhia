@@ -6,24 +6,24 @@ using Agirh.Domain.Entities;
 
 namespace Agirh.Core.UseCases;
 
-public sealed class ApprouverTemplateUseCase
+public sealed class ApproveTemplateUseCase
 {
     private readonly IWorkflowTemplateRepository _templates;
 
-    public ApprouverTemplateUseCase(IWorkflowTemplateRepository templates)
+    public ApproveTemplateUseCase(IWorkflowTemplateRepository templates)
     {
         _templates = templates;
     }
 
     public async Task ExecuteAsync(UserAccount actor, Guid templateId, CancellationToken ct = default)
     {
-        if (!RbacMatrix.IsAuthorized(actor.Role, ResourceAction.TemplateApprouver))
+        if (!RbacMatrix.IsAuthorized(actor.Role, ResourceAction.TemplateApprove))
             throw new AccessDeniedException("Seul un compte Admin/Qualité peut approuver un template.");
 
-        var template = await _templates.ObtenirParIdAsync(templateId, ct)
+        var template = await _templates.GetByIdAsync(templateId, ct)
             ?? throw new InvalidOperationException($"Template {templateId} introuvable.");
 
-        template.Approuver(actor.Id);
-        await _templates.MettreAJourAsync(template, ct);
+        template.Approve(actor.Id);
+        await _templates.UpdateAsync(template, ct);
     }
 }

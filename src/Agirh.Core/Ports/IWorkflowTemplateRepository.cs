@@ -7,9 +7,9 @@ namespace Agirh.Core.Ports;
 
 public interface IWorkflowTemplateRepository
 {
-    Task<WorkflowTemplate?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
-    Task<WorkflowTemplate?> ObtenirDernierApprouveAsync(WorkflowType type, CancellationToken ct = default);
-    Task<IReadOnlyList<WorkflowTemplate>> ListerParStatutAsync(TemplateStatut statut, CancellationToken ct = default);
-    Task AjouterAsync(WorkflowTemplate template, CancellationToken ct = default);
-    Task MettreAJourAsync(WorkflowTemplate template, CancellationToken ct = default);
+    Task<WorkflowTemplate?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<WorkflowTemplate?> GetLastApprovedAsync(WorkflowType type, CancellationToken ct = default);
+    Task<IReadOnlyList<WorkflowTemplate>> ListByStatusAsync(TemplateStatus status, CancellationToken ct = default);
+    Task AddAsync(WorkflowTemplate template, CancellationToken ct = default);
+    Task UpdateAsync(WorkflowTemplate template, CancellationToken ct = default);
 }

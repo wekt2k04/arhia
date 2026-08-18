@@ -1,10 +1,10 @@
 namespace Agirh.Core.Ports;
 
-public enum TypeNotification
+public enum NotificationType
 {
-    ItemEnAttenteDepuisLongtemps,
-    EcheanceDepartApprochante,
-    TemplateEnAttenteValidation
+    ItemPendingTooLong,
+    UpcomingDeparture,
+    TemplatePendingValidation
 }
 
-public sealed record Notification(TypeNotification Type, string Message, DateTime DateReference, Guid? ReferenceId);
+public sealed record Notification(NotificationType Type, string Message, DateTime ReferenceDate, Guid? ReferenceId);

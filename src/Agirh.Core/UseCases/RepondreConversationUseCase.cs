@@ -235,8 +235,8 @@ public sealed class RepondreConversationUseCase
         if (!DepartmentScopeGuard.CanAccessEmployee(actor, employee))
             throw new AccessDeniedException("Vous n'avez pas accès au dossier de ce collaborateur.");
 
-        var instance = await _workflowInstances.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Onboarding, ct)
-            ?? await _workflowInstances.ObtenirParCollaborateurAsync(employee.Id, WorkflowType.Offboarding, ct);
+        var instance = await _workflowInstances.GetByEmployeeAsync(employee.Id, WorkflowType.Onboarding, ct)
+            ?? await _workflowInstances.GetByEmployeeAsync(employee.Id, WorkflowType.Offboarding, ct);
 
         if (instance is null)
             return new ReponseConversation(
@@ -244,16 +244,29 @@ public sealed class RepondreConversationUseCase
                 Sourcee: false,
                 Array.Empty<string>());
 
-        var itemsRestants = instance.Items.Count(i => i.Etat == ItemEtat.EnAttente);
+        var itemsRestants = instance.Items.Count(i => i.Status == ItemStatus.Pending);
         var suffixe = itemsRestants > 0
             ? $"{itemsRestants} item(s) restent en attente sur {instance.Items.Count}."
             : "Tous les items ont été traités.";
 
         var texte = $"Le dossier {instance.Type} de {employee.FirstName} {employee.LastName} " +
-                     $"est au statut {instance.Statut}. {suffixe}";
+                     $"est au statut {StatutEnFrancais(instance.Status)}. {suffixe}";
 
         return new ReponseConversation(texte, Sourcee: false, Array.Empty<string>());
     }
+
+    // Fix local temporaire tant que ce fichier n'est pas repris par le patch RAG/Conversation :
+    // WorkflowStatus est desormais en anglais (vocabulaire code), mais cette phrase reste
+    // visible utilisateur (regle produit actee : texte final toujours en francais).
+    private static string StatutEnFrancais(WorkflowStatus statut) => statut switch
+    {
+        WorkflowStatus.InProgress => "en cours",
+        WorkflowStatus.Closed => "clôturé",
+        WorkflowStatus.Archived => "archivé",
+        WorkflowStatus.Cancelled => "annulé",
+        WorkflowStatus.Suspended => "suspendu",
+        _ => statut.ToString()
+    };
 
     private async Task<Guid?> ResoudreDossierPersonnelAsync(UserAccount actor, CancellationToken ct)
     {

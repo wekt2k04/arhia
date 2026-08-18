@@ -7,11 +7,11 @@ using Agirh.Domain.Entities;
 
 namespace Agirh.Core.UseCases;
 
-public sealed class ProposerTemplateUseCase
+public sealed class ProposeTemplateUseCase
 {
     private readonly IWorkflowTemplateRepository _templates;
 
-    public ProposerTemplateUseCase(IWorkflowTemplateRepository templates)
+    public ProposeTemplateUseCase(IWorkflowTemplateRepository templates)
     {
         _templates = templates;
     }
@@ -21,16 +21,16 @@ public sealed class ProposerTemplateUseCase
         WorkflowType type,
         string version,
         IReadOnlyCollection<TemplateSection> sections,
-        DateTime dateCreation,
+        DateTime createdAt,
         CancellationToken ct = default)
     {
-        if (!RbacMatrix.IsAuthorized(actor.Role, ResourceAction.TemplateProposer))
+        if (!RbacMatrix.IsAuthorized(actor.Role, ResourceAction.TemplatePropose))
             throw new AccessDeniedException("Seul un RH peut proposer un template (rôle de Rédacteur).");
 
-        var template = new WorkflowTemplate(Guid.NewGuid(), type, version, actor.Id, sections, dateCreation);
-        template.Soumettre();
+        var template = new WorkflowTemplate(Guid.NewGuid(), type, version, actor.Id, sections, createdAt);
+        template.Submit();
 
-        await _templates.AjouterAsync(template, ct);
+        await _templates.AddAsync(template, ct);
         return template;
     }
 }

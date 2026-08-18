@@ -10,49 +10,49 @@ using Moq;
 
 namespace Agirh.Tests.UseCases;
 
-public class CloturerDossierUseCaseTests
+public class CloseCaseUseCaseTests
 {
     private static readonly DateTime Maintenant = new(2026, 8, 15);
 
-    private static WorkflowInstance CreerInstanceTousItemsTraites(Guid collaborateurId)
+    private static WorkflowInstance CreateInstanceWithAllItemsChecked(Guid employeeId)
     {
         var item = new ChecklistItemStatus(Guid.NewGuid(), Guid.NewGuid(), "Compte SELFRH créé");
-        var instance = new WorkflowInstance(Guid.NewGuid(), collaborateurId, Guid.NewGuid(), "T0", WorkflowType.Onboarding, new[] { item }, Maintenant);
-        instance.Cocher(item.Id, ItemEtat.Ok, Guid.NewGuid(), Maintenant, null);
+        var instance = new WorkflowInstance(Guid.NewGuid(), employeeId, Guid.NewGuid(), "T0", WorkflowType.Onboarding, new[] { item }, Maintenant);
+        instance.Check(item.Id, ItemStatus.Done, Guid.NewGuid(), Maintenant, null);
         return instance;
     }
 
     [Fact]
-    public async Task ExecuterAsync_RHSurSonPole_TousItemsTraites_ClotureLeDossier()
+    public async Task ExecuteAsync_HROnOwnDepartment_AllItemsChecked_ClosesTheCase()
     {
         var departmentId = Guid.NewGuid();
         var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, departmentId, Maintenant);
         var employee = new Employee(Guid.NewGuid(), new EmployeeNumber("MAT001"), "Dupont", "Jean", "Dev", departmentId, ContractType.CDI, Maintenant);
-        var instance = CreerInstanceTousItemsTraites(employee.Id);
+        var instance = CreateInstanceWithAllItemsChecked(employee.Id);
 
         var instances = new Mock<IWorkflowInstanceRepository>();
-        instances.Setup(r => r.ObtenirParIdAsync(instance.Id, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
+        instances.Setup(r => r.GetByIdAsync(instance.Id, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
         var employees = new Mock<IEmployeeRepository>();
         employees.Setup(r => r.GetByIdAsync(employee.Id, It.IsAny<CancellationToken>())).ReturnsAsync(employee);
-        var useCase = new CloturerDossierUseCase(instances.Object, employees.Object);
+        var useCase = new CloseCaseUseCase(instances.Object, employees.Object);
 
         await useCase.ExecuteAsync(rh, instance.Id, Maintenant);
 
-        instance.Statut.Should().Be(WorkflowStatus.Cloture);
+        instance.Status.Should().Be(WorkflowStatus.Closed);
     }
 
     [Fact]
-    public async Task ExecuterAsync_RHSurAutrePole_LeveAccesRefuseException()
+    public async Task ExecuteAsync_HROnAnotherDepartment_ThrowsAccessDeniedException()
     {
         var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, Guid.NewGuid(), Maintenant);
         var employee = new Employee(Guid.NewGuid(), new EmployeeNumber("MAT001"), "Dupont", "Jean", "Dev", Guid.NewGuid(), ContractType.CDI, Maintenant);
-        var instance = CreerInstanceTousItemsTraites(employee.Id);
+        var instance = CreateInstanceWithAllItemsChecked(employee.Id);
 
         var instances = new Mock<IWorkflowInstanceRepository>();
-        instances.Setup(r => r.ObtenirParIdAsync(instance.Id, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
+        instances.Setup(r => r.GetByIdAsync(instance.Id, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
         var employees = new Mock<IEmployeeRepository>();
         employees.Setup(r => r.GetByIdAsync(employee.Id, It.IsAny<CancellationToken>())).ReturnsAsync(employee);
-        var useCase = new CloturerDossierUseCase(instances.Object, employees.Object);
+        var useCase = new CloseCaseUseCase(instances.Object, employees.Object);
 
         var act = () => useCase.ExecuteAsync(rh, instance.Id, Maintenant);
 
@@ -60,7 +60,7 @@ public class CloturerDossierUseCaseTests
     }
 
     [Fact]
-    public async Task ExecuterAsync_ItemEncoreEnAttente_LeveInvalidOperationException()
+    public async Task ExecuteAsync_ItemStillPending_ThrowsInvalidOperationException()
     {
         var departmentId = Guid.NewGuid();
         var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, departmentId, Maintenant);
@@ -69,10 +69,10 @@ public class CloturerDossierUseCaseTests
         var instance = new WorkflowInstance(Guid.NewGuid(), employee.Id, Guid.NewGuid(), "T0", WorkflowType.Onboarding, new[] { item }, Maintenant);
 
         var instances = new Mock<IWorkflowInstanceRepository>();
-        instances.Setup(r => r.ObtenirParIdAsync(instance.Id, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
+        instances.Setup(r => r.GetByIdAsync(instance.Id, It.IsAny<CancellationToken>())).ReturnsAsync(instance);
         var employees = new Mock<IEmployeeRepository>();
         employees.Setup(r => r.GetByIdAsync(employee.Id, It.IsAny<CancellationToken>())).ReturnsAsync(employee);
-        var useCase = new CloturerDossierUseCase(instances.Object, employees.Object);
+        var useCase = new CloseCaseUseCase(instances.Object, employees.Object);
 
         var act = () => useCase.ExecuteAsync(rh, instance.Id, Maintenant);
 
@@ -80,13 +80,13 @@ public class CloturerDossierUseCaseTests
     }
 
     [Fact]
-    public async Task ExecuterAsync_WorkflowInexistant_LeveInvalidOperationException()
+    public async Task ExecuteAsync_UnknownWorkflow_ThrowsInvalidOperationException()
     {
         var rh = new UserAccount(Guid.NewGuid(), "rh@agirh.test", "hash", RoleType.HR, Guid.NewGuid(), Maintenant);
         var instances = new Mock<IWorkflowInstanceRepository>();
-        instances.Setup(r => r.ObtenirParIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((WorkflowInstance?)null);
+        instances.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((WorkflowInstance?)null);
         var employees = new Mock<IEmployeeRepository>();
-        var useCase = new CloturerDossierUseCase(instances.Object, employees.Object);
+        var useCase = new CloseCaseUseCase(instances.Object, employees.Object);
 
         var act = () => useCase.ExecuteAsync(rh, Guid.NewGuid(), Maintenant);
 

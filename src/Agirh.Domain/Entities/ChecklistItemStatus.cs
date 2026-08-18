@@ -6,37 +6,37 @@ public class ChecklistItemStatus
 {
     public Guid Id { get; }
     public Guid TemplateItemId { get; }
-    public string Libelle { get; }
-    public ItemEtat Etat { get; private set; }
-    public string? Commentaire { get; private set; }
-    public Guid? CochePar { get; private set; }
-    public DateTime? DateCoche { get; private set; }
+    public string Label { get; }
+    public ItemStatus Status { get; private set; }
+    public string? Comment { get; private set; }
+    public Guid? CheckedBy { get; private set; }
+    public DateTime? CheckedDate { get; private set; }
 
-    public ChecklistItemStatus(Guid id, Guid templateItemId, string libelle)
+    public ChecklistItemStatus(Guid id, Guid templateItemId, string label)
     {
         if (id == Guid.Empty)
             throw new ArgumentException("L'identifiant du statut d'item est requis.", nameof(id));
         if (templateItemId == Guid.Empty)
             throw new ArgumentException("L'identifiant de l'item de template est requis.", nameof(templateItemId));
-        if (string.IsNullOrWhiteSpace(libelle))
-            throw new ArgumentException("Le libellé ne peut pas être vide.", nameof(libelle));
+        if (string.IsNullOrWhiteSpace(label))
+            throw new ArgumentException("Le libellé ne peut pas être vide.", nameof(label));
 
         Id = id;
         TemplateItemId = templateItemId;
-        Libelle = libelle.Trim();
-        Etat = ItemEtat.EnAttente;
+        Label = label.Trim();
+        Status = ItemStatus.Pending;
     }
 
-    public void Cocher(ItemEtat etat, Guid cochePar, DateTime dateCoche, string? commentaire)
+    public void Check(ItemStatus status, Guid checkedBy, DateTime checkedDate, string? comment)
     {
-        if (etat == ItemEtat.EnAttente)
-            throw new ArgumentException("Cocher un item doit produire un état Ok ou Ko, jamais EnAttente.", nameof(etat));
-        if (cochePar == Guid.Empty)
-            throw new ArgumentException("Le compte ayant coché l'item est requis.", nameof(cochePar));
+        if (status == ItemStatus.Pending)
+            throw new ArgumentException("Cocher un item doit produire un état Ok ou Ko, jamais EnAttente.", nameof(status));
+        if (checkedBy == Guid.Empty)
+            throw new ArgumentException("Le compte ayant coché l'item est requis.", nameof(checkedBy));
 
-        Etat = etat;
-        CochePar = cochePar;
-        DateCoche = dateCoche;
-        Commentaire = string.IsNullOrWhiteSpace(commentaire) ? null : commentaire.Trim();
+        Status = status;
+        CheckedBy = checkedBy;
+        CheckedDate = checkedDate;
+        Comment = string.IsNullOrWhiteSpace(comment) ? null : comment.Trim();
     }
 }

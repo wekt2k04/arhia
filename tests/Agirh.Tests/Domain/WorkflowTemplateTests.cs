@@ -8,17 +8,17 @@ public class WorkflowTemplateTests
 {
     private static readonly DateTime Maintenant = new(2026, 8, 15);
 
-    private static WorkflowTemplate CreerBrouillon(Guid redacteurId) =>
+    private static WorkflowTemplate CreateDraft(Guid authorId) =>
         new(
             Guid.NewGuid(),
             WorkflowType.Onboarding,
             "T0",
-            redacteurId,
+            authorId,
             new[] { new TemplateSection(Guid.NewGuid(), "RH", 0, new[] { new TemplateItem(Guid.NewGuid(), "Compte SELFRH créé", 0) }) },
             Maintenant);
 
     [Fact]
-    public void Constructeur_SansSections_LeveArgumentException()
+    public void Constructor_NoSections_ThrowsArgumentException()
     {
         var act = () => new WorkflowTemplate(Guid.NewGuid(), WorkflowType.Onboarding, "T0", Guid.NewGuid(), Array.Empty<TemplateSection>(), Maintenant);
 
@@ -26,145 +26,145 @@ public class WorkflowTemplateTests
     }
 
     [Fact]
-    public void Constructeur_EtatInitial_EstBrouillon()
+    public void Constructor_InitialStatus_IsDraft()
     {
-        var template = CreerBrouillon(Guid.NewGuid());
+        var template = CreateDraft(Guid.NewGuid());
 
-        template.Statut.Should().Be(TemplateStatut.Brouillon);
+        template.Status.Should().Be(TemplateStatus.Draft);
     }
 
     [Fact]
-    public void Verifier_SurBrouillon_LeveInvalidOperationException()
+    public void Verify_OnDraft_ThrowsInvalidOperationException()
     {
-        var template = CreerBrouillon(Guid.NewGuid());
+        var template = CreateDraft(Guid.NewGuid());
 
-        var act = () => template.Verifier(Guid.NewGuid());
+        var act = () => template.Verify(Guid.NewGuid());
 
         act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
-    public void CircuitComplet_Soumettre_Verifier_Approuver_AboutitAApprouve()
+    public void FullCircuit_Submit_Verify_Approve_EndsUpApproved()
     {
-        var redacteur = Guid.NewGuid();
-        var verificateur = Guid.NewGuid();
-        var approbateur = Guid.NewGuid();
-        var template = CreerBrouillon(redacteur);
+        var author = Guid.NewGuid();
+        var verifier = Guid.NewGuid();
+        var approver = Guid.NewGuid();
+        var template = CreateDraft(author);
 
-        template.Soumettre();
-        template.Verifier(verificateur);
-        template.Approuver(approbateur);
+        template.Submit();
+        template.Verify(verifier);
+        template.Approve(approver);
 
-        template.Statut.Should().Be(TemplateStatut.Approuve);
-        template.VerificateurId.Should().Be(verificateur);
-        template.ApprobateurId.Should().Be(approbateur);
+        template.Status.Should().Be(TemplateStatus.Approved);
+        template.VerifierId.Should().Be(verifier);
+        template.ApproverId.Should().Be(approver);
     }
 
     [Fact]
-    public void Verifier_ParLeRedacteurLuiMeme_LeveInvalidOperationException()
+    public void Verify_ByTheAuthorThemself_ThrowsInvalidOperationException()
     {
-        var redacteur = Guid.NewGuid();
-        var template = CreerBrouillon(redacteur);
-        template.Soumettre();
+        var author = Guid.NewGuid();
+        var template = CreateDraft(author);
+        template.Submit();
 
-        var act = () => template.Verifier(redacteur);
+        var act = () => template.Verify(author);
 
         act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
-    public void Approuver_AvantVerification_LeveInvalidOperationException()
+    public void Approve_BeforeVerification_ThrowsInvalidOperationException()
     {
-        var template = CreerBrouillon(Guid.NewGuid());
-        template.Soumettre();
+        var template = CreateDraft(Guid.NewGuid());
+        template.Submit();
 
-        var act = () => template.Approuver(Guid.NewGuid());
+        var act = () => template.Approve(Guid.NewGuid());
 
         act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
-    public void Approuver_ParLeVerificateurLuiMeme_LeveInvalidOperationException()
+    public void Approve_ByTheVerifierThemself_ThrowsInvalidOperationException()
     {
-        var verificateur = Guid.NewGuid();
-        var template = CreerBrouillon(Guid.NewGuid());
-        template.Soumettre();
-        template.Verifier(verificateur);
+        var verifier = Guid.NewGuid();
+        var template = CreateDraft(Guid.NewGuid());
+        template.Submit();
+        template.Verify(verifier);
 
-        var act = () => template.Approuver(verificateur);
+        var act = () => template.Approve(verifier);
 
         act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
-    public void Approuver_ParLeRedacteurLuiMeme_LeveInvalidOperationException()
+    public void Approve_ByTheAuthorThemself_ThrowsInvalidOperationException()
     {
-        var redacteur = Guid.NewGuid();
-        var template = CreerBrouillon(redacteur);
-        template.Soumettre();
-        template.Verifier(Guid.NewGuid());
+        var author = Guid.NewGuid();
+        var template = CreateDraft(author);
+        template.Submit();
+        template.Verify(Guid.NewGuid());
 
-        var act = () => template.Approuver(redacteur);
+        var act = () => template.Approve(author);
 
         act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
-    public void Verifier_DejaVerifie_LeveInvalidOperationException()
+    public void Verify_AlreadyVerified_ThrowsInvalidOperationException()
     {
-        var template = CreerBrouillon(Guid.NewGuid());
-        template.Soumettre();
-        template.Verifier(Guid.NewGuid());
+        var template = CreateDraft(Guid.NewGuid());
+        template.Submit();
+        template.Verify(Guid.NewGuid());
 
-        var act = () => template.Verifier(Guid.NewGuid());
+        var act = () => template.Verify(Guid.NewGuid());
 
         act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
-    public void Rejeter_SansMotif_LeveArgumentException()
+    public void Reject_WithoutReason_ThrowsArgumentException()
     {
-        var template = CreerBrouillon(Guid.NewGuid());
-        template.Soumettre();
+        var template = CreateDraft(Guid.NewGuid());
+        template.Submit();
 
-        var act = () => template.Rejeter(Guid.NewGuid(), "  ");
+        var act = () => template.Reject(Guid.NewGuid(), "  ");
 
         act.Should().Throw<ArgumentException>();
     }
 
     [Fact]
-    public void Rejeter_AvecMotif_PasseAuStatutRejete()
+    public void Reject_WithReason_MovesToRejectedStatus()
     {
-        var template = CreerBrouillon(Guid.NewGuid());
-        template.Soumettre();
+        var template = CreateDraft(Guid.NewGuid());
+        template.Submit();
 
-        template.Rejeter(Guid.NewGuid(), "Item ambigu, à préciser");
+        template.Reject(Guid.NewGuid(), "Item ambigu, à préciser");
 
-        template.Statut.Should().Be(TemplateStatut.Rejete);
-        template.MotifRejet.Should().Be("Item ambigu, à préciser");
+        template.Status.Should().Be(TemplateStatus.Rejected);
+        template.RejectionReason.Should().Be("Item ambigu, à préciser");
     }
 
     [Fact]
-    public void Approuver_SurTemplateRejete_LeveInvalidOperationException()
+    public void Approve_OnRejectedTemplate_ThrowsInvalidOperationException()
     {
-        var template = CreerBrouillon(Guid.NewGuid());
-        template.Soumettre();
-        template.Rejeter(Guid.NewGuid(), "motif");
+        var template = CreateDraft(Guid.NewGuid());
+        template.Submit();
+        template.Reject(Guid.NewGuid(), "motif");
 
-        var act = () => template.Approuver(Guid.NewGuid());
+        var act = () => template.Approve(Guid.NewGuid());
 
         act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
-    public void ResoudreItemsApplicables_FiltreParTypeContrat()
+    public void ResolveApplicableItems_FiltersByContractType()
     {
         var itemCommun = new TemplateItem(Guid.NewGuid(), "Bitlocker activé", 0);
         var itemCdiUniquement = new TemplateItem(Guid.NewGuid(), "Processus disciplinaire signé", 1, new[] { ContractType.CDI });
         var section = new TemplateSection(Guid.NewGuid(), "IT", 0, new[] { itemCommun, itemCdiUniquement });
         var template = new WorkflowTemplate(Guid.NewGuid(), WorkflowType.Onboarding, "T0", Guid.NewGuid(), new[] { section }, Maintenant);
 
-        var itemsStage = template.ResoudreItemsApplicables(ContractType.Stage);
+        var itemsStage = template.ResolveApplicableItems(ContractType.Stage);
 
         itemsStage.Should().ContainSingle().Which.Should().Be(itemCommun);
     }

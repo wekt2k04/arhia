@@ -3,15 +3,15 @@ namespace Agirh.Core.Security;
 public enum ResourceAction
 {
     EmployeeCreate,
-    WorkflowInstancier,
-    WorkflowInstanceLire,
-    WorkflowInstanceCocher,
-    WorkflowInstanceCloturer,
-    WorkflowInstanceArchiver,
-    TemplateProposer,
-    TemplateVerifier,
-    TemplateApprouver,
-    TemplateRejeter,
+    WorkflowInstantiate,
+    WorkflowInstanceRead,
+    WorkflowInstanceCheck,
+    WorkflowInstanceClose,
+    WorkflowInstanceArchive,
+    TemplatePropose,
+    TemplateVerify,
+    TemplateApprove,
+    TemplateReject,
     UserAccountElevateRole,
     CorpusIngerer
 }

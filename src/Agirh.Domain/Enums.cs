@@ -23,24 +23,24 @@ public enum WorkflowType
 
 public enum WorkflowStatus
 {
-    EnCours,
-    Cloture,
-    Archive,
-    Annule,
-    Suspendu
+    InProgress,
+    Closed,
+    Archived,
+    Cancelled,
+    Suspended
 }
 
-public enum ItemEtat
+public enum ItemStatus
 {
-    EnAttente,
-    Ok,
-    Ko
+    Pending,
+    Done,
+    Failed
 }
 
-public enum TemplateStatut
+public enum TemplateStatus
 {
-    Brouillon,
-    EnValidation,
-    Approuve,
-    Rejete
+    Draft,
+    InReview,
+    Approved,
+    Rejected
 }

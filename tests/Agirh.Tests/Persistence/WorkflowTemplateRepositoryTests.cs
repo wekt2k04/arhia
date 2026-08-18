@@ -15,61 +15,61 @@ public class WorkflowTemplateRepositoryTests
             .Options;
 
     [Fact]
-    public async Task AjouterPuisObtenirParId_ReconstruitLeGrapheSectionsEtItems()
+    public async Task AddThenGetById_RebuildsTheSectionsAndItemsGraph()
     {
         var options = CreerOptions();
         var itemCommun = new TemplateItem(Guid.NewGuid(), "Bitlocker activé", 0);
         var itemCdiSeulement = new TemplateItem(Guid.NewGuid(), "Processus disciplinaire signé", 1, new[] { ContractType.CDI });
         var section = new TemplateSection(Guid.NewGuid(), "IT", 0, new[] { itemCommun, itemCdiSeulement });
         var template = new WorkflowTemplate(Guid.NewGuid(), WorkflowType.Onboarding, "T0", Guid.NewGuid(), new[] { section }, new DateTime(2026, 8, 15));
-        var verificateur = Guid.NewGuid();
-        template.Soumettre();
-        template.Verifier(verificateur);
-        template.Approuver(Guid.NewGuid());
+        var verifier = Guid.NewGuid();
+        template.Submit();
+        template.Verify(verifier);
+        template.Approve(Guid.NewGuid());
 
         await using (var dbEcriture = new AgirhDbContext(options))
         {
-            await new WorkflowTemplateRepository(dbEcriture).AjouterAsync(template);
+            await new WorkflowTemplateRepository(dbEcriture).AddAsync(template);
         }
 
         await using var dbLecture = new AgirhDbContext(options);
-        var recharge = await new WorkflowTemplateRepository(dbLecture).ObtenirParIdAsync(template.Id);
+        var recharge = await new WorkflowTemplateRepository(dbLecture).GetByIdAsync(template.Id);
 
         recharge.Should().NotBeNull();
-        recharge!.Statut.Should().Be(TemplateStatut.Approuve);
-        recharge.VerificateurId.Should().Be(verificateur);
+        recharge!.Status.Should().Be(TemplateStatus.Approved);
+        recharge.VerifierId.Should().Be(verifier);
         recharge.Sections.Should().ContainSingle();
         recharge.Sections[0].Items.Should().HaveCount(2);
         recharge.Sections[0].Items.Should().Contain(i =>
-            i.Libelle == itemCdiSeulement.Libelle && i.ConditionsTypeContrat.Contains(ContractType.CDI));
+            i.Label == itemCdiSeulement.Label && i.ApplicableContractTypes.Contains(ContractType.CDI));
         recharge.Sections[0].Items.Should().Contain(i =>
-            i.Libelle == itemCommun.Libelle && i.ConditionsTypeContrat.Count == 0);
+            i.Label == itemCommun.Label && i.ApplicableContractTypes.Count == 0);
     }
 
     [Fact]
-    public async Task ObtenirDernierApprouveAsync_IgnoreLesTemplatesNonApprouves()
+    public async Task GetLastApprovedAsync_IgnoresNonApprovedTemplates()
     {
         var options = CreerOptions();
         var sectionRejete = new TemplateSection(Guid.NewGuid(), "RH", 0, new[] { new TemplateItem(Guid.NewGuid(), "Item", 0) });
         var templateRejete = new WorkflowTemplate(Guid.NewGuid(), WorkflowType.Onboarding, "T0", Guid.NewGuid(), new[] { sectionRejete }, new DateTime(2026, 1, 1));
-        templateRejete.Soumettre();
-        templateRejete.Rejeter(Guid.NewGuid(), "motif");
+        templateRejete.Submit();
+        templateRejete.Reject(Guid.NewGuid(), "motif");
 
         var sectionApprouve = new TemplateSection(Guid.NewGuid(), "RH", 0, new[] { new TemplateItem(Guid.NewGuid(), "Item", 0) });
         var templateApprouve = new WorkflowTemplate(Guid.NewGuid(), WorkflowType.Onboarding, "T1", Guid.NewGuid(), new[] { sectionApprouve }, new DateTime(2026, 2, 1));
-        templateApprouve.Soumettre();
-        templateApprouve.Verifier(Guid.NewGuid());
-        templateApprouve.Approuver(Guid.NewGuid());
+        templateApprouve.Submit();
+        templateApprouve.Verify(Guid.NewGuid());
+        templateApprouve.Approve(Guid.NewGuid());
 
         await using (var dbEcriture = new AgirhDbContext(options))
         {
             var repo = new WorkflowTemplateRepository(dbEcriture);
-            await repo.AjouterAsync(templateRejete);
-            await repo.AjouterAsync(templateApprouve);
+            await repo.AddAsync(templateRejete);
+            await repo.AddAsync(templateApprouve);
         }
 
         await using var dbLecture = new AgirhDbContext(options);
-        var resultat = await new WorkflowTemplateRepository(dbLecture).ObtenirDernierApprouveAsync(WorkflowType.Onboarding);
+        var resultat = await new WorkflowTemplateRepository(dbLecture).GetLastApprovedAsync(WorkflowType.Onboarding);
 
         resultat.Should().NotBeNull();
         resultat!.Version.Should().Be("T1");

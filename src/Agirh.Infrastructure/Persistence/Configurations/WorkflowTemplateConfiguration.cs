@@ -15,12 +15,12 @@ public class WorkflowTemplateConfiguration : IEntityTypeConfiguration<WorkflowTe
         builder.HasKey(t => t.Id);
         builder.Property(t => t.Type).HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(t => t.Version).IsRequired().HasMaxLength(20);
-        builder.Property(t => t.Statut).HasConversion<string>().HasMaxLength(20).IsRequired();
-        builder.Property(t => t.RedacteurId).IsRequired();
-        builder.Property(t => t.VerificateurId);
-        builder.Property(t => t.ApprobateurId);
-        builder.Property(t => t.MotifRejet).HasMaxLength(500);
-        builder.Property(t => t.DateCreation).IsRequired();
+        builder.Property(t => t.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
+        builder.Property(t => t.AuthorId).IsRequired();
+        builder.Property(t => t.VerifierId);
+        builder.Property(t => t.ApproverId);
+        builder.Property(t => t.RejectionReason).HasMaxLength(500);
+        builder.Property(t => t.CreatedAt).IsRequired();
         builder.HasIndex(t => new { t.Type, t.Version }).IsUnique();
 
         builder.OwnsMany(t => t.Sections, section =>
@@ -28,23 +28,23 @@ public class WorkflowTemplateConfiguration : IEntityTypeConfiguration<WorkflowTe
             section.ToTable("TemplateSections");
             section.WithOwner().HasForeignKey("WorkflowTemplateId");
             section.HasKey(s => s.Id);
-            section.Property(s => s.Nom).IsRequired().HasMaxLength(100);
-            section.Property(s => s.Ordre).IsRequired();
+            section.Property(s => s.Name).IsRequired().HasMaxLength(100);
+            section.Property(s => s.Order).IsRequired();
 
             section.OwnsMany(s => s.Items, item =>
             {
                 item.ToTable("TemplateItems");
                 item.WithOwner().HasForeignKey("TemplateSectionId");
                 item.HasKey(i => i.Id);
-                item.Property(i => i.Libelle).IsRequired().HasMaxLength(300);
-                item.Property(i => i.Ordre).IsRequired();
+                item.Property(i => i.Label).IsRequired().HasMaxLength(300);
+                item.Property(i => i.Order).IsRequired();
 
                 var conditionsComparer = new ValueComparer<IReadOnlyCollection<ContractType>>(
                     (a, b) => a!.SequenceEqual(b!),
                     c => c.Aggregate(0, (hash, v) => HashCode.Combine(hash, v)),
                     c => c.ToList());
 
-                item.Property(i => i.ConditionsTypeContrat)
+                item.Property(i => i.ApplicableContractTypes)
                     .HasConversion(
                         list => string.Join(',', list.Select(c => c.ToString())),
                         text => string.IsNullOrEmpty(text)

@@ -8,43 +8,43 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Agirh.Api.Controllers;
 
-public record TemplateItemRequest(string Libelle, int Ordre, IReadOnlyCollection<ContractType>? ConditionsTypeContrat);
+public record TemplateItemRequest(string Label, int Order, IReadOnlyCollection<ContractType>? ApplicableContractTypes);
 
-public record TemplateSectionRequest(string Nom, int Ordre, IReadOnlyCollection<TemplateItemRequest> Items);
+public record TemplateSectionRequest(string Name, int Order, IReadOnlyCollection<TemplateItemRequest> Items);
 
-public record ProposerTemplateRequest(WorkflowType Type, string Version, IReadOnlyCollection<TemplateSectionRequest> Sections);
+public record ProposeTemplateRequest(WorkflowType Type, string Version, IReadOnlyCollection<TemplateSectionRequest> Sections);
 
-public record RejeterTemplateRequest(string Motif);
+public record RejectTemplateRequest(string Reason);
 
-public record TemplateResponse(Guid Id, WorkflowType Type, string Version, TemplateStatut Statut);
+public record TemplateResponse(Guid Id, WorkflowType Type, string Version, TemplateStatus Status);
 
 [ApiController]
 [Route("api/templates")]
 [Authorize]
 public class TemplateController : ControllerBase
 {
-    private readonly ProposerTemplateUseCase _proposer;
-    private readonly VerifierTemplateUseCase _verifier;
-    private readonly ApprouverTemplateUseCase _approuver;
-    private readonly RejeterTemplateUseCase _rejeter;
+    private readonly ProposeTemplateUseCase _propose;
+    private readonly VerifyTemplateUseCase _verify;
+    private readonly ApproveTemplateUseCase _approve;
+    private readonly RejectTemplateUseCase _reject;
     private readonly ICurrentUserAccessor _currentUser;
 
     public TemplateController(
-        ProposerTemplateUseCase proposer,
-        VerifierTemplateUseCase verifier,
-        ApprouverTemplateUseCase approuver,
-        RejeterTemplateUseCase rejeter,
+        ProposeTemplateUseCase propose,
+        VerifyTemplateUseCase verify,
+        ApproveTemplateUseCase approve,
+        RejectTemplateUseCase reject,
         ICurrentUserAccessor currentUser)
     {
-        _proposer = proposer;
-        _verifier = verifier;
-        _approuver = approuver;
-        _rejeter = rejeter;
+        _propose = propose;
+        _verify = verify;
+        _approve = approve;
+        _reject = reject;
         _currentUser = currentUser;
     }
 
     [HttpPost]
-    public async Task<ActionResult<TemplateResponse>> Proposer(ProposerTemplateRequest request, CancellationToken ct)
+    public async Task<ActionResult<TemplateResponse>> Propose(ProposeTemplateRequest request, CancellationToken ct)
     {
         var actor = await _currentUser.GetActorAsync(ct);
 
@@ -52,13 +52,13 @@ public class TemplateController : ControllerBase
         {
             var sections = request.Sections.Select(s => new TemplateSection(
                 Guid.NewGuid(),
-                s.Nom,
-                s.Ordre,
-                s.Items.Select(i => new TemplateItem(Guid.NewGuid(), i.Libelle, i.Ordre, i.ConditionsTypeContrat)).ToList()
+                s.Name,
+                s.Order,
+                s.Items.Select(i => new TemplateItem(Guid.NewGuid(), i.Label, i.Order, i.ApplicableContractTypes)).ToList()
             )).ToList();
 
-            var template = await _proposer.ExecuteAsync(actor, request.Type, request.Version, sections, DateTime.UtcNow, ct);
-            return Ok(new TemplateResponse(template.Id, template.Type, template.Version, template.Statut));
+            var template = await _propose.ExecuteAsync(actor, request.Type, request.Version, sections, DateTime.UtcNow, ct);
+            return Ok(new TemplateResponse(template.Id, template.Type, template.Version, template.Status));
         }
         catch (AccessDeniedException)
         {
@@ -74,14 +74,14 @@ public class TemplateController : ControllerBase
         }
     }
 
-    [HttpPost("{id:guid}/verifier")]
-    public async Task<IActionResult> Verifier(Guid id, CancellationToken ct)
+    [HttpPost("{id:guid}/verify")]
+    public async Task<IActionResult> Verify(Guid id, CancellationToken ct)
     {
         var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
-            await _verifier.ExecuteAsync(actor, id, ct);
+            await _verify.ExecuteAsync(actor, id, ct);
             return NoContent();
         }
         catch (AccessDeniedException)
@@ -94,14 +94,14 @@ public class TemplateController : ControllerBase
         }
     }
 
-    [HttpPost("{id:guid}/approuver")]
-    public async Task<IActionResult> Approuver(Guid id, CancellationToken ct)
+    [HttpPost("{id:guid}/approve")]
+    public async Task<IActionResult> Approve(Guid id, CancellationToken ct)
     {
         var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
-            await _approuver.ExecuteAsync(actor, id, ct);
+            await _approve.ExecuteAsync(actor, id, ct);
             return NoContent();
         }
         catch (AccessDeniedException)
@@ -114,14 +114,14 @@ public class TemplateController : ControllerBase
         }
     }
 
-    [HttpPost("{id:guid}/rejeter")]
-    public async Task<IActionResult> Rejeter(Guid id, RejeterTemplateRequest request, CancellationToken ct)
+    [HttpPost("{id:guid}/reject")]
+    public async Task<IActionResult> Reject(Guid id, RejectTemplateRequest request, CancellationToken ct)
     {
         var actor = await _currentUser.GetActorAsync(ct);
 
         try
         {
-            await _rejeter.ExecuteAsync(actor, id, request.Motif, ct);
+            await _reject.ExecuteAsync(actor, id, request.Reason, ct);
             return NoContent();
         }
         catch (AccessDeniedException)

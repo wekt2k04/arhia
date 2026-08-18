@@ -12,10 +12,10 @@ public class WorkflowInstanceConfiguration : IEntityTypeConfiguration<WorkflowIn
         builder.HasKey(i => i.Id);
         builder.Property(i => i.TemplateVersion).IsRequired().HasMaxLength(20);
         builder.Property(i => i.Type).HasConversion<string>().HasMaxLength(20).IsRequired();
-        builder.Property(i => i.Statut).HasConversion<string>().HasMaxLength(20).IsRequired();
-        builder.Property(i => i.DateCreation).IsRequired();
-        builder.Property(i => i.DateCloture);
-        builder.HasOne<Employee>().WithMany().HasForeignKey(i => i.CollaborateurId).OnDelete(DeleteBehavior.Restrict);
+        builder.Property(i => i.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
+        builder.Property(i => i.CreatedAt).IsRequired();
+        builder.Property(i => i.ClosureDate);
+        builder.HasOne<Employee>().WithMany().HasForeignKey(i => i.EmployeeId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<WorkflowTemplate>().WithMany().HasForeignKey(i => i.TemplateId).OnDelete(DeleteBehavior.Restrict);
 
         builder.OwnsMany(i => i.Items, item =>
@@ -24,11 +24,11 @@ public class WorkflowInstanceConfiguration : IEntityTypeConfiguration<WorkflowIn
             item.WithOwner().HasForeignKey("WorkflowInstanceId");
             item.HasKey(x => x.Id);
             item.Property(x => x.TemplateItemId).IsRequired();
-            item.Property(x => x.Libelle).IsRequired().HasMaxLength(300);
-            item.Property(x => x.Etat).HasConversion<string>().HasMaxLength(20).IsRequired();
-            item.Property(x => x.Commentaire).HasMaxLength(1000);
-            item.Property(x => x.CochePar);
-            item.Property(x => x.DateCoche);
+            item.Property(x => x.Label).IsRequired().HasMaxLength(300);
+            item.Property(x => x.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
+            item.Property(x => x.Comment).HasMaxLength(1000);
+            item.Property(x => x.CheckedBy);
+            item.Property(x => x.CheckedDate);
         });
 
         builder.Navigation(i => i.Items).UsePropertyAccessMode(PropertyAccessMode.Field);

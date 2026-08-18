@@ -16,23 +16,23 @@ public class WorkflowInstanceRepository : IWorkflowInstanceRepository
         _db = db;
     }
 
-    public async Task<WorkflowInstance?> ObtenirParIdAsync(Guid id, CancellationToken ct = default) =>
+    public async Task<WorkflowInstance?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
         await _db.WorkflowInstances.Include(i => i.Items).FirstOrDefaultAsync(i => i.Id == id, ct);
 
-    public async Task<WorkflowInstance?> ObtenirParCollaborateurAsync(Guid collaborateurId, WorkflowType type, CancellationToken ct = default) =>
+    public async Task<WorkflowInstance?> GetByEmployeeAsync(Guid employeeId, WorkflowType type, CancellationToken ct = default) =>
         await _db.WorkflowInstances
             .Include(i => i.Items)
-            .Where(i => i.CollaborateurId == collaborateurId && i.Type == type)
-            .OrderByDescending(i => i.DateCreation)
+            .Where(i => i.EmployeeId == employeeId && i.Type == type)
+            .OrderByDescending(i => i.CreatedAt)
             .FirstOrDefaultAsync(ct);
 
-    public async Task AjouterAsync(WorkflowInstance instance, CancellationToken ct = default)
+    public async Task AddAsync(WorkflowInstance instance, CancellationToken ct = default)
     {
         await _db.WorkflowInstances.AddAsync(instance, ct);
         await _db.SaveChangesAsync(ct);
     }
 
-    public async Task MettreAJourAsync(WorkflowInstance instance, CancellationToken ct = default)
+    public async Task UpdateAsync(WorkflowInstance instance, CancellationToken ct = default)
     {
         _db.WorkflowInstances.Update(instance);
         await _db.SaveChangesAsync(ct);

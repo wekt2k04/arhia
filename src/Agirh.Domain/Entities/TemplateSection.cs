@@ -3,40 +3,40 @@ namespace Agirh.Domain.Entities;
 public class TemplateSection
 {
     public Guid Id { get; }
-    public string Nom { get; }
-    public int Ordre { get; }
+    public string Name { get; }
+    public int Order { get; }
     private readonly List<TemplateItem> _items;
     public IReadOnlyList<TemplateItem> Items => _items.AsReadOnly();
 
-    public TemplateSection(Guid id, string nom, int ordre, IReadOnlyCollection<TemplateItem>? items)
+    public TemplateSection(Guid id, string name, int order, IReadOnlyCollection<TemplateItem>? items)
     {
         if (id == Guid.Empty)
             throw new ArgumentException("L'identifiant de la section est requis.", nameof(id));
-        if (ordre < 0)
-            throw new ArgumentException("L'ordre ne peut pas être négatif.", nameof(ordre));
+        if (order < 0)
+            throw new ArgumentException("L'ordre ne peut pas être négatif.", nameof(order));
 
         var itemsList = items?.ToList() ?? new List<TemplateItem>();
         if (itemsList.Count == 0)
             throw new ArgumentException("Une section doit contenir au moins un item.", nameof(items));
 
         Id = id;
-        Nom = ValiderNom(nom);
-        Ordre = ordre;
+        Name = ValidateName(name);
+        Order = order;
         _items = itemsList;
     }
 
-    private TemplateSection(Guid id, string nom, int ordre)
+    private TemplateSection(Guid id, string name, int order)
     {
         Id = id;
-        Nom = nom;
-        Ordre = ordre;
+        Name = name;
+        Order = order;
         _items = new List<TemplateItem>();
     }
 
-    private static string ValiderNom(string nom)
+    private static string ValidateName(string name)
     {
-        if (string.IsNullOrWhiteSpace(nom))
-            throw new ArgumentException("Le nom de la section ne peut pas être vide.", nameof(nom));
-        return nom.Trim();
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Le nom de la section ne peut pas être vide.", nameof(name));
+        return name.Trim();
     }
 }

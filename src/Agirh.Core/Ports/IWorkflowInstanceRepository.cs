@@ -7,8 +7,8 @@ namespace Agirh.Core.Ports;
 
 public interface IWorkflowInstanceRepository
 {
-    Task<WorkflowInstance?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
-    Task<WorkflowInstance?> ObtenirParCollaborateurAsync(Guid collaborateurId, WorkflowType type, CancellationToken ct = default);
-    Task AjouterAsync(WorkflowInstance instance, CancellationToken ct = default);
-    Task MettreAJourAsync(WorkflowInstance instance, CancellationToken ct = default);
+    Task<WorkflowInstance?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<WorkflowInstance?> GetByEmployeeAsync(Guid employeeId, WorkflowType type, CancellationToken ct = default);
+    Task AddAsync(WorkflowInstance instance, CancellationToken ct = default);
+    Task UpdateAsync(WorkflowInstance instance, CancellationToken ct = default);
 }

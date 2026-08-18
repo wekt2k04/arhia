@@ -5,30 +5,30 @@ namespace Agirh.Domain.Entities;
 public class TemplateItem
 {
     public Guid Id { get; }
-    public string Libelle { get; }
-    public int Ordre { get; }
-    public IReadOnlyCollection<ContractType> ConditionsTypeContrat { get; }
+    public string Label { get; }
+    public int Order { get; }
+    public IReadOnlyCollection<ContractType> ApplicableContractTypes { get; }
 
-    public TemplateItem(Guid id, string libelle, int ordre, IReadOnlyCollection<ContractType>? conditionsTypeContrat = null)
+    public TemplateItem(Guid id, string label, int order, IReadOnlyCollection<ContractType>? applicableContractTypes = null)
     {
         if (id == Guid.Empty)
             throw new ArgumentException("L'identifiant de l'item est requis.", nameof(id));
-        if (ordre < 0)
-            throw new ArgumentException("L'ordre ne peut pas être négatif.", nameof(ordre));
+        if (order < 0)
+            throw new ArgumentException("L'ordre ne peut pas être négatif.", nameof(order));
 
         Id = id;
-        Libelle = ValiderLibelle(libelle);
-        Ordre = ordre;
-        ConditionsTypeContrat = (conditionsTypeContrat ?? Enumerable.Empty<ContractType>()).ToList().AsReadOnly();
+        Label = ValidateLabel(label);
+        Order = order;
+        ApplicableContractTypes = (applicableContractTypes ?? Enumerable.Empty<ContractType>()).ToList().AsReadOnly();
     }
 
-    public bool ApplicablePour(ContractType typeContrat) =>
-        ConditionsTypeContrat.Count == 0 || ConditionsTypeContrat.Contains(typeContrat);
+    public bool IsApplicableFor(ContractType contractType) =>
+        ApplicableContractTypes.Count == 0 || ApplicableContractTypes.Contains(contractType);
 
-    private static string ValiderLibelle(string libelle)
+    private static string ValidateLabel(string label)
     {
-        if (string.IsNullOrWhiteSpace(libelle))
-            throw new ArgumentException("Le libellé de l'item ne peut pas être vide.", nameof(libelle));
-        return libelle.Trim();
+        if (string.IsNullOrWhiteSpace(label))
+            throw new ArgumentException("Le libellé de l'item ne peut pas être vide.", nameof(label));
+        return label.Trim();
     }
 }

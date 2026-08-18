@@ -11,16 +11,16 @@ namespace Agirh.Api.Controllers;
 [Authorize]
 public class NotificationController : ControllerBase
 {
-    private readonly ObtenirNotificationsUseCase _obtenirNotifications;
+    private readonly GetNotificationsUseCase _getNotifications;
     private readonly ICurrentUserAccessor _currentUser;
     private readonly SseNotificationBroadcaster _broadcaster;
 
     public NotificationController(
-        ObtenirNotificationsUseCase obtenirNotifications,
+        GetNotificationsUseCase getNotifications,
         ICurrentUserAccessor currentUser,
         SseNotificationBroadcaster broadcaster)
     {
-        _obtenirNotifications = obtenirNotifications;
+        _getNotifications = getNotifications;
         _currentUser = currentUser;
         _broadcaster = broadcaster;
     }
@@ -38,7 +38,7 @@ public class NotificationController : ControllerBase
         {
             await _broadcaster.DiffuserAsync(
                 Response.Body,
-                innerCt => _obtenirNotifications.ExecuteAsync(actor, DateTime.UtcNow, innerCt),
+                innerCt => _getNotifications.ExecuteAsync(actor, DateTime.UtcNow, innerCt),
                 ct);
         }
         catch (OperationCanceledException)
