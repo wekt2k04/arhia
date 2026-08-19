@@ -368,12 +368,13 @@ add_footer(s, 9, SECTION_NAMES[2])
 s = add_slide()
 add_kicker(s, "Partie 2 — Architecture")
 add_title(s, "Securite : RBAC a portee + pattern BFF")
-add_textbox(s, Inches(0.7), Inches(1.95), Inches(5.7), Inches(0.4), "RBAC + portee (PoleScopeGuard)", size=16, color=PRIMARY, bold=True)
-code1 = ("public static bool PeutAccederAuPole(...) =>\n"
-         "    acteur.Role switch\n"
+add_textbox(s, Inches(0.7), Inches(1.95), Inches(5.7), Inches(0.4), "RBAC + portee (DepartmentScopeGuard)", size=16, color=PRIMARY, bold=True)
+code1 = ("public static bool CanAccessDepartment(...) =>\n"
+         "    actor.Role switch\n"
          "    {\n"
-         "        RoleType.AdminQualite => true,\n"
-         "        RoleType.RH => acteur.PoleId == poleCibleId,\n"
+         "        RoleType.QualityAdmin => true,\n"
+         "        RoleType.HR => actor.DepartmentId\n"
+         "            == targetDepartmentId,\n"
          "        _ => false\n"
          "    };")
 box = add_box(s, Inches(0.7), Inches(2.4), Inches(5.7), Inches(2.35), code1, fill=RGBColor(0x0B,0x0B,0x0E),
@@ -426,8 +427,8 @@ add_bullets(s, Inches(6.85), Inches(3.75), Inches(5.1), Inches(0.8), [
 ], size=12, space_after=6)
 
 add_textbox(s, Inches(0.7), Inches(4.95), Inches(11.9), Inches(0.4), "Code reel — src/Agirh.Infrastructure/Rag/MarkdownChunker.cs, lignes 18-28", size=12, color=PRIMARY, bold=True)
-code = ("public MarkdownChunker(Func<string,int> compterTokens,\n"
-        "    int maxTokensParChunk = 400, double tauxRecouvrement = 0.15)")
+code = ("public MarkdownChunker(Func<string,int> countTokens,\n"
+        "    int maxTokensPerChunk = 400, double overlapRatio = 0.15)")
 box = add_box(s, Inches(0.7), Inches(5.4), Inches(11.9), Inches(0.95), code, fill=RGBColor(0x0B,0x0B,0x0E),
               text_color=RGBColor(0xCB,0xE5,0xCB), size=13, align=PP_ALIGN.LEFT, bold=False, corner=True, line_color=BORDER)
 for p in box.text_frame.paragraphs:
@@ -456,7 +457,7 @@ add_bullets(s, Inches(6.85), Inches(3.08), Inches(5.1), Inches(0.6), [
 add_box(s, Inches(0.7), Inches(4.05), Inches(11.9), Inches(0.85), "Bi-encodeur (embedding) : rapide, separe, approximatif  →  Cross-encodeur (reranking) : lent, ensemble, precis",
         fill=BG_ALT, line_color=BORDER, size=13.5, corner=True, bold=False)
 
-add_textbox(s, Inches(0.7), Inches(5.15), Inches(11.9), Inches(0.4), "Piege reel retenu — src/Agirh.Infrastructure/Rag/OnnxRerankerAdapter.cs, ligne 65", size=12, color=WARN, bold=True)
+add_textbox(s, Inches(0.7), Inches(5.15), Inches(11.9), Inches(0.4), "Piege reel retenu — src/Agirh.Infrastructure/Rag/OnnxRerankerAdapter.cs, ligne 62", size=12, color=WARN, bold=True)
 add_textbox(s, Inches(0.7), Inches(5.6), Inches(11.9), Inches(1.15),
             "Un score de reranking eleve (jusqu'a 0.78 observe) ne garantit PAS que le chunk contient la reponse — "
             "seulement qu'il est thematiquement proche. Le score mesure une proximite, pas une verite : la decision finale "
@@ -509,12 +510,12 @@ add_box(s, Inches(4.05), Inches(3.35), Inches(3.1), Inches(1.2), "Rien ne passe\
 add_arrow_right(s, Inches(7.25), Inches(3.95), length=Inches(0.45))
 add_box(s, Inches(7.8), Inches(3.35), Inches(4.6), Inches(1.2), "→ refus immediat,\nGENERATOR JAMAIS APPELE", fill=RGBColor(0x1A,0x30,0x1E), line_color=GOOD, size=13, corner=True)
 
-add_textbox(s, Inches(0.7), Inches(5.05), Inches(11.9), Inches(0.4), "Code reel — src/Agirh.Core/UseCases/RepondreConversationUseCase.cs, lignes 179-194", size=12, color=PRIMARY, bold=True)
-code = ("if (candidats.Count == 0)\n"
-        "    return new PreparationDocumentaire(false, null, ...);\n"
-        "// ... reranking, filtrage par SeuilPertinenceMinimum = 0.01f ...\n"
-        "if (meilleurs.Count == 0)\n"
-        "    return new PreparationDocumentaire(false, null, ...);")
+add_textbox(s, Inches(0.7), Inches(5.05), Inches(11.9), Inches(0.4), "Code reel — src/Agirh.Core/UseCases/AnswerConversationUseCase.cs, lignes 179-194", size=12, color=PRIMARY, bold=True)
+code = ("if (candidates.Count == 0)\n"
+        "    return new DocumentaryPreparation(false, null, ...);\n"
+        "// ... reranking, filtrage par MinimumRelevanceThreshold = 0.01f ...\n"
+        "if (best.Count == 0)\n"
+        "    return new DocumentaryPreparation(false, null, ...);")
 box = add_box(s, Inches(0.7), Inches(5.48), Inches(11.9), Inches(1.35), code, fill=RGBColor(0x0B,0x0B,0x0E),
               text_color=RGBColor(0xCB,0xE5,0xCB), size=12.5, align=PP_ALIGN.LEFT, bold=False, corner=True, line_color=BORDER)
 for p in box.text_frame.paragraphs:
