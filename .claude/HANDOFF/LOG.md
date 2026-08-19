@@ -477,3 +477,18 @@
 **Reste :** inchangé par rapport à l'entrée précédente du jour — voir ci-dessus (question de l'encadrant en tête de liste).
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+## 2026-08-19 — Poste de travail (Windows), suite 2
+
+**Fait :**
+- **Question posée sur l'offboarding** (le porteur du projet voulait savoir s'il existait) : vérifié directement dans le code plutôt que supposé — `WorkflowType.Offboarding` est une valeur de premier ordre de l'enum, tout le pipeline (`InstantiateWorkflowUseCase`, `WorkflowController`, `TemplateController`) est générique par type donc fonctionne sans code dédié, checklist de référence documentée (`LOGIQUE_METIER.md` §4), 2 documents RAG dédiés. Deux nuances signalées : aucune UI frontend ne déclenche de workflow (ni onboarding ni offboarding), et `InstantiateWorkflowUseCaseTests.cs` ne teste explicitement que `WorkflowType.Onboarding`.
+- **Nouvelle fiche de suivi pour les encadrants créée** (`docs/rapport_avancement/fiche_synthese.tex`/`.pdf`), demandée explicitement pour être tenue en main pendant la soutenance. Clarifié via `AskUserQuestion` avant rédaction (format LaTeX, longueur, structure, encadrant à mentionner) plutôt que de deviner. Réponses obtenues : LaTeX→PDF avec page de garde "niveau ingénieur" ; 3 pages recto ; structure libre avec un tableau récapitulatif en fin (pas de choix explicite entre plan/narratif/factuel — synthèse faite entre les trois) ; ne garder que M. Moulay Rachid Didi Alaoui (jamais M. Saad), mais sans toucher pptx/rapport tout de suite ("plus tard").
+- **Itération en cours de route** : le porteur du projet a demandé en aparté d'intégrer les 3 diagrammes déjà générés (`architecture.png`/`ai_pipeline.png`/`workflow_circuit.png`) "car c'est plus parlant" — pas besoin d'en créer de nouveaux, les 3 existants (dont `workflow_circuit.png`, créé plus tôt cette même session) suffisaient. Premier essai à 4 pages (repris du découpage déjà validé de `rapport.tex`, +1 page pour la couverture). **Vérifié visuellement page par page via le Read tool sur le PDF compilé** (capacité inédite cette session — contrairement au pptx, un PDF se lit nativement) : mise en page propre mais beaucoup d'espace vide sur 3 des 4 pages. Recompacté à 3 pages en fusionnant deux sections sur la même page + agrandissement léger d'un diagramme, recompilé, revérifié visuellement — bon équilibre, zéro `Overfull \vbox`/`Underfull` dans le log.
+- Logo produit `frontend/public/agirh-logo.png` copié dans `docs/rapport_avancement/` pour la page de garde (aucun logo ENSA Safi disponible dans le repo — non recherché en ligne, texte utilisé à la place).
+- `docs/rapport_avancement/` reste **entièrement non suivi par git** (même convention que `rapport.tex`/`rapport.pdf` déjà en place avant cette session) — la fiche n'a donc pas été commitée, seul le HANDOFF l'a été.
+
+**Reste :**
+- Appliquer la correction encadrant (voir "Décisions en attente" de `NEXT_SESSION.md`) à `generate_pptx.py`, `script_orateur.md` et `rapport.tex` quand le porteur du projet le demandera — décision déjà connue, juste reportée.
+- Sujets pré-existants toujours ouverts : vérification visuelle pixel du chat, routeur conversationnel (~27%), jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8.
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
