@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 
 // Le JWT n'est jamais exposé au JavaScript client (docs/STACK_TECHNIQUE.md #2 : cookie httpOnly).
-// Durée alignée sur Jwt:DureeValiditeMinutes côté Agirh.Api (60 min par défaut,
+// Durée alignée sur Jwt:TokenLifetimeMinutes côté Agirh.Api (60 min par défaut,
 // appsettings.json) — si l'un change, aligner l'autre.
 const NOM_COOKIE = "agirh_session";
 const DUREE_COOKIE_SECONDES = 60 * 60;

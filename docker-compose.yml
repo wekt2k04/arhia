@@ -51,7 +51,7 @@ services:
       Jwt__Issuer: Agirh
       Jwt__Audience: Agirh.Clients
       Jwt__SigningKey: ${JWT_SIGNING_KEY}
-      Jwt__DureeValiditeMinutes: "60"
+      Jwt__TokenLifetimeMinutes: "60"
       Ollama__BaseUrl: "http://host.docker.internal:11434"
       Qdrant__Host: "qdrant"
     ports:
