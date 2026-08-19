@@ -466,3 +466,14 @@
 - Sujets pré-existants toujours ouverts (indépendants de cette session) : vérification visuelle pixel du chat, routeur conversationnel (~27%), jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8.
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+## 2026-08-19 — Poste de travail (Windows), suite
+
+**Fait :**
+- **Vérification indépendante d'un scan Copilot du repo**, demandée par le porteur du projet ("Est-ce vrai, ce que dit l'IA de github ?"). Chaque affirmation vérifiable a été recoupée avec le code réel plutôt qu'acceptée telle quelle : existence des 10+8 fichiers cités (tous confirmés par `Glob`), notifications recalculées à la demande sans table dédiée (confirmé dans `GetNotificationsUseCase.cs`), absence de test d'intégration HTTP complet (`WebApplicationFactory` introuvable dans `tests/`), primitives `Suspend()`/`Resume()` présentes sur `WorkflowInstance` sans UseCase/endpoint (confirmé), `IAuditTrailPort`/`AuditTrailAdapter`/`TechnicalLogAdapter` documentés dans `ARCHITECTURE.md` mais introuvables dans `src/` (confirmé, 0 résultat). Verdict global : scan fiable, aucune fabrication détectée.
+- **Un vrai bug trouvé au passage, pas juste un écart de doc** (commit `6d94d50`) : `docker-compose.yml` définissait encore `Jwt__DureeValiditeMinutes`, alors que `Program.cs:60` lit `Jwt:TokenLifetimeMinutes` depuis le Patch 1 de la migration vocabulaire (18 août). ASP.NET Core ne mappe une variable d'env `Jwt__X` que sur la clé de config `Jwt:X` exacte — donc cette variable était silencieusement ignorée en environnement Docker, l'app retombant sur le défaut codé en dur (`60`) qui coïncidait avec la valeur voulue. Corrigé (`Jwt__TokenLifetimeMinutes: "60"`) + commentaire aligné dans `frontend/lib/api/session.ts:4`. `dotnet build -c Release` vérifié vert avant commit (0 warning/0 erreur) ; aucun `.cs` modifié donc pas de `dotnet test` nécessaire.
+- Les deux autres écarts relevés (audit trail non implémenté, suspend/resume sans UseCase) ont été délibérément laissés en l'état — ce sont des cibles d'architecture / cas particuliers déjà connus (`CHECKLIST.md`, `LOGIQUE_METIER.md` §8), pas des oublis de migration, donc pas de décision produit à prendre unilatéralement.
+
+**Reste :** inchangé par rapport à l'entrée précédente du jour — voir ci-dessus (question de l'encadrant en tête de liste).
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
