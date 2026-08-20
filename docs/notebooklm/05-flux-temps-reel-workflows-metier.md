@@ -123,44 +123,50 @@ principe de contrôle interne classique, transposé ici en contrainte logicielle
 
 1. Un RH crée une fiche collaborateur (`POST /api/workflows`,
    `WorkflowController.Instantiate`) avec les informations qui déterminent quel parcours
-   s'applique : Poste, Pôle, Contrat, Date.
+   s'applique : Poste, Département, Contrat, Date.
 2. La méthode `WorkflowTemplate.ResolveApplicableItems` calcule la liste précise des items de
-   checklist attendus, en croisant ces dimensions (**Poste × Pôle × Contrat**) contre le template
+   checklist attendus, en croisant ces dimensions (**Poste × Département × Contrat**) contre le template
    *approuvé* correspondant (contrainte héritée directement de la trace n°2).
 3. Une `WorkflowInstance` et son ensemble de `ChecklistItem` sont persistés en base, statut
    initial `InProgress`.
 4. Chaque item se coche indépendamment au fil du temps
-   (`POST /api/workflows/{id}/items/{itemId}/check`) — chaque action est enregistrée dans
-   l'**audit trail** (voir plus bas), pas seulement dans le log technique.
+   (`POST /api/workflows/{id}/items/{itemId}/check`), via un use case dédié qui applique les
+   mêmes vérifications RBAC/portée que les autres actions (voir plus bas pour la nuance sur la
+   journalisation de cette action).
 5. Le cycle de vie se termine par une clôture (`POST /api/workflows/{id}/close`) puis, plus
    tard, un archivage (`POST /api/workflows/{id}/archive`) qui rend le dossier définitivement
    consultable en lecture seule — un dossier archivé ne peut plus être modifié, garantissant
    l'intégrité de l'historique pour un usage de conformité.
 
-## Deux flux de logs séparés : une distinction à ne pas confondre
+## Deux flux de logs séparés : prévus, pas encore construits
 
-AGIRH maintient délibérément **deux flux de journalisation distincts**, avec des objectifs
-différents :
+**Écart de conception assumé, documenté plutôt que masqué** : `IAuditTrailPort`, `AuditTrailAdapter`
+et `TechnicalLogAdapter` (mentionnés dans `ARCHITECTURE.md`) n'existent dans aucun fichier de
+`src/` à ce jour (vérifié directement, pas supposé) — malgré ce que des versions antérieures de ce
+document ont pu laisser entendre, aucune action n'est aujourd'hui enregistrée dans un audit trail
+séparé. Ce qui suit décrit la **cible**, pas l'état actuel.
+
+AGIRH prévoit **deux flux de journalisation distincts**, avec des objectifs différents :
 
 - **Le log technique** — erreurs, informations de debug, pensé pour un usage de développement :
   diagnostiquer une panne, comprendre un comportement inattendu du code.
 - **L'audit trail** — une trace strictement **métier** : qui a coché quel item, qui a
   validé/rejeté quel template à quelle étape du circuit, qui a créé/clôturé/archivé quel dossier.
 
-La distinction n'est pas cosmétique. Un log technique peut être verbeux, bruyant, voire
-temporaire (rotation, purge) — il sert un usage opérationnel de court terme. Un audit trail, à
-l'inverse, doit répondre de façon fiable et durable à la question "qui a fait quoi, et quand" pour
-des raisons de conformité (ici, le contexte réel de qualité SMSI du porteur du projet l'exige
-explicitement) — mélanger les deux flux risquerait soit de noyer l'information de conformité dans
-du bruit technique, soit de gonfler artificiellement un audit trail avec des détails
-d'implémentation qui n'ont pas leur place dans une preuve de conformité.
+La distinction n'est pas cosmétique, même si elle reste à construire. Un log technique peut être
+verbeux, bruyant, voire temporaire (rotation, purge) — il sert un usage opérationnel de court
+terme. Un audit trail, à l'inverse, doit répondre de façon fiable et durable à la question "qui a
+fait quoi, et quand" pour des raisons de conformité (ici, le contexte réel de qualité SMSI du
+porteur du projet l'exige explicitement) — mélanger les deux flux risquerait soit de noyer
+l'information de conformité dans du bruit technique, soit de gonfler artificiellement un audit
+trail avec des détails d'implémentation qui n'ont pas leur place dans une preuve de conformité.
 
 ## Synthèse : ce que ces trois traces montrent ensemble
 
 Les trois flux tracés dans ce document partagent une structure commune, révélatrice de la
 philosophie de conception du système entier : une **action utilisateur déclenche un use case**
 (couche Core, document 01), qui **traverse des ports vers des adaptateurs concrets**
-(Infrastructure), avec des **vérifications de portée/rôle appliquées avant toute écriture**
+(Infrastructure), avec des **vérifications de rôle/portée appliquées avant toute écriture**
 (RBAC/DepartmentScopeGuard), et une **notification en temps réel** de l'événement qui en résulte (SSE)
 quand un autre acteur du système doit en être informé. Comprendre un seul de ces flux en
 profondeur — n'importe lequel des trois — donne une compréhension transférable des deux autres,

@@ -237,7 +237,9 @@ Sur un jeu de 48 questions de test (36 documentaires, 6 hors périmètre, 6 hors
 "recherche" fonctionne bien de façon fiable et déterministe. En revanche, le run **complet** de
 bout en bout (Router + RAG + Generator, avec le LLM impliqué à deux endroits) a mesuré 21/48 sur
 son unique confirmation complète — soit environ 27 échecs, majoritairement dus à des erreurs de
-classification du Router plutôt qu'à des erreurs de recherche.
+classification du Router plutôt qu'à des erreurs de recherche. **Ce chiffre 21/48 a été mesuré
+avant des corrections ultérieures et n'a jamais été rejoué depuis** (voir `NEXT_SESSION.md`) — à
+traiter comme une mesure provisoire, pas comme un résultat définitif à citer tel quel.
 
 Cet écart entre les deux mesures est la démonstration la plus concrète possible d'un principe
 général en IA appliquée : **la partie déterministe d'un pipeline (recherche, calcul, règles

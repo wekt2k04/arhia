@@ -8,7 +8,7 @@ système sans jamais être exposée à un risque évitable.*
 ## Pourquoi organiser du code en couches, au juste ?
 
 Le problème que toute application de taille moyenne rencontre tôt ou tard : le code métier (les
-règles réelles du métier — "un RH ne peut gérer que son pôle", "un template doit être approuvé
+règles réelles du métier — "un RH ne peut gérer que son département", "un template doit être approuvé
 avant d'instancier un dossier") finit mélangé avec le code technique (comment on parle à une base
 de données, comment on sérialise du JSON, comment on appelle une API externe). Ce mélange a un
 coût qui grossit avec le temps : chaque changement technique (changer de base de données, changer
@@ -56,13 +56,13 @@ Agirh.Api              → les Controllers ASP.NET Core (AuthController, Workflo
 Un exemple concret pour rendre ça tangible : le use case `InstantiateWorkflow` (dans `Agirh.Core`)
 a besoin de sauvegarder un dossier. Il ne sait pas que ce sera fait avec SQL Server — il dépend
 juste de l'interface `IWorkflowInstanceRepository`. C'est `Agirh.Infrastructure` qui fournit
-`EfWorkflowInstanceRepository`, une classe qui implémente cette interface avec du vrai EF Core.
+`WorkflowInstanceRepository`, une classe qui implémente cette interface avec du vrai EF Core.
 `Program.cs` fait le lien : `builder.Services.AddScoped<IWorkflowInstanceRepository,
-EfWorkflowInstanceRepository>()`.
+WorkflowInstanceRepository>()`.
 
 **Ce que ça apporte concrètement** : le use case peut être testé avec un faux repository en
 mémoire (pas besoin de base de données pour un test unitaire — c'est exactement ce que fait la
-suite de tests du projet, 158 tests verts, avec des doubles Moq/FluentAssertions à la place des
+suite de tests du projet, 211 tests verts, avec des doubles Moq/FluentAssertions à la place des
 vrais adaptateurs). Et si demain SQL Server est remplacé par PostgreSQL, ou Ollama par une vraie
 API cloud, seul `Agirh.Infrastructure` change — `Agirh.Core` et `Agirh.Domain` restent identiques,
 parce qu'ils ne connaissent que des interfaces, jamais des implémentations.
@@ -100,22 +100,23 @@ plutôt que "qu'est-ce que Camille peut faire ?".
 AGIRH définit 3 rôles, avec une portée strictement croissante :
 
 - **Employee** — accès à ses propres données uniquement (son dossier, sa checklist).
-- **RH** — gère les collaborateurs de **son pôle uniquement**. Un pôle correspond à un
-  département/une équipe métier.
+- **RH** — gère les collaborateurs de **son département uniquement** (une équipe/entité métier).
 - **QualityAdmin** — portée globale sur toute l'organisation ; seul rôle habilité à élever le rôle
   d'un compte, et seul rôle impliqué dans le circuit de validation des templates (voir document
   5 pour le détail du circuit).
 
 Un détail de conception qui mérite d'être compris en profondeur : le RBAC "pur" (juste vérifier
 le rôle) ne suffit pas ici, parce qu'un RH n'a pas accès à *tout* ce qu'un RH peut normalement
-faire — seulement à son pôle. C'est un cas où RBAC pur atteint sa limite et doit être complété par
+faire — seulement à son département. C'est un cas où RBAC pur atteint sa limite et doit être complété par
 une vérification de **portée** (parfois appelée ABAC — Attribute-Based Access Control — quand la
-permission dépend d'un attribut de la ressource, ici son pôle, comparé à un attribut de
+permission dépend d'un attribut de la ressource, ici son département, comparé à un attribut de
 l'utilisateur). AGIRH implémente ça avec `DepartmentScopeGuard`, une vérification **séparée** du rôle,
-appliquée **avant** même la vérification RBAC : un RH qui cible un dossier hors de son pôle est
-refusé, indépendamment du fait qu'il ait techniquement le bon rôle. Cette séparation en deux
-vérifications distinctes (rôle, puis portée) rend chacune plus simple à raisonner et à tester
-isolément, plutôt qu'une seule vérification monolithique qui mélangerait les deux dimensions.
+appliquée **après** la vérification RBAC dans le code réel (le rôle autorise d'abord l'action en
+général, la portée département autorise ensuite la cible précise) : un RH qui cible un dossier hors
+de son département est refusé, indépendamment du fait qu'il ait techniquement le bon rôle. Cette
+séparation en deux vérifications distinctes (rôle, puis portée) rend chacune plus simple à
+raisonner et à tester isolément, plutôt qu'une seule vérification monolithique qui mélangerait les
+deux dimensions.
 
 **Code réel — la matrice RBAC complète** (`src/Agirh.Core/Security/RbacMatrix.cs`), une seule source de
 vérité pour toutes les autorisations du système, jamais de vérification de rôle dispersée ailleurs
@@ -178,7 +179,7 @@ public static class DepartmentScopeGuard
 
 > **Règle métier à retenir** : un `RoleType.Employee` n'apparaît **jamais** dans
 > `CanAccessDepartment` (il retombe sur le `_ => false` par défaut) — un collaborateur n'a de portée
-> que sur ses propres données (`CanAccessEmployee`), jamais sur un pôle entier. C'est la
+> que sur ses propres données (`CanAccessEmployee`), jamais sur un département entier. C'est la
 > traduction directe en code de "Employee = ses propres données uniquement" : pas une phrase
 > de documentation qu'on espère vraie, une expression du switch qu'on peut lire et tester.
 
@@ -194,7 +195,7 @@ l'échelle réelle du problème, pas à l'échelle "idéale" ou "à la mode".
 
 Un **JWT** (JSON Web Token) est une chaîne de caractères encodée en trois parties séparées par des
 points : un en-tête (l'algorithme de signature utilisé), une charge utile ou "payload" (les
-informations sur l'utilisateur — ici, l'identifiant du compte, le rôle, éventuellement le pôle),
+informations sur l'utilisateur — ici, l'identifiant du compte, le rôle, éventuellement le département),
 et une signature cryptographique qui garantit que le contenu n'a pas été modifié depuis son
 émission par le serveur.
 

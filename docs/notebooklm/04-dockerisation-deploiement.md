@@ -33,7 +33,7 @@ seule commande (`docker compose up -d --build`).
 AGIRH déclare 4 services :
 
 ```yaml
-sqlserver  → base relationnelle (comptes, pôles, workflows, checklists)
+sqlserver  → base relationnelle (comptes, départements, workflows, checklists)
 qdrant     → index vectoriel du pipeline RAG
 api        → backend .NET (construit depuis src/Agirh.Api/Dockerfile)
 frontend   → Next.js (construit depuis frontend/Dockerfile)

@@ -73,10 +73,10 @@ existe pour éviter qu'une information à cheval sur deux sections ne soit perdu
 justement sur la frontière de découpage.
 
 La tokenisation (compter/découper le texte en unités que le modèle comprend) utilise
-`Microsoft.ML.Tokenizers`, avec un algorithme WordPiece/SentencePiece — les mêmes familles
-d'algorithmes utilisées par les tokenizers de BERT et consorts, qui découpent les mots en
-sous-unités (ex. "réindexation" pourrait devenir "ré" + "index" + "ation") pour gérer un
-vocabulaire fini malgré une langue à vocabulaire infini.
+`Microsoft.ML.Tokenizers.SentencePieceTokenizer` (`XlmRobertaTokenizer.cs`), un algorithme
+SentencePiece — la même famille utilisée par XLM-RoBERTa (jamais WordPiece, propre à BERT et non
+présent dans ce dépôt), qui découpe les mots en sous-unités (ex. "réindexation" pourrait devenir
+"ré" + "index" + "ation") pour gérer un vocabulaire fini malgré une langue à vocabulaire infini.
 
 ### Phase 2 — Embedding (vectorisation)
 
