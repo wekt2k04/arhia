@@ -1,0 +1,98 @@
+{
+  "genere_le": "2026-08-20",
+  "base": "AgirhDb (conteneur agirh-sql)",
+  "methode": "Cree via les endpoints HTTP reels de l'Api (register / elevate-role / employees / templates / workflows) — aucune insertion SQL directe hors table Departments, qui n'a pas d'endpoint de creation.",
+  "motDePasseCommun": "AgirhDev2026!",
+  "comptes": {
+    "admin": [
+      { "email": "wilfried@agirh.test", "role": "QualityAdmin", "accountId": "c38a025c-9f9d-4daf-9078-a64f0aa42f2c", "origine": "session precedente" },
+      { "email": "admin2@agirh.test", "role": "QualityAdmin", "accountId": "7143ab94-0998-4010-b69b-47c2d374c028", "origine": "ce lot" },
+      { "email": "e2etest@agirh.test", "role": "QualityAdmin", "accountId": null, "origine": "preexistant, mot de passe inconnu" }
+    ],
+    "hr": [
+      { "email": "hr.direction-technique.1@agirh.test", "accountId": "fc58adf4-5d57-49db-ae34-b42958048531", "departmentId": "3253bfa9-761b-409d-b4d5-4f7666924189" },
+      { "email": "hr.direction-technique.2@agirh.test", "accountId": "63c15096-81ef-466b-b0aa-976906950e26", "departmentId": "3253bfa9-761b-409d-b4d5-4f7666924189" },
+      { "email": "hr.ressources-humaines@agirh.test", "accountId": "c8d04734-a6ef-47b9-acea-92400297890b", "departmentId": "91a06825-0b74-40e3-93d2-bc58605ef650" },
+      { "email": "hr.finance-comptabilite@agirh.test", "accountId": "fa03682c-6a1b-4485-82fe-851dc1053940", "departmentId": "cbce3bea-5c19-4444-9836-5a355cd67b6f" },
+      { "email": "hr.commercial-marketing@agirh.test", "accountId": "456be0e5-ad8d-4a15-be05-02fb72e261b3", "departmentId": "35acc47e-127f-4835-b6a6-520ab7f99d4e" },
+      { "email": "hr.support-client@agirh.test", "accountId": "a3cd4fe8-1b8b-4079-bc9e-9ef22bc02e33", "departmentId": "3faef131-285d-4452-92b7-a5a2c1169d0f" }
+    ]
+  },
+  "departements": [
+    { "id": "3253bfa9-761b-409d-b4d5-4f7666924189", "nom": "Direction Technique", "provisoire": true, "hrCount": 2, "employeeCount": 5 },
+    { "id": "91a06825-0b74-40e3-93d2-bc58605ef650", "nom": "Ressources Humaines", "provisoire": true, "hrCount": 1, "employeeCount": 5 },
+    { "id": "cbce3bea-5c19-4444-9836-5a355cd67b6f", "nom": "Finance et Comptabilite", "provisoire": true, "hrCount": 1, "employeeCount": 5 },
+    { "id": "35acc47e-127f-4835-b6a6-520ab7f99d4e", "nom": "Commercial et Marketing", "provisoire": true, "hrCount": 1, "employeeCount": 5 },
+    { "id": "3faef131-285d-4452-92b7-a5a2c1169d0f", "nom": "Support Client", "provisoire": true, "hrCount": 1, "employeeCount": 5 }
+  ],
+  "employes": [
+    { "matricule": "EMP-0001", "id": "86026fd1-b005-416d-b5af-4023e601a2f9", "nom": "Marie Dubois", "poste": "Ingenieur Logiciel", "departement": "Direction Technique", "contrat": "CDI", "entree": "2024-09-01", "onboarding": { "instanceId": "a76d4ae1-a237-4165-81b3-270128f41548", "items": 22, "coches": 22, "statut": "Archived" } },
+    { "matricule": "EMP-0002", "id": "a04f9c53-2006-489c-94b6-c4ffe0d764a1", "nom": "Karim Benali", "poste": "Lead Developpeur", "departement": "Direction Technique", "contrat": "CDD", "entree": "2024-09-21", "onboarding": { "instanceId": "ba2e0082-1728-49b2-9b10-90d9b21805c6", "items": 22, "coches": 2, "statut": "InProgress" } },
+    { "matricule": "EMP-0003", "id": "e53ea4f1-53a5-41e1-8d03-f62474a8aae8", "nom": "Sophie Martin", "poste": "Ingenieur DevOps", "departement": "Direction Technique", "contrat": "Stage", "entree": "2024-10-11", "onboarding": { "instanceId": "cc5a4107-b9f6-415a-8c4a-ec4bbf18c4af", "items": 20, "coches": 0, "statut": "InProgress" }, "offboarding": { "instanceId": "cdd375f5-aa2c-4d6d-a503-c11e1fc3802b", "items": 8, "coches": 0, "statut": "InProgress" } },
+    { "matricule": "EMP-0004", "id": "bceb889b-5f2f-47f0-b300-f4143259fd1a", "nom": "Youssef El Amrani", "poste": "Architecte Technique", "departement": "Direction Technique", "contrat": "Alternance", "entree": "2024-10-31", "onboarding": { "instanceId": "900a38c0-013f-4a53-ae59-b93b4c5dab52", "items": 22, "coches": 0, "statut": "InProgress" } },
+    { "matricule": "EMP-0005", "id": "9bc94b3f-45ca-4e30-8a1b-3195b9143254", "nom": "Camille Bernard", "poste": "Developpeur Full-Stack", "departement": "Direction Technique", "contrat": "CDI", "entree": "2024-11-20", "onboarding": { "instanceId": "d7ff9583-13d6-4314-8ab9-97dc0b92485d", "items": 22, "coches": 0, "statut": "InProgress" } },
+    { "matricule": "EMP-0006", "id": "fe60b449-09d4-4c63-8198-d72d3437a985", "nom": "Amine Chraibi", "poste": "Charge de Recrutement", "departement": "Ressources Humaines", "contrat": "CDI", "entree": "2024-12-10", "onboarding": { "instanceId": "09232ecd-e4a7-4b15-8706-b3f16e635e5a", "items": 22, "coches": 2, "statut": "InProgress" } },
+    { "matricule": "EMP-0007", "id": "d7cbdbed-55bb-4549-a105-2c696da78f5e", "nom": "Lea Rousseau", "poste": "Gestionnaire Paie", "departement": "Ressources Humaines", "contrat": "CDD", "entree": "2024-12-30", "onboarding": { "instanceId": "5a4ebed7-ecaf-404f-8575-0002f7874c5e", "items": 22, "coches": 0, "statut": "InProgress" } },
+    { "matricule": "EMP-0008", "id": "4cf3b708-8dc0-49c7-885a-fb680fd97faf", "nom": "Omar Tazi", "poste": "Assistant RH", "departement": "Ressources Humaines", "contrat": "Stage", "entree": "2025-01-19", "onboarding": { "instanceId": "d2f48021-c2f8-44f2-955b-8fb170ac733e", "items": 20, "coches": 0, "statut": "InProgress" } },
+    { "matricule": "EMP-0009", "id": "4112ca12-61c1-449f-99b1-3a08fff9caa0", "nom": "Julie Moreau", "poste": "Responsable Formation", "departement": "Ressources Humaines", "contrat": "Alternance", "entree": "2025-02-08", "onboarding": { "instanceId": "32bef7be-3697-4a70-a39f-665c59c6277f", "items": 22, "coches": 0, "statut": "InProgress" }, "offboarding": { "instanceId": "d1d7d9a2-bd59-4562-ab89-87c142799582", "items": 9, "coches": 0, "statut": "InProgress" } },
+    { "matricule": "EMP-0010", "id": "83d6336a-35d1-4693-8c9c-b2fd3878d8d4", "nom": "Hamza Idrissi", "poste": "Charge SIRH", "departement": "Ressources Humaines", "contrat": "CDI", "entree": "2025-02-28", "onboarding": { "instanceId": "d7d3e0a2-efd8-42d5-806a-e98712354aae", "items": 22, "coches": 0, "statut": "InProgress" } },
+    { "matricule": "EMP-0011", "id": "9f41e8a3-1570-4cda-bd0b-01f5d905813a", "nom": "Emma Lefevre", "poste": "Comptable", "departement": "Finance et Comptabilite", "contrat": "CDI", "entree": "2025-03-20", "onboarding": { "instanceId": "7e05433d-e8cc-4afc-a87b-6e14b0c62ee2", "items": 22, "coches": 22, "statut": "Closed" } },
+    { "matricule": "EMP-0012", "id": "3bd56a4d-e26f-4e7a-a810-53d4dc7d707b", "nom": "Nabil Fassi", "poste": "Controleur de Gestion", "departement": "Finance et Comptabilite", "contrat": "CDD", "entree": "2025-04-09", "onboarding": { "instanceId": "e1be7e5b-4509-4602-9e9a-86497125c339", "items": 22, "coches": 2, "statut": "InProgress" } },
+    { "matricule": "EMP-0013", "id": "c739cd85-1083-47d5-9a26-48901b786b41", "nom": "Chloe Simon", "poste": "Analyste Financier", "departement": "Finance et Comptabilite", "contrat": "Stage", "entree": "2025-04-29", "onboarding": { "instanceId": "578f4767-3473-47b5-b4c5-c6068a3f35d1", "items": 20, "coches": 0, "statut": "InProgress" } },
+    { "matricule": "EMP-0014", "id": "6373e3b0-6780-4c54-9ef4-55f9fe192bf4", "nom": "Rania Alaoui", "poste": "Assistant Comptable", "departement": "Finance et Comptabilite", "contrat": "Alternance", "entree": "2025-05-19", "onboarding": { "instanceId": "70a96753-a739-4f3e-af88-3d575342c454", "items": 22, "coches": 0, "statut": "InProgress" } },
+    { "matricule": "EMP-0015", "id": "66ac8a41-e62c-4062-b605-0f0c91244f43", "nom": "Thomas Girard", "poste": "Tresorier", "departement": "Finance et Comptabilite", "contrat": "CDI", "entree": "2025-06-08", "onboarding": { "instanceId": "6fc4e6af-74f2-49a2-9783-4d6d6573e612", "items": 22, "coches": 0, "statut": "InProgress" } },
+    { "matricule": "EMP-0016", "id": "00a37297-d502-441f-93a5-6bf76a582387", "nom": "Salma Bennani", "poste": "Charge de Clientele", "departement": "Commercial et Marketing", "contrat": "CDI", "entree": "2025-06-28", "onboarding": { "instanceId": "d4eb75a0-5d22-4172-a96b-d29899191c7d", "items": 22, "coches": 2, "statut": "InProgress" } },
+    { "matricule": "EMP-0017", "id": "a9a12f19-2530-40ef-a814-e07ab6c5eb2c", "nom": "Lucas Roux", "poste": "Responsable Marketing", "departement": "Commercial et Marketing", "contrat": "CDD", "entree": "2025-07-18", "onboarding": { "instanceId": "554b80ee-0a64-4f8f-b753-597c58e60339", "items": 22, "coches": 2, "statut": "InProgress" } },
+    { "matricule": "EMP-0018", "id": "b98f070f-6d97-4ac6-98e0-389c323739fd", "nom": "Imane Ouazzani", "poste": "Commercial Terrain", "departement": "Commercial et Marketing", "contrat": "Stage", "entree": "2025-08-07", "onboarding": { "instanceId": "85ee1229-5d8b-4c3b-b3ba-ba15947321e9", "items": 20, "coches": 0, "statut": "InProgress" } },
+    { "matricule": "EMP-0019", "id": "55d0678e-8fb4-4869-92a0-edb15dbe6e86", "nom": "Antoine Fontaine", "poste": "Chef de Produit", "departement": "Commercial et Marketing", "contrat": "Alternance", "entree": "2025-08-27", "onboarding": { "instanceId": "9c278062-9886-4c2f-8a66-0e125afca066", "items": 22, "coches": 0, "statut": "InProgress" } },
+    { "matricule": "EMP-0020", "id": "84c12a95-1cda-4936-a6b9-bc69db3986ef", "nom": "Zineb Kabbaj", "poste": "Charge de Communication", "departement": "Commercial et Marketing", "contrat": "CDI", "entree": "2025-09-16", "onboarding": { "instanceId": "7ed1f3a1-8248-4747-9ac3-734cf283f9c3", "items": 22, "coches": 0, "statut": "InProgress" } },
+    { "matricule": "EMP-0021", "id": "2d50647b-4655-4c39-968a-a10ee1d466c1", "nom": "Hugo Chevalier", "poste": "Conseiller Support N1", "departement": "Support Client", "contrat": "CDI", "entree": "2025-10-06", "onboarding": { "instanceId": "8dba3f09-4408-43b7-a59d-4989bfe044ed", "items": 22, "coches": 2, "statut": "InProgress" } },
+    { "matricule": "EMP-0022", "id": "dbcf8507-bb14-460f-a07d-2737e1ae1ba5", "nom": "Meryem Sqalli", "poste": "Conseiller Support N2", "departement": "Support Client", "contrat": "CDD", "entree": "2025-10-26", "onboarding": { "instanceId": "4ae40e21-53bf-42e8-9c59-17ea807e6f50", "items": 22, "coches": 2, "statut": "InProgress" } },
+    { "matricule": "EMP-0023", "id": "b0020854-bbaf-4c91-b7e8-d2bdbd04fe37", "nom": "Nicolas Robin", "poste": "Responsable Support", "departement": "Support Client", "contrat": "Stage", "entree": "2025-11-15", "onboarding": { "instanceId": "54cf1372-046c-4935-9bba-2c8fd45e7ff9", "items": 20, "coches": 0, "statut": "InProgress" }, "offboarding": { "instanceId": "bcf91451-4692-44f7-96e8-69e347d53239", "items": 8, "coches": 0, "statut": "InProgress" } },
+    { "matricule": "EMP-0024", "id": "75099568-e418-4b47-99ca-a0aee447050f", "nom": "Fatima Zahra Amrani", "poste": "Technicien Support", "departement": "Support Client", "contrat": "Alternance", "entree": "2025-12-05", "onboarding": { "instanceId": "622c9f5a-1253-4c7c-84c0-909818046116", "items": 22, "coches": 0, "statut": "InProgress" } },
+    { "matricule": "EMP-0025", "id": "23a8651d-d3c4-4602-869a-9776510935dd", "nom": "Adam Perrot", "poste": "Coordinateur Qualite Support", "departement": "Support Client", "contrat": "CDI", "entree": "2025-12-25", "onboarding": { "instanceId": "a0f234ba-2c59-4284-9a19-7a95206c1d5f", "items": 22, "coches": 0, "statut": "InProgress" } }
+  ],
+  "templates": [
+    {
+      "type": "Onboarding", "version": "SMSI.ENR.10-1 v1", "templateId": "e7c6b674-ba18-4f1c-9934-7f606b7e7603",
+      "statut": "Approved", "sections": 6, "items": 22,
+      "redacteur": "hr.ressources-humaines@agirh.test", "verificateur": "wilfried@agirh.test", "approbateur": "admin2@agirh.test",
+      "contenu": {
+        "IT": ["Bitlocker active", "Profil Kaspersky active avec licence", "Filtrage web active", "Agent GLPI installe et operationnel", "OneDrive actif et operationnel", "Logiciels requis installes (selon profil)"],
+        "Messagerie": ["Double authentification en place", "Office 365 active"],
+        "Active Directory": ["Restrictions ports USB (selon profil)", "Restrictions installation d executables (selon profil)", "Restrictions changement date/heure", "Restrictions acces registre", "VLAN configure selon le poste", "Date/heure synchronisee NTP"],
+        "Pointage": ["Pointage facial mis en place"],
+        "Sensibilisation SI": ["Sensibilisation securite de l information effectuee", "Politique des mots de passe (10 car. min., complexes)", "Politique de teletravail"],
+        "RH": ["Compte SELFRH cree (exclu pour Stage)", "Processus disciplinaire signe (exclu pour Stage)", "Accord de non-divulgation signe", "Fiche de decharge signee"]
+      }
+    },
+    {
+      "type": "Offboarding", "version": "SMSI.ENR.10-2 v1", "templateId": "baf91c0a-7692-4eb0-910f-58b8d2416711",
+      "statut": "Approved", "sections": 5, "items": 9,
+      "redacteur": "hr.ressources-humaines@agirh.test", "verificateur": "wilfried@agirh.test", "approbateur": "admin2@agirh.test",
+      "contenu": {
+        "Poste": ["Formatage complet du poste", "Suppression de l utilisateur GLPI", "Formatage complet du telephone pro (si applicable)"],
+        "Messagerie": ["Suppression du mail"],
+        "Active Directory & Acces": ["Desactivation du profil AD", "Suppression des acces VPN (si applicable)"],
+        "Pointage": ["Desactivation du pointage facial & suppression du profil"],
+        "RH": ["Compte SELFRH supprime (exclu pour Stage)", "Fiche de decharge (section restitution) signee"]
+      }
+    }
+  ],
+  "verificationsWorkflowCompte": [
+    { "cas": "Inscription sur un email deja utilise", "attendu": 409, "obtenu": 409, "ok": true },
+    { "cas": "Mot de passe < 8 caracteres", "attendu": 400, "obtenu": 400, "ok": true },
+    { "cas": "Connexion avec mauvais mot de passe", "attendu": 401, "obtenu": 401, "ok": true },
+    { "cas": "RH cree un collaborateur hors de son propre departement (DepartmentScopeGuard)", "attendu": 403, "obtenu": 403, "ok": true }
+  ],
+  "tablesBase": {
+    "Departments": 5, "UserAccounts": 9, "Employees": 25,
+    "WorkflowTemplates": 2, "TemplateSections": 11, "TemplateItems": 31,
+    "WorkflowInstances": 28, "ChecklistItemStatuses": 565,
+    "toutesLesTablesMetierNonVides": true
+  },
+  "infrastructure": {
+    "migrations": { "appliquees": ["20260818112315_InitialCreate"], "enAttente": 0 },
+    "risqueVolumeDocker": "Le conteneur agirh-sql n'a aucun volume Docker attache (docker inspect -> Mounts: []). Un restart/stop ne perd rien ; un docker rm agirh-sql effacerait tout sans filet. Non corrige (demande de recreer le conteneur, decision a prendre avec le porteur du projet)."
+  }
+}

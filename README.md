@@ -102,6 +102,14 @@ cd src/Agirh.Api && dotnet run -c Release      # port 5080
 cd frontend && npm run dev                      # port 3000, voir .env.example
 ```
 
+Raccourci Windows/PowerShell qui automatise les 4 étapes ci-dessus (Docker Desktop lancé si besoin,
+Ollama seulement s'il ne tourne pas déjà, Api et frontend dans leur propre fenêtre, hot-reload
+conservé, aucune donnée touchée) :
+
+```powershell
+powershell -File .claude\scripts\start-dev.ps1
+```
+
 ### Build & tests
 
 ```bash
