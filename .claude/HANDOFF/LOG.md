@@ -535,3 +535,10 @@
 **Nouvelle demande, explicitement reportée par le porteur du projet ("on la garde pour après réinitialisation du quota")** : réorganiser le dépôt GitHub pour présentation professionnelle avant que les 3 destinataires du mail n'y aient accès — arrêter de tracker `docs/` (+ `.claude/` probable) sans réécrire l'historique, réécrire `README.md` en anglais avec une vraie prise en main, exposer les modèles ONNX utilisés dans un dossier Google Drive (auth MCP requise, pas encore faite). Détail complet dans `NEXT_SESSION.md` — distinct du renommage complet arhia déjà en attente, même blocage (quota).
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+## 2026-08-20 — Poste de travail (Windows), suite 7 (entrée courte)
+
+**Fait** (commit `997e650`) : `docs/notebooklm/prompt-audio-overview.md` passé en v3 — méta-consignes resserrées (demande explicite), et surtout **7 notions sur 46 corrigées après relecture du vrai code plutôt que recopiées telles quelles** : ordre rôle/portée inversé dans #6 (le vrai code vérifie le rôle avant `DepartmentScopeGuard`, pas l'inverse), nom de classe inventé en #2 (`WorkflowInstanceRepository`, pas "Ef..."), tokenizer en #13 (SentencePiece seul, jamais WordPiece ici), #46 décrivait l'audit trail comme implémenté alors qu'il ne l'est pas (confirmé absent le 2026-08-19), #31 présentait 21/48 comme définitif alors que `NEXT_SESSION.md` le note "avant corrections, jamais rejoué". Détail complet des 7 corrections dans le fichier lui-même ("Corrections apportées en v3").
+**Reste :** rien de bloquant — fichier prêt à coller dans NotebookLM.
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
