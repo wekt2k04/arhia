@@ -1,17 +1,22 @@
 # Prompt — Audio Overview (NotebookLM)
 
 *À coller dans le champ "What should the AI hosts focus on in this episode?" (icône crayon à côté
-de "Audio Overview", avant de générer). Le porteur du projet a confirmé que la limite réelle du
-champ est plus haute que les 500 caractères documentés par Google — le texte ci-dessous en fait
-volontairement usage.*
+de "Audio Overview", avant de générer). **Limite réelle du champ mesurée empiriquement le
+2026-08-20 : 5000 caractères pile** — un collage de la v4 (6486 caractères) a été tronqué net en
+plein mot par NotebookLM, sans avertissement. Ce n'est plus "plus haut que 500" (estimation d'un
+essai antérieur avec un prompt plus court) : c'est un chiffre confirmé. Le bloc ci-dessous fait
+4893 caractères — sous la limite avec ~107 caractères de marge pour absorber un éventuel écart de
+comptage entre éditeurs.*
 
-*Version 4 (2026-08-20) : v3 corrigeait 7 faits ; cette passe ne corrige rien de nouveau, elle
-resserre le **texte des 46 notions elles-mêmes** (v3 n'avait resserré que les phrases de consigne
-autour). Même substance, moins de mots par notion — la liste reste à 46 points, même ordre, rien
-omis (la densité de FAITS, pas le nombre de mots du prompt, reste le levier de durée). Seule
-exception délibérée : le paragraphe anti-préambule n'a **pas** été raccourci davantage — sa
-redondance explicite est precisément ce qui a corrigé l'échec de la v1 (voir rationale plus bas),
-le retoucher romprait le seul mécanisme déjà prouvé.*
+*Version 5 (2026-08-20) : la v4 (46 notions resserrées) dépassait quand même 6486 caractères,
+donc tronquée par NotebookLM avant la fin de DEPLOIEMENT. Cette passe coupe ~1600 caractères
+supplémentaires pour repasser sous la limite réelle : formulation encore plus télégraphique par
+notion, sections FONDATIONS/PIPELINE RAG/etc. retirées (les notions restent groupées et numérotées
+dans le même ordre, juste sans étiquette de section — elles ne servaient qu'au confort de lecture
+humaine, pas à l'instruction elle-même), et le paragraphe anti-préambule légèrement raccourci en
+dernier recours (la phrase de clôture "Zero seconde perdue" a été retirée : redondante avec
+"Interdiction... premiere phrase EST notion 1" qui porte déjà le même mandat ; chaque formulation
+interdite listée, elle, reste intacte). Toujours 46 notions, même ordre, rien omis.*
 
 ## Réglages dans l'interface (pas dans le texte du prompt)
 
@@ -20,69 +25,64 @@ Format **Deep Dive**, langue **Français**, longueur **Default** ("Longer" n'exi
 ## Le prompt (à copier tel quel)
 
 ```text
-Interdiction absolue de preambule : la premiere phrase prononcee EST la notion 1, mot pour mot technique. Bannis sans exception : accroche generique, presentation des hotes, mise en contexte ("aujourd'hui..."), resume du plan, "bienvenue dans cet episode", toute transition sans contenu technique. Zero seconde perdue avant le contenu.
+Interdiction preambule : premiere phrase EST notion 1, mot pour mot technique. Bannis : accroche generique, presentation hotes, mise en contexte ("aujourd'hui..."), resume du plan, "bienvenue", transition sans contenu technique.
 
-Couvrez EXACTEMENT ces notions, dans cet ordre strict, aucune omise, aucune reorganisee :
+Couvrez EXACTEMENT ces notions, ordre strict, aucune omise, aucune reorganisee :
 
-FONDATIONS :
-1. Architecture hexagonale : 4 couches Domain/Core/Infrastructure/Api, dependance a sens unique.
-2. Ports (interfaces Core) / adaptateurs (Infrastructure) : IWorkflowInstanceRepository/WorkflowInstanceRepository, relies dans Program.cs via AddScoped.
-3. Program.cs = composition root : seul endroit qui choisit quel adaptateur derriere quel port.
-4. Testabilite : logique metier testee avec des doubles (Moq/FluentAssertions), sans infrastructure reelle.
-5. RBAC a 3 roles : Employee (ses donnees), HR (son departement), QualityAdmin (portee globale).
-6. DepartmentScopeGuard : le role autorise l'action, le departement autorise la cible - verifies independamment (role d'abord dans le code), le role seul ne suffit jamais.
-7. Pattern BFF : le navigateur ne parle jamais directement a l'API, JWT jamais expose, cookie httpOnly.
-8. JWT stateless : payload, signature, duree de validite, compromis face a la revocation instantanee d'une session classique.
+1. Architecture hexagonale : 4 couches Domain/Core/Infrastructure/Api, dependance sens unique.
+2. Ports/adaptateurs : IWorkflowInstanceRepository/WorkflowInstanceRepository, AddScoped dans Program.cs.
+3. Program.cs = composition root : choisit l'adaptateur par port.
+4. Testabilite : logique metier testee avec doubles (Moq/FluentAssertions), sans infrastructure reelle.
+5. RBAC 3 roles : Employee (donnees), HR (departement), QualityAdmin (portee globale).
+6. DepartmentScopeGuard : portee verifiee en plus du role (role d'abord code), jamais suffisant seul.
+7. Pattern BFF : navigateur jamais direct API, JWT jamais expose, cookie httpOnly.
+8. JWT stateless : payload, signature, duree validite, compromis vs revocation instantanee d'une session classique.
 
-PIPELINE RAG :
 9. Probleme resolu par RAG : hallucination et connaissance figee d'un LLM qui repond de memoire.
-10. Alternative fine-tuning ecartee : tracabilite, cout de mise a jour, hallucination residuelle.
-11. Phase 1 Chunking : decoupage structurel par section Markdown, jamais a taille fixe aveugle.
+10. Alternative fine-tuning ecartee : tracabilite, cout mise a jour, hallucination residuelle.
+11. Phase 1 Chunking : decoupage structurel par section Markdown, jamais taille fixe aveugle.
 12. Recouvrement entre chunks voisins : ne pas perdre une info a cheval sur une frontiere.
-13. Phase 2 Embedding : vecteur 768 dimensions, modele multilingue, tokenisation SentencePiece (XLM-RoBERTa).
-14. ONNX Runtime .NET pur pour l'embedding : aucun appel Ollama sur cette etape, controle total de la latence.
-15. Mean-pooling masque + normalisation L2 (MeanPoolAndNormalize) : des vecteurs de tokens a un seul vecteur de phrase.
-16. Phase 3 Storage : Qdrant, recherche ANN via HNSW, similarite cosinus plutot que distance brute.
-17. Phase 4 Reranking : bi-encodeur (rapide, separe, approximatif) versus cross-encodeur (lent, ensemble, precis).
-18. Format de paire RoBERTa pour le reranking, score borne par une fonction sigmoide.
-19. Piege reel majeur : un score de reranking eleve (jusqu'a 0.78 observe) ne garantit pas la reponse, seulement une proximite thematique.
+13. Phase 2 Embedding : vecteur 768 dimensions, modele multilingue, tokenisation SentencePiece.
+14. ONNX Runtime .NET pur pour l'embedding : aucun appel Ollama, controle total latence.
+15. Mean-pooling masque + normalisation L2 (MeanPoolAndNormalize) : tokens vers un vecteur de phrase.
+16. Phase 3 Storage : Qdrant, recherche ANN via HNSW, similarite cosinus vs distance brute.
+17. Phase 4 Reranking : bi-encodeur (rapide, approximatif) vs cross-encodeur (lent, precis).
+18. Format paire RoBERTa pour reranking, score borne par sigmoide.
+19. Piege reel majeur : score reranking eleve (jusqu'a 0.78 observe) ne garantit pas la reponse, juste proximite thematique.
 
-ORCHESTRATION CONVERSATIONNELLE :
 20. Router puis Generator : deux roles distincts, deux appels au meme modele Ollama local.
-21. Ollama local plutot que cloud : souverainete des donnees RH, cout previsible, disponibilite hors ligne.
-22. Ce que ce choix coute : capacite de modele plus faible qu'une API cloud de pointe, assume consciemment.
-23. Ecart de conception : phi4-mini:3.8b pour les deux roles ; gemma4:12b teste et ecarte, bien trop lent en interactif sans GPU.
-24. Prompt engineering du Router : doubler les exemples few-shot teste, aucun effet mesurable sur le taux d'erreur.
-25. Fail-safe pas fail-open : sortie du Router validee contre un enum ferme a 3 valeurs, le reste retombe sur HORS_PERIMETRE.
-26. Garde-fou anti-hallucination, notion la plus importante du projet : double porte de sortie ecrite en code.
-27. Premiere porte : zero candidat retourne par Qdrant, le Generator n'est jamais appele.
-28. Seconde porte : aucun candidat au-dessus du seuil de pertinence apres reranking, meme refus, meme non-appel.
-29. Cette double porte est testee par des tests unitaires dedies, pas une simple consigne de prompt.
-30. Agent strictement informatif : meme un statut de dossier passe par un port lecture seule, jamais d'ecriture via le LLM.
-31. Resultats : 211 tests automatises verts (0 warning), logique metier couverte ; gold end-to-end (48 questions, LLM inclus) a 21/48 mais mesure une seule fois avant corrections, jamais rejoue - a presenter comme provisoire.
-32. Lecon generale : la partie deterministe d'un systeme est nettement plus fiable que sa partie probabiliste.
+21. Ollama local vs cloud : souverainete donnees RH, cout previsible, dispo hors ligne.
+22. Cout du choix : capacite de modele plus faible qu'une API cloud de pointe, assume.
+23. Ecart conception : phi4-mini:3.8b pour les deux roles ; gemma4:12b teste et ecarte, trop lent sans GPU.
+24. Prompt engineering Router : doubler few-shot teste, aucun effet mesurable sur taux d'erreur.
+25. Fail-safe pas fail-open : sortie Router validee vs enum ferme 3 valeurs, reste = HORS_PERIMETRE.
+26. Garde-fou anti-hallucination, notion la plus importante : double porte sortie ecrite en code.
+27. Premiere porte : zero candidat retourne par Qdrant, Generator jamais appele.
+28. Seconde porte : aucun candidat au-dessus du seuil pertinence apres reranking, meme refus/non-appel.
+29. Double porte testee par tests unitaires dedies, pas simple consigne de prompt.
+30. Agent strictement informatif : statut dossier via port lecture seule, jamais ecriture par le LLM.
+31. Resultats : 211 tests verts, 0 warning ; gold end-to-end 21/48, provisoire jamais reconfirme.
+32. Lecon generale : partie deterministe d'un systeme plus fiable que sa partie probabiliste.
 
-DEPLOIEMENT :
-33. Docker Compose, 4 services (sqlserver, qdrant, api, frontend), reseau interne resolu par nom de service.
-34. Healthcheck reel sur au moins un service (depends_on + condition service_healthy) pour bloquer le demarrage - pas systematique, une autre dependance reste en service_started simple.
-35. Multi-stage build : etape de compilation (SDK complet) separee de l'image finale (runtime seul), plus legere.
-36. Ordre des COPY dans le Dockerfile : .csproj copies/restaures avant le code source, pour que le cache Docker survive tant que les dependances ne changent pas.
-37. Volumes nommes persistants versus bind mount pour les modeles ONNX et le corpus documentaire.
-38. Decision explicite de ne PAS conteneuriser Ollama, rejoint depuis le conteneur via host.docker.internal.
-39. Migrations de base de donnees automatiques et idempotentes appliquees au demarrage.
-40. Secrets (mot de passe SQL, cle JWT) via variables d'environnement, jamais commis dans le depot.
+33. Docker Compose, 4 services (sqlserver, qdrant, api, frontend), reseau resolu par nom.
+34. Healthcheck reel (depends_on + service_healthy) bloque demarrage d'un service, pas tous.
+35. Multi-stage build : compilation (SDK complet) separee de l'image finale (runtime), plus legere.
+36. Ordre COPY Dockerfile : .csproj restaures avant code source, cache Docker survit tant que peu change.
+37. Volumes persistants vs bind mount pour modeles ONNX et corpus documentaire.
+38. Decision : pas conteneuriser Ollama, rejoint via host.docker.internal.
+39. Migrations base automatiques et idempotentes appliquees au demarrage.
+40. Secrets (SQL, JWT) via variables d'environnement, jamais commis.
 
-TEMPS REEL ET FLUX METIER :
-41. SSE plutot que polling ou WebSocket : flux unidirectionnel serveur vers client, suffisant ici.
-42. Piege reel : la compression HTTP integree de Next.js bufferisait tout le flux, cassant le streaming - corrige en la desactivant explicitement sur ce chemin.
-43. Trace complete d'une question documentaire : navigateur, Router, pipeline RAG, Generator, fragments SSE recus.
-44. Circuit de validation d'un template : Redacteur propose, Verificateur puis Approbateur valident, seul un template approuve instancie un dossier.
-45. Onboarding d'un collaborateur : referentiel Poste croise Departement croise Contrat pour determiner les items attendus.
-46. Ecart assume, documente plutot que masque : deux flux de logs distincts (technique vs audit trail) prevus dans l'architecture cible, pas encore implementes.
+41. SSE vs polling/WebSocket : flux unidirectionnel serveur vers client, suffisant ici.
+42. Piege reel : compression HTTP Next.js bufferisait le flux, cassant streaming - corrige en desactivant.
+43. Trace question documentaire : navigateur, Router, pipeline RAG, Generator, fragments SSE.
+44. Circuit template : Redacteur propose, Verificateur/Approbateur valident, seul approuve instancie.
+45. Onboarding : referentiel Poste x Departement x Contrat determine items attendus.
+46. Deux flux de logs prevus (technique vs audit trail), pas implementes - ecart assume, documente.
 
-Consacrez nettement plus de temps aux notions 9 a 32 (RAG + orchestration) qu'au reste : c'est le coeur technique du projet. Pour chaque notion, citez le fichier reel exact depuis la racine du depot, jamais seulement le concept general. Developpez avec un exemple ou une consequence concrete plutot que d'enoncer et passer a la suivante : un plan a approfondir, pas des titres a survoler.
+Notions 9-32 (RAG+orchestration) : nettement plus de temps, coeur technique. Citez le fichier reel exact par notion, developpez avec exemple/consequence concrete - approfondir, pas survoler.
 
-Terminez par un recapitulatif oral (30 secondes maximum) : chaque notion, meme ordre, une phrase courte chacune.
+Terminez par recapitulatif oral (30s max) : chaque notion, meme ordre, une phrase courte.
 ```
 
 ## Pourquoi ce prompt est écrit ainsi
