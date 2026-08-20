@@ -542,3 +542,9 @@
 **Reste :** rien de bloquant — fichier prêt à coller dans NotebookLM.
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+## 2026-08-20 — Poste de travail (Windows), suite 8 (entrée courte)
+
+**Fait** (commit `e33c621`) : `prompt-audio-overview.md` passé en v4 sur nouvelle demande — cette fois le texte des 46 notions elles-mêmes est resserré (v3 n'avait resserré que les consignes autour), même substance/ordre/nombre. Paragraphe anti-préambule délibérément non touché (déjà optimal, mécanisme prouvé en v2) — signalé explicitement au porteur du projet plutôt que raccourci silencieusement.
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
