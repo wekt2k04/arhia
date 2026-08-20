@@ -548,3 +548,10 @@
 **Fait** (commit `e33c621`) : `prompt-audio-overview.md` passé en v4 sur nouvelle demande — cette fois le texte des 46 notions elles-mêmes est resserré (v3 n'avait resserré que les consignes autour), même substance/ordre/nombre. Paragraphe anti-préambule délibérément non touché (déjà optimal, mécanisme prouvé en v2) — signalé explicitement au porteur du projet plutôt que raccourci silencieusement.
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+## 2026-08-20 — Poste de travail (Windows), suite 9 (entrée courte)
+
+**Fait** (commit `2cf4433`) : le porteur du projet a collé la v4 dans NotebookLM et signalé un troncage net en plein mot. Mesuré précisément (PowerShell, pas deviné) : le bloc v4 faisait 6486 caractères, la vraie limite du champ NotebookLM est **5000 caractères pile** (pas juste "plus haut que 500" comme supposé en v1/v2). Coupé en 7 passes itératives, chacune re-mesurée avant la suivante (les estimations à la main sous-évaluaient systématiquement les gains réels — d'où l'intérêt de mesurer plutôt que d'estimer). v5 finale : **4893/5000 caractères**, 46 notions intactes (même ordre, rien omis), en-têtes de section retirés (FONDATIONS/PIPELINE RAG/etc. — cosmétique pour la lecture humaine, pas pour l'instruction), formulation télégraphique partout, paragraphe anti-préambule légèrement raccourci en tout dernier recours (une seule phrase de clôture redondante retirée, chaque formulation interdite listée reste intacte).
+**Reste :** rien de bloquant — v5 prête à coller, sous la limite avec marge réelle (107 caractères).
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
