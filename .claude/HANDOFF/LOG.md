@@ -528,3 +528,10 @@
 **Note pour la prochaine session** : les entrées du 2026-08-20 dans ce fichier ne sont pas en ordre strictement chronologique (plusieurs `Edit` ont ancré sur un motif de fin de section non-unique, qui a matché plusieurs fois) — le contenu de chaque entrée reste correct et daté, juste l'ordre d'apparition dans le fichier n'est pas fiable pour ce jour précis. Pas grave, pas prioritaire à corriger — juste ne pas supposer que l'ordre du fichier = ordre réel des événements pour le 2026-08-20.
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+## 2026-08-20 — Poste de travail (Windows), suite 6 (entrée courte)
+
+**Fait :** rédigé (pas envoyé) le mail de fin de stage pour M. Rachid (à) / Mitar + Hanaa (Cc) — annonce fin de projet, pièce jointe = fiche de synthèse (précisé différente du rapport d'avancement), demande de leurs noms d'utilisateur GitHub pour accès collaborateur, mention du test prévu le 27 août avec les modèles entreprise. Ni adresses email ni auth Gmail disponibles pour un envoi automatisé — texte donné tel quel dans la conversation.
+**Nouvelle demande, explicitement reportée par le porteur du projet ("on la garde pour après réinitialisation du quota")** : réorganiser le dépôt GitHub pour présentation professionnelle avant que les 3 destinataires du mail n'y aient accès — arrêter de tracker `docs/` (+ `.claude/` probable) sans réécrire l'historique, réécrire `README.md` en anglais avec une vraie prise en main, exposer les modèles ONNX utilisés dans un dossier Google Drive (auth MCP requise, pas encore faite). Détail complet dans `NEXT_SESSION.md` — distinct du renommage complet arhia déjà en attente, même blocage (quota).
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
