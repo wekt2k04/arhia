@@ -492,3 +492,18 @@
 - Sujets pré-existants toujours ouverts : vérification visuelle pixel du chat, routeur conversationnel (~27%), jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8.
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+## 2026-08-20 — Poste de travail (Windows)
+
+**Fait :**
+- **Fiche de suivi corrigée** (`docs/rapport_avancement/fiche_synthese.tex`/`.pdf`) : le porteur du projet a demandé de préciser que le taux d'erreur du Router (~27%) est une contrainte du PC local (pas de GPU), pas une limite de conception, et d'ajouter un plan concret de déport de charge vers le serveur Ollama de l'entreprise (`192.168.100.220:11434`) prévu jeudi 27 août 2026 (calculé depuis "jeudi prochain" — vérifié par double ancrage de calendrier, aujourd'hui 20 août 2026 étant lui-même un jeudi).
+- **Raison révélée en cours de route** pour un piège déjà documenté (`Docker : ne jamais conteneuriser Ollama`) : Ollama tourne nativement sur l'hôte délibérément pour **simuler** ce futur serveur entreprise, pas juste pour une histoire de performance GPU comme documenté jusqu'ici. Ajouté au piège existant dans `NEXT_SESSION.md` plutôt que dupliqué.
+- **Modèles réellement disponibles sur le serveur entreprise vérifiés** dans `C:\Users\Wilfried\Downloads\tags.json` (12 modèles listés, pas supposés) avant de recommander quoi que ce soit. Analyse faite : `phi4:14b` proposé pour le Router (même famille que `phi4-mini:3.8b` actuel, upgrade le plus sûr) ; `gemma4:12b` proposé pour le Generator (déjà identifié dans ce projet, déjà écarté en local mais uniquement pour lenteur sans GPU, jamais pour la qualité) ; `phi4-reasoning:14b` envisagé puis explicitement écarté par défaut pour le Router — risque concret identifié en relisant `OllamaRouterAdapter.ParseIntent` (`.Contains` sur la sortie brute) : un modèle qui raisonne à voix haute avant de conclure pourrait mentionner plusieurs intentions et fausser ce parsing par sous-chaîne.
+- **Itération de mise en page** : l'ajout de texte a fait déborder la fiche de 3 à 4 pages (juste le tableau récap isolé sur une page quasi vide) ; corrigé en réduisant légèrement les deux diagrammes de la page 3 (66%→55% et 78%→68% de largeur) plutôt qu'en coupant du contenu — recompilé, revérifié visuellement, revenu à 3 pages sans avertissement `Overfull`.
+- HANDOFF (`NEXT_SESSION.md`) mis à jour : item 1 de "Ce qui reste ouvert" enrichi avec le plan daté complet plutôt que dupliqué ailleurs.
+
+**Reste :**
+- Rien de bloquant. Le plan routeur/serveur entreprise du 27 août est documenté mais pas encore exécuté — normal, la date n'est pas encore arrivée.
+- Sujets pré-existants toujours ouverts : correction encadrant reportée (pptx/script/rapport), vérification visuelle pixel du chat, jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8.
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
