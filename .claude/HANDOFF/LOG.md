@@ -501,6 +501,12 @@
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
 
+## 2026-08-20 — Poste de travail (Windows), suite 4 (entrée courte)
+
+**Fait :** logo ENSA Safi ajouté sur la couverture de `fiche_synthese.tex`, à gauche du logo entreprise AGIRH (fourni par le porteur du projet dans `Bureau\presentation\assets\`, copié en local). Dimensions réelles vérifiées (560×90 vs 126×64, ratios très différents) avant dimensionnement — même hauteur pour les deux via `\includegraphics[height=...]` (zoom uniforme, jamais de largeur forcée qui aurait étiré/déformé), `\raisebox{-0.5\height}` pour un centrage vertical garanti malgré la différence de forme. Recompilé, 3 pages, 0 warning, revérifié visuellement à chaque itération.
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
 ## 2026-08-20 — Poste de travail (Windows)
 
 **Fait :**
