@@ -577,3 +577,61 @@
 **Reste :** rien de bloquant, document autonome et vérifié, pas de suite obligatoire — sa section finale pointe déjà vers 4 fichiers de prolongement (`WorkflowInstance.cs`, `AgirhDbContext.cs`, `tests/Agirh.Tests/Rag/*.cs`, `WorkflowController.cs`) si le porteur du projet veut aller plus loin après ces 20.
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md` — aucun changement d'état lié à cet ajout ; les 2 chantiers différés (renommage complet arhia bloqué jusqu'au 2026-08-23, rapport de fin de stage) restent valables tels quels.
+
+## 2026-08-20 — Poste de travail (Windows), suite 12
+
+**Fait** : le porteur du projet a demandé comment démarrer le projet, puis s'il existait une commande unique. Vérifié que Docker Desktop n'était pas lancé sur ce poste à ce moment (`docker ps` en échec), confirmé le profil `Maison` dans `src/Agirh.Api/Properties/launchSettings.json` (Ollama local, `phi4-mini:3.8b` Router+Generator — un profil `Entreprise` y existe déjà, pointant vers `192.168.100.220:11434`/`qwen3.5:9b`, jamais mentionné avant dans le HANDOFF). Deux options présentées (`docker compose up -d --build` = 1 commande mais mode démo avec DB neuve séparée des conteneurs de dev ; script PowerShell = 1 commande qui automatise le mode dev existant) — le porteur du projet a choisi le script.
+
+Créé `.claude/scripts/start-dev.ps1` (syntaxe validée via `[System.Management.Automation.Language.Parser]::ParseFile`, jamais exécuté par moi — pas de raison de démarrer les serveurs du porteur du projet sans qu'il le demande) : démarre Docker Desktop automatiquement si besoin (`C:\Program Files\Docker\Docker\Docker Desktop.exe`, poll jusqu'à 90s), `docker start agirh-sql agirh-qdrant` (jamais recréés), Ollama seulement s'il n'écoute pas déjà sur le port 11434 (`Test-NetConnection`), puis Api (`dotnet run --launch-profile Maison`) et frontend (`npm run dev`) chacun dans sa propre fenêtre PowerShell titrée (hot-reload conservé) via une fonction `Start-InNewWindow` interne, navigateur ouvert sur `http://localhost:3000` après un délai de 12s. README.md mis à jour (nouveau raccourci sous l'Option B) + `NEXT_SESSION.md` étape 3 mise à jour avec un pointeur vers ce script.
+
+**Reste :** rien de bloquant. Script jamais exécuté en conditions réelles sur ce poste (seulement syntaxe + construction de chaîne de commande imbriquée vérifiées séparément) — si une prochaine session l'utilise et qu'il échoue quelque part (ex. nom de fenêtre, timing du `Start-Sleep` avant l'Api/le frontend), corriger et noter ici plutôt que de supposer qu'il marche.
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+## 2026-08-20 — Poste de travail (Windows), suite 13
+
+**Contexte :** le porteur du projet a démarré l'environnement manuellement (Docker, Ollama, Api,
+frontend), a demandé les identifiants des comptes de test mentionnés dans `NEXT_SESSION.md`
+(`chattest`/`admintest`/`frontendtest`) — vérifiés en base plutôt que supposés : **ils n'existent
+plus** (base recréée au Patch 4, jamais revérifié depuis). Un compte `wilfried@agirh.test`
+(QualityAdmin) a été créé pour débloquer l'accès (register + promotion SQL directe, mot de passe
+`AgirhDev2026!`), vérifié par login réel.
+
+**Fait ensuite, sur demande explicite ("peuple SQL Server... 5 employés par pôle... 2RH par
+pôle... cas rares avec des admins", puis "il faut que le système soit en vie côté entités" après
+découverte que `WorkflowTemplates`/`WorkflowInstances`/`TemplateSections`/`TemplateItems`/
+`ChecklistItemStatuses` étaient toutes vides) :**
+- 5 `Departments` créés en SQL direct (`INSERT` — aucun endpoint n'existe pour cette table),
+  noms provisoires non liés à une décision produit.
+- 6 comptes RH + `admin2@agirh.test` (2e QualityAdmin) créés via `register`→`elevate-role` (script
+  `seed-data.ps1`, scratchpad, non versionné) — Direction Technique porte 2 RH (demande explicite,
+  confirmé sans contrainte d'unicité dans `DepartmentScopeGuard`).
+- 25 `Employee` créés via `POST /api/employees` avec le token du bon RH à chaque fois (RBAC +
+  `DepartmentScopeGuard` réellement exercés) — 4 types de contrat représentés dans chaque pôle.
+- 4 cas de vérification du workflow de compte rejoués en HTTP réel (409 email dupliqué, 400 mot de
+  passe court, 401 mauvais mot de passe, 403 RH hors de son pôle) — tous corrects.
+- **2e script** (`seed-workflows.ps1`, scratchpad) : templates Onboarding/Offboarding créés avec le
+  **contenu réel** de `docs/LOGIQUE_METIER.md` §3-4 (22 et 9 items respectivement, jamais inventé),
+  circuit complet Rédacteur (`hr.ressources-humaines`)→Vérificateur (`wilfried`)→Approbateur
+  (`admin2`), statut `Approved`. 28 `WorkflowInstance` instanciées (25 Onboarding + 3 Offboarding)
+  avec des états variés (1 `Closed`, 1 `Archived`, 7 partielles, le reste fraîches) —
+  **`ResolveApplicableItems` vérifié fonctionnel en conditions réelles** : les employés `Stage`
+  reçoivent bien moins d'items (20/22 Onboarding, 8/9 Offboarding), pas juste supposé correct.
+- Toutes les tables métier croisées en `SELECT COUNT(*)` avant/après — plus aucune table vide
+  (sauf `__EFMigrationsHistory`, système). Détail exhaustif : `docs/donnees_test/`
+  (`RAPPORT_PEUPLEMENT.md` + `donnees.json`), un artifact HTML équivalent publié dans la
+  conversation (diagramme Mermaid de la hiérarchie).
+- **Risque trouvé, non corrigé** : `agirh-sql` sans volume Docker (`docker inspect` → `Mounts: []`)
+  — voir `NEXT_SESSION.md` "Pièges techniques" pour le détail, ajouté aussi en "Décisions en
+  attente" (migration vers volume nommé = recréer le conteneur, pas une décision à prendre seul).
+- **Nettoyage racine** (même session, demande explicite) : `pdflatex_run2.log`/`texput.log`
+  déplacés vers `docs/rapport_avancement/` (sous-produits de compilation lancés depuis la racine),
+  `/*.log` ajouté à `.gitignore`. Rien d'autre à la racine n'était mal placé.
+
+**Reste :** rien de bloquant. Les scripts `seed-*.ps1` restent dans le scratchpad de session (non
+versionnés, non reproductibles tels quels par une future session) — seul le résultat (données en
+base + `docs/donnees_test/`) persiste. Si la base est un jour recréée, ce rapport sert de
+spécification pour la repeupler à l'identique (mêmes noms de pôles provisoires, même contenu de
+template, mêmes matricules).
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
