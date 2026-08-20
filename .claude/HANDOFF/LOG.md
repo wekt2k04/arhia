@@ -569,3 +569,11 @@
 **Reste :** rien de bloquant. Les 5 documents + les 2 prompts NotebookLM sont maintenant considérés à jour à ce checkpoint — mais vu le nombre d'erreurs trouvées ce jour dans du contenu qui se croyait déjà vérifié, ne pas supposer que "vérifié une fois" = "vrai pour toujours" si le code bouge encore.
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+## 2026-08-20 — Poste de travail (Windows), suite 11
+
+**Fait** (commit `87498d7`) : à la demande du porteur du projet ("il y a tellement de fichiers que je ne sais pas par où commencer"), création de `docs/APPRENTISSAGE/top-20-fichiers-maitres.md` — guide de lecture organisé **fichier par fichier** (chemin complet depuis la racine, méthodes/syntaxe/variables clés, un mini-extrait de code vérifié par fichier), complémentaire à `principal.md` qui est organisé **concept par concept**. Les 20 fichiers ont été lus intégralement avant rédaction (aucun contenu deviné) : 10/20 pipeline RAG + orchestration IA (pondération explicitement demandée), 10/20 architecture/sécurité/domaine/Docker/workflows/frontend pour ne rien négliger du reste. Ordre de lecture conseillé aligné sur la structure déjà connue des 5 documents `docs/notebooklm/01-05` (fondations → RAG → orchestration → déploiement → flux/workflows).
+
+**Reste :** rien de bloquant, document autonome et vérifié, pas de suite obligatoire — sa section finale pointe déjà vers 4 fichiers de prolongement (`WorkflowInstance.cs`, `AgirhDbContext.cs`, `tests/Agirh.Tests/Rag/*.cs`, `WorkflowController.cs`) si le porteur du projet veut aller plus loin après ces 20.
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md` — aucun changement d'état lié à cet ajout ; les 2 chantiers différés (renommage complet arhia bloqué jusqu'au 2026-08-23, rapport de fin de stage) restent valables tels quels.
