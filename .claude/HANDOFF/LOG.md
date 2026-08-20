@@ -555,3 +555,17 @@
 **Reste :** rien de bloquant — v5 prête à coller, sous la limite avec marge réelle (107 caractères).
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+## 2026-08-20 — Poste de travail (Windows), suite 10
+
+**Fait** (commit `54d6f43`) : le porteur du projet a demandé si "les notebooklm sont à jour" — vérifié plutôt que supposé "oui". Grep ciblé sur les 5 documents source (01-05, ~1167 lignes) avec les patterns déjà connus comme fautifs dans le prompt audio, puis lecture du contexte de chaque résultat. Verdict : **non, ils ne l'étaient pas**, avec un cas plus grave que dans le prompt audio :
+- `01` : `EfWorkflowInstanceRepository` (classe inexistante) répété 2x avec un faux exemple de DI ; "158 tests verts" (chiffre périmé, 211 actuellement) ; le paragraphe RBAC/DepartmentScopeGuard affirmait la portée vérifiée **avant** le rôle puis se contredisait lui-même 2 phrases plus loin en disant "rôle, puis portée" — corrigé pour être cohérent avec le vrai code (rôle d'abord) ; "pôle" (vocabulaire pré-migration) remplacé par "département" (7 occurrences).
+- `02` : tokenizer décrit comme "WordPiece/SentencePiece" alors que seul SentencePiece existe dans ce dépôt.
+- `03` : le 21/48 gold end-to-end était déjà présenté avec une nuance ("son unique confirmation complète") mais sans dire qu'il datait d'avant des corrections jamais rejouées depuis — précisé.
+- `05` : la section "Deux flux de logs séparés" décrivait l'audit trail comme un système **opérationnel** ("chaque action est enregistrée dans l'audit trail"), alors que `IAuditTrailPort`/`AuditTrailAdapter`/`TechnicalLogAdapter` n'existent nulle part dans `src/` (déjà vérifié le 2026-08-19) — reformulée en écart de conception assumé, pas construit.
+- Note positive trouvée en creusant `03` : le "36 sur 36" que j'avais retiré du prompt audio par prudence (aucune preuve trouvée à ce moment-là) est en fait bien expliqué et dérivable dans ce document (36 questions "documentaires" sur 48 total) — pas une erreur de ma part, juste une preuve que je n'avais pas encore vue ; pas remis dans le prompt audio (déjà stable à 4893/5000, pas rouvert pour ça).
+- `prompt-flashcards.md` vérifié aussi (demande explicite) : 1463/5000 caractères, très large marge, aucune coupe nécessaire.
+
+**Reste :** rien de bloquant. Les 5 documents + les 2 prompts NotebookLM sont maintenant considérés à jour à ce checkpoint — mais vu le nombre d'erreurs trouvées ce jour dans du contenu qui se croyait déjà vérifié, ne pas supposer que "vérifié une fois" = "vrai pour toujours" si le code bouge encore.
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
