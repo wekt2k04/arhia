@@ -521,3 +521,10 @@
 - Sujets pré-existants toujours ouverts : correction encadrant reportée (pptx/script/rapport), vérification visuelle pixel du chat, jeu de Q/R gold à reconfirmer, endpoints de lecture/liste, cas particuliers §8.
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+## 2026-08-20 — Poste de travail (Windows), suite 5 (entrée courte)
+
+**Fait :** sur retour direct du porteur du projet (2 captures d'écran) : (1) document renommé "Fiche de Suivi"→"**Synthèse des Travaux Réalisés**" (couverture + en-tête de pages) avec sous-titre "Support de questions — Soutenance PFA", pour signaler que c'est un résumé destiné à alimenter les questions des encadrants, pas un suivi passif ; (2) couverture réorganisée en hiérarchie logique (institution → logos → type de document → produit arhia → pitch → équipe → dépôt → sommaire), le bloc "type de document" remonté avant le titre produit ; (3) précisé "Dépôt GitHub privé, accessible sur demande" — résout la question d'accès GitHub sans changer la visibilité ni ajouter de collaborateur. Recompilé, 3 pages, 0 warning, revérifié visuellement.
+**Note pour la prochaine session** : les entrées du 2026-08-20 dans ce fichier ne sont pas en ordre strictement chronologique (plusieurs `Edit` ont ancré sur un motif de fin de section non-unique, qui a matché plusieurs fois) — le contenu de chaque entrée reste correct et daté, juste l'ordre d'apparition dans le fichier n'est pas fiable pour ce jour précis. Pas grave, pas prioritaire à corriger — juste ne pas supposer que l'ordre du fichier = ordre réel des événements pour le 2026-08-20.
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
