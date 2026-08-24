@@ -29,3 +29,16 @@ qdrant_storage/
 
 # ── Presentation generee (binaire, non diffable — regenerable via generate_pptx.py) ──
 docs/presentations/*.pptx
+
+# ── Docs internes / personnelles (pas destinees a une presentation publique du depot) ──
+docs/APPRENTISSAGE/
+docs/notebooklm/
+docs/VERIFICATION_MIGRATION_ANGLAIS.md
+docs/donnees_test/
+docs/presentations/script_orateur.md
+
+# ── HANDOFF interne (continuite entre sessions Claude Code, pas pour le grand public) ──
+.claude/HANDOFF/
+
+# ── Overrides locaux (jamais partages) ──
+.claude/settings.local.json
