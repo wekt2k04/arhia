@@ -182,7 +182,7 @@ add_textbox(s, Inches(0.9), Inches(4.05), Inches(11.5), Inches(0.7),
             size=16, color=MUTED)
 add_textbox(s, Inches(0.9), Inches(6.35), Inches(6), Inches(0.35), "Wilfried TSETSE", size=15, color=TEXT, bold=True)
 add_textbox(s, Inches(0.9), Inches(6.68), Inches(7), Inches(0.35),
-            "2e annee Genie Informatique de Donnees et IA — ENSA Safi  ·  Encadrant entreprise : M. Issam MITAR", size=11.5, color=MUTED)
+            "2e annee Genie Informatique de Donnees et IA — ENSA Safi  ·  Encadrant entreprise : M. Moulay Rachid Didi Alaoui", size=11.5, color=MUTED)
 
 # ============================================================ SLIDE 2 — AGENDA
 s = add_slide()

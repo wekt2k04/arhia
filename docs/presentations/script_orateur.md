@@ -20,7 +20,7 @@ orchestration fonctionnels de bout en bout) — pas à une version antérieure d
 ### Slide 1 — Page de titre *(~35 s)*
 « Bonjour à toutes et à tous. Je suis **Wilfried TSETSE**, élève-ingénieur en 2ᵉ année Génie
 Informatique de Données et IA à l'**ENSA Safi**. Je vous présente aujourd'hui le projet mené
-durant mon stage chez **AGIRH**, sous le tutorat de Monsieur **Issam MITAR** : la réalisation d'un
+durant mon stage chez **AGIRH**, sous le tutorat de Monsieur **Moulay Rachid Didi Alaoui** : la réalisation d'un
 **assistant RH agentique** pour l'onboarding et l'offboarding des collaborateurs. »
 
 > *Transition :* « Voici le plan de cette présentation. »
