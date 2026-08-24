@@ -635,3 +635,48 @@ spécification pour la repeupler à l'identique (mêmes noms de pôles provisoir
 template, mêmes matricules).
 
 **Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
+
+---
+
+## 2026-08-24 — Poste de travail (Windows), suite 14
+
+**Contexte :** reprise après 2 jours d'inactivité. Demande explicite du porteur du projet, en 3
+volets : correction du nom d'encadrant en attente, HANDOFF de la session précédente (paragraphes
+"Trace d'exécution" du guide top-20), puis vérification que la base est toujours peuplée/logique
+avant de passer à une revue de ce qui doit rester suivi par git sous `docs/`.
+
+**Fait :**
+- **Guide `top-20-fichiers-maitres.md` complété** : 20 paragraphes "Trace d'exécution" (un par
+  fichier), grounded contre le code réellement relu (pas supposé), passés par une grille de
+  qualité à 6 critères (seuil 90/100, détail dans la conversation) avant insertion — 20/20
+  au-dessus du seuil. Commit `cad1799`.
+- **Base de dev revérifiée intégralement intacte**, pas recréée : `agirh-sql`/`agirh-qdrant`
+  étaient seulement `Exited` (arrêtés, pas supprimés — le risque "pas de volume Docker" noté le
+  2026-08-20 ne s'est pas concrétisé). Comptage des 8 tables métier dans l'ordre de dépendance :
+  identique à `RAPPORT_PEUPLEMENT.md` (5/9/25/2/11/31/28/565), 4 vérifications d'intégrité
+  référentielle à 0, les 2 templates toujours `Approved`, Qdrant vert avec 86 points intacts.
+- **2 pièges trouvés pendant cette vérification** : mot de passe `sa` de `.env` (profil
+  docker-compose) différent de celui d'`appsettings.Development.json` (profil dev local, celui
+  qui marche réellement contre ce conteneur créé manuellement) ; `WorkflowTemplates.Status`
+  stocké en `nvarchar` en base, pas en entier (contrairement à la sérialisation JSON/HTTP des
+  autres enums). Les deux ajoutés à `NEXT_SESSION.md`.
+- **Nom d'encadrant obsolète corrigé** (décision actée le 2026-08-19, exécution reportée jusqu'ici
+  à la demande du porteur du projet) : « M. Issam MITAR » → « M. Moulay Rachid Didi Alaoui » dans
+  `generate_pptx.py` et `script_orateur.md`, cohérent avec `rapport.tex`. pptx régénéré (20
+  slides), rapport recompilé (3 pages, 0 overfull) et vérifié visuellement. Commit `a77bb0b`.
+- **2 fichiers de log LaTeX égarés supprimés** (`docs/presentations/pdflatex_run2.log`,
+  `texput.log`) : la session du 2026-08-20 (suite 13, entrée ci-dessus) avait annoncé les avoir
+  déplacés vers `docs/rapport_avancement/`, mais ils avaient en réalité atterri dans
+  `docs/presentations/` — même piège `cd` persistant entre commandes Bash que celui déjà
+  documenté, rencontré une seconde fois pendant cette session (recompilation du rapport,
+  corrigé immédiatement avec un chemin absolu). Purs artefacts de build sans valeur, supprimés
+  plutôt que redéplacés.
+- Gate de date du renommage arhia (2026-08-23 inclus) passé sans action — noté dans
+  `NEXT_SESSION.md` que la date n'est plus un blocage mais que l'ampleur du chantier exige
+  toujours une confirmation explicite avant de commencer.
+
+**Reste :** revue de ce qui doit rester suivi par git sous `docs/`/`.claude/` avant présentation
+professionnelle du dépôt — en cours au moment de cet ajout, voir `NEXT_SESSION.md` pour la
+méthode actée. Pitch/présentation explicitement mis en attente jusqu'à la fin de cette revue.
+
+**Prochaine session :** voir `.claude/HANDOFF/NEXT_SESSION.md`.
