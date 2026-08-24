@@ -70,6 +70,20 @@ builder.Services.AddSingleton<IRerankerPort>(_ => new OnnxRerankerAdapter(
     Path.Combine(rerankerModelsDir, "sentencepiece.bpe.model")));
 ```
 
+**Trace d'exécution.** Au lancement, `WebApplication.CreateBuilder` ouvre un conteneur DI que le
+reste du fichier remplit dans l'ordre : repositories EF Core, hasher et générateur JWT, puis un
+use case par action métier. Vient ensuite le câblage RAG : `FindRepoRoot` remonte l'arborescence
+depuis `AppContext.BaseDirectory` jusqu'à `Agirh.sln`, pour localiser `rag/models/` quel que soit
+le répertoire de lancement. `IEmbeddingPort`/`IRerankerPort` sont enregistrés comme adaptateurs
+ONNX concrets, construits directement avec leurs deux chemins de fichiers (pas de constructeur
+sans paramètre). Conséquence en aval : `QdrantVectorSearchAdapter` (entrée 8) reçoit sa dimension
+via `IEmbeddingPort.Dimension` (768, lu au runtime sur l'adaptateur déjà résolu) plutôt qu'une
+constante séparée — un futur modèle d'embedding de taille différente propagerait sa dimension
+sans toucher ce fichier. Une fois `app.Build()` appelé, `Database.Migrate()` s'exécute avant tout
+le reste, idempotent ; puis le pipeline HTTP suit l'ordre déclaré : `UseAuthentication` peuple
+`HttpContext.User` avant que `UseAuthorization` ne le lise — les inverser casserait la sécurité
+sans la moindre erreur de compilation.
+
 ### 2. `src/Agirh.Core/Security/RbacMatrix.cs`
 *La totalité de la logique RBAC tient dans un dictionnaire figé + une ligne.*
 
@@ -91,6 +105,19 @@ new Dictionary<ResourceAction, IReadOnlySet<RoleType>>
     // ... 9 autres entrées
 };
 ```
+
+**Trace d'exécution.** Ce fichier n'est jamais appelé directement par un contrôleur : chaque use
+case (`InstantiateWorkflowUseCase`, `IngestCorpusUseCase`...) commence son `ExecuteAsync` par
+`RbacMatrix.IsAuthorized(actor.Role, ResourceAction.X)`, où `actor` n'est pas le rôle inscrit
+dans le JWT au moment de la connexion mais le `UserAccount` réellement relu en base par
+`CurrentUserAccessor.GetActorAsync` à chaque requête (seul le `NameIdentifier` du token sert à
+retrouver la ligne) : un changement de rôle appliqué entre deux requêtes est donc pris en compte
+immédiatement, sans reconnexion. `IsAuthorized` fait un simple `TryGetValue` sur `Default` : si
+l'action demandée n'y figure pas, l'appel retourne `false` par construction — une action oubliée
+dans la matrice est refusée à tout le monde, jamais accordée par défaut (fail-safe par omission,
+pas fail-open). Une fois cette porte franchie, le use case appelle en général une seconde
+vérification, `DepartmentScopeGuard`, qui restreint la cible précise plutôt que l'action en
+général.
 
 ### 3. `src/Agirh.Core/Security/DepartmentScopeGuard.cs`
 *Deuxième porte, **séparée** de RBAC et vérifiée après elle : RBAC dit "ce rôle peut faire
@@ -117,6 +144,18 @@ public static bool CanAccessDepartment(UserAccount actor, Guid targetDepartmentI
     };
 }
 ```
+
+**Trace d'exécution.** Ce fichier s'appelle toujours en second, après un `RbacMatrix.IsAuthorized`
+déjà passé — jamais avant, jamais à sa place (visible dans `InstantiateWorkflowUseCase.ExecuteAsync`,
+entrée 20 : RBAC d'abord, `CanAccessEmployee` ensuite). La distinction entre les deux méthodes
+reflète deux granularités : `CanAccessDepartment` teste l'accès à un pôle entier,
+`CanAccessEmployee` teste UNE fiche précise. Un `Employee` n'apparaît que dans la seconde —
+`CanAccessDepartment` n'a pas de branche `RoleType.Employee` explicite, elle retombe sur `_ =>
+false` : un compte Employee n'a par construction jamais de vue sur un département entier, juste
+sur son propre dossier (`actor.Id == target.UserAccountId`, une identité de compte, pas de
+département). Comme `RbacMatrix`, ce garde-fou lit `actor.Role`/`actor.DepartmentId` sur le
+`UserAccount` fraîchement relu en base à chaque requête : un transfert de département appliqué
+entre deux requêtes change immédiatement la portée effective, sans JWT à réémettre.
 
 ### 4. `src/Agirh.Domain/Entities/WorkflowTemplate.cs`
 *Entité pure (zéro dépendance NuGet) — machine à états du circuit de validation qualité.*
@@ -148,6 +187,21 @@ public void Approve(Guid approverId)
     Status = TemplateStatus.Approved;
 }
 ```
+
+**Trace d'exécution.** Le cycle de vie suit toujours la même trajectoire : `Draft` à la
+construction, `InReview` après `Submit()`, puis `Approved`/`Rejected` après `Verify()`+`Approve()`
+ou `Reject()` — jamais l'inverse, chaque méthode vérifie `Status` en première ligne et lève sinon,
+la machine à états est donc imposée par le code, pas seulement documentée. `Verify`/`Approve`
+encodent la séparation des rôles du circuit qualité : le rédacteur (`AuthorId`) ne peut vérifier
+ni approuver son propre travail, et le vérificateur ne peut pas non plus être l'approbateur —
+trois identités distinctes doivent se succéder. `ResolveApplicableItems(contractType)` relie ce
+fichier à `InstantiateWorkflowUseCase` (entrée 20) : elle aplatit les sections en une liste, ne
+gardant que les items dont `IsApplicableFor` répond vrai — ce qui dépend de
+`TemplateItem.ApplicableContractTypes` : une collection vide s'applique à tous les contrats, non
+vide restreint l'item aux types listés. Ce n'est donc jamais `WorkflowTemplate` qui décide de la
+restriction, seulement chaque item individuellement. Le second constructeur, privé et sans
+validation, n'existe que pour l'ORM — le code applicatif passe toujours par le constructeur
+public, qui refuse tout état invalide dès l'instanciation.
 
 ---
 
@@ -188,6 +242,21 @@ public IReadOnlyList<RawChunk> Chunk(string markdown)
 }
 ```
 
+**Trace d'exécution.** `Chunk(markdown)` prend du texte brut et rend une liste de `RawChunk` — un
+type purement interne, sans identifiant ni source, juste un chemin de titres, un contenu, un
+compte de tokens. `ExtractSections` fait le découpage structurel : chaque ligne `#`-préfixée
+empile/dépile `titleStack` pour reconstruire un chemin `H1 > H2 > H3`, le texte suivant devenant
+le corps de la section. Une section sous `_maxTokensPerChunk` (400, compté via `_countTokens`
+injecté — ce fichier ignore que c'est en réalité `XlmRobertaTokenizer.CountTokens`, entrée 6)
+devient un `RawChunk` tel quel ; plus longue, elle passe par `ChunkLongSection`, qui découpe
+paragraphe par paragraphe en conservant un recouvrement (`_overlapRatio`, 15%) entre deux
+sous-chunks. Ce fichier reste délibérément pur, sans dépendance à un identifiant de document :
+c'est `MarkdownChunkerAdapter` qui enveloppe chaque `RawChunk` dans un `DocumentChunk` complet, en
+zippant la liste avec son index et en calculant un ID déterministe (`DocumentChunk.ComputeId`, un
+hash MD5 de `documentSource#chunkIndex`). Conséquence peu visible ici : réingérer deux fois le
+même document produit les mêmes IDs de chunk, donc `IndexAsync` (entrée 8) écrase les points
+existants au lieu de les dupliquer.
+
 ### 6. `src/Agirh.Infrastructure/Rag/XlmRobertaTokenizer.cs`
 *Le fichier le plus délicat du pipeline RAG — corrige un décalage d'indices entre deux
 vocabulaires.*
@@ -213,6 +282,24 @@ private static long FixToHuggingFaceSpace(int rawSentencePieceId) => rawSentence
 };
 ```
 
+**Trace d'exécution.** Un document Markdown est d'abord découpé par `MarkdownChunker` en
+plusieurs chunks, généralement limités à environ 400 tokens. Pour chaque chunk,
+`SentencePieceTokenizer` le transforme en identifiants bruts, puis `XlmRobertaTokenizer` les
+convertit vers l'espace d'identifiants attendu par Hugging Face. Ces identifiants sont ensuite
+envoyés au modèle ONNX d'embedding, qui produit une représentation par token
+(`last_hidden_state`). L'application effectue alors un mean-pooling, puis une normalisation L2,
+afin d'obtenir un vecteur `float[768]` stocké dans Qdrant. Lorsqu'un utilisateur pose une
+question, celle-ci suit le même processus avec `EncodeToHuggingFaceIds` : elle est transformée en
+vecteur 768 et comparée aux vecteurs des chunks pour récupérer les passages les plus proches
+sémantiquement. Les quelques chunks candidats sont ensuite évalués individuellement avec
+`EncodePairToHuggingFaceIds`, qui construit une séquence contenant la question et le document
+(`<s> question </s></s> document </s>`) ; le modèle ONNX de reranking leur attribue un score de
+pertinence et les réordonne. Il n'existe donc pas d'encodeur Hugging Face séparé dans ce code : la
+classe locale convertit seulement les identifiants SentencePiece, tandis que le modèle ONNX
+produit réellement les représentations. Enfin, le commentaire du code parle de mean-pooling
+« masqué », mais l'implémentation actuelle moyenne tous les tokens, car le `attentionMask` n'est
+pas encore utilisé dans cette étape.
+
 ### 7. `src/Agirh.Infrastructure/Rag/OnnxEmbeddingAdapter.cs`
 *Phase 2 : texte → vecteur de 768 dimensions, via ONNX Runtime .NET pur (pas d'appel Ollama).*
 
@@ -236,6 +323,19 @@ if (norm > 0)
 }
 ```
 
+**Trace d'exécution.** `InferenceSession` est instancié une seule fois dans le constructeur et
+réutilisé à chaque appel de `GenerateEmbeddingAsync` — charger un modèle ONNX est coûteux,
+l'exécuter ne l'est pas, d'où le `Singleton` avec lequel `Program.cs` (entrée 1) enregistre cet
+adaptateur. Chaque appel construit deux tenseurs `[1, length]` (`inputIds`, `attentionMask`) à
+partir des identifiants d'`EncodeToHuggingFaceIds` (entrée 6) — le `1` est la taille de batch,
+toujours 1 ici, et `attentionMask` est rempli de `1` sur toute la longueur puisqu'il n'y a jamais
+de remplissage à signaler pour une séquence unique. Le graphe renvoie `last_hidden_state` (par
+token) ; `MeanPoolAndNormalize` additionne ces représentations puis divise par `length`, puis par
+la norme L2 du résultat — cette seconde division est ce qui rend la similarité cosinus de Qdrant
+(entrée 8) bien bornée entre -1 et 1. `Dimension` (768) n'est pas qu'une information : `Program.cs`
+la relit sur cet adaptateur déjà construit pour dimensionner la collection Qdrant au démarrage,
+donc un changement de modèle se propagerait sans constante à modifier ailleurs.
+
 ### 8. `src/Agirh.Infrastructure/Rag/QdrantVectorSearchAdapter.cs`
 *Phase 3 : indexation et recherche ANN (Approximate Nearest Neighbor) dans Qdrant.*
 
@@ -258,6 +358,19 @@ point.Payload.Add("titlePath", chunk.TitlePath);
 point.Payload.Add("content", chunk.Content);
 await _client.UpsertAsync(CollectionName, new[] { point }, cancellationToken: ct);
 ```
+
+**Trace d'exécution.** `PrepareAsync`, appelé par `IngestCorpusUseCase` (entrée 10) avant toute
+indexation, ne crée la collection `agirh-corpus` que si `CollectionExistsAsync` répond faux, avec
+`Distance.Cosine` fixée définitivement — cohérent avec la normalisation L2 faite en amont (entrée
+7), la similarité cosinus n'ayant de sens stable que sur des vecteurs déjà normalisés. `IndexAsync`
+stocke vecteur ET métadonnées (`documentSource`, `chunkIndex`, `titlePath`, `content`) côte à côte
+dans `Payload` : une recherche renvoie directement le texte du chunk, sans requête séparée.
+`UpsertAsync` — pas une insertion pure — signifie que réindexer un chunk dont l'ID existe déjà
+(déterministe, entrée 5) remplace le point au lieu de le dupliquer, ce qui rend `IngestCorpusUseCase`
+sûr à relancer sur un corpus inchangé. `SearchAsync` reconstruit chaque `DocumentChunk` depuis le
+payload retourné ; `r.Score`, la similarité cosinus brute, n'est PAS le score final utilisé par
+`AnswerConversationUseCase` (entrée 14) — il sert seulement à sélectionner les `TopKSearch` (5)
+candidats avant que le reranker (entrée 9) ne recalcule un score différent sur cette short-list.
 
 ### 9. `src/Agirh.Infrastructure/Rag/OnnxRerankerAdapter.cs`
 *Phase 4 (obligatoire) : reranking cross-encodeur — la phase la plus déterminante pour la
@@ -283,6 +396,19 @@ var results = candidates
     .OrderByDescending(c => c.Score)
     .ToList();
 ```
+
+**Trace d'exécution.** `RerankAsync` reçoit les `DocumentChunk` renvoyés par Qdrant (entrée 8,
+avec leur `Score` de similarité cosinus) et leur substitue un score différent : `c with { Score =
+ComputeScore(...) }` écrase le score de similarité vectorielle par un score de pertinence
+cross-encoder — même champ, deux significations selon l'étape du pipeline. `ComputeScore` encode
+la PAIRE requête+document en une seule séquence via `EncodePairToHuggingFaceIds` (entrée 6),
+l'envoie en une passe ONNX, puis lit un unique logit (une seule tête de sortie, pas une
+classification multi-classes). Ce logit non borné est ramené dans `[0, 1]` par `Sigmoid`, l'échelle
+attendue par `MinimumRelevanceThreshold` dans `AnswerConversationUseCase` (entrée 14).
+Architecturalement, ce fichier est le second étage d'un pipeline à deux vitesses : le bi-encodeur
+(entrée 7) encode requête et documents séparément pour une recherche rapide sur tout le corpus,
+tandis que ce cross-encodeur, plus lent, ne s'applique qu'aux `TopKSearch` (5) survivants pour les
+réordonner avec une bien meilleure précision.
 
 ### 10. `src/Agirh.Core/UseCases/IngestCorpusUseCase.cs`
 *Orchestrateur pur qui enchaîne les phases 1→2→3 à l'ingestion du corpus documentaire.*
@@ -317,6 +443,18 @@ foreach (var (documentName, markdown) in documents)
 }
 ```
 
+**Trace d'exécution.** `ExecuteAsync` enchaîne réellement les trois phases du pipeline RAG en une
+boucle : pour chaque document (nom → contenu Markdown déjà lu — ce use case ne touche jamais le
+système de fichiers, c'est `AdminController` qui lit `rag/corpus/` en amont), `_chunker.Chunk`
+(entrée 5) produit des `DocumentChunk` identifiés, puis pour chacun, `_embedding.GenerateEmbeddingAsync`
+(entrée 7) calcule son vecteur avant que `_vectorSearch.IndexAsync` (entrée 8) ne l'indexe —
+séquentiellement, jamais en parallèle ni par lot. Le use case ne connaît que les trois ports,
+jamais les classes concrètes, ce qui permet de le tester entièrement avec des mocks
+(`tests/Agirh.Tests/Rag/`), sans ONNX Runtime ni Qdrant réel. La vérification RBAC (`CorpusIngest`,
+réservée à `QualityAdmin`) intervient avant même `PrepareAsync` : réindexer le corpus change ce que
+`AnswerConversationUseCase` considère ensuite comme source de vérité documentaire pour tout le
+monde, une conséquence assez large pour justifier le rôle le plus élevé plutôt que HR.
+
 ---
 
 ## C. Orchestration IA conversationnelle — quoi faire de la question
@@ -342,6 +480,21 @@ réseau vers Ollama.*
 // ligne 66 : le flag qui rend le streaming réellement progressif
 httpResponse = await _http.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, ct);
 ```
+
+**Trace d'exécution.** Ce client est partagé tel quel par le Router (entrée 12) et le Generator
+(entrée 13) : aucun des deux ne parle HTTP directement. `GenerateAsync` encapsule tout échec
+réseau dans un simple `return null` plutôt qu'une exception — ce sont les appelants qui décident
+quoi faire d'une réponse absente (le Router retombe sur `HORS_PERIMETRE`, le Generator affiche
+`MessageIndisponible`), pas ce fichier. `GenerateStreamAsync` est le chemin du chat SSE : le
+détail qui change tout est `HttpCompletionOption.ResponseHeadersRead` passé à `SendAsync` — sans
+lui, `HttpClient` attendrait la réponse complète avant de la rendre disponible, vidant le
+streaming de son intérêt côté serveur .NET, exactement le même piège que `compress: false` côté
+Next.js (entrée 16) mais un cran plus tôt. Le flux est ensuite lu ligne par ligne : chaque ligne
+NDJSON est désérialisée par `DeserializeFrameSafely` (qui avale silencieusement une frame corrompue
+plutôt que de faire planter le flux), `Response` est renvoyé dès qu'il est non vide, et `Done ==
+true` termine l'énumération — cette même frame `done` deviendra plus tard l'événement SSE `done`
+de `ChatController` (entrée 17), sans être le même signal : l'un marque la fin du flux Ollama,
+l'autre la fin du message conversationnel complet.
 
 ### 12. `src/Agirh.Infrastructure/Llm/OllamaRouterAdapter.cs`
 *Le Router — classe la question en 3 catégories avant tout le reste. Fail-safe, pas
@@ -370,6 +523,19 @@ private static ConversationIntent ParseIntent(string? rawResponse)
 }
 ```
 
+**Trace d'exécution.** `ClassifyAsync` est le tout premier appel LLM d'une conversation :
+`AnswerConversationUseCase` (entrée 14) l'appelle avant de savoir si la question porte sur un
+dossier personnel ou une politique documentaire, en envoyant la question et le `SystemPrompt`
+(few-shot) au modèle configuré, puis en passant la réponse à `ParseIntent`. Ce qui rend ce fichier
+fail-safe plutôt que fail-open tient dans `ParseIntent` : la réponse est testée avec `.Contains(...)`
+(jamais `==`, le modèle ajoute parfois du texte autour du mot attendu), et toute réponse qui ne
+contient ni `STATUT_DOSSIER` ni `DOCUMENTAIRE` — vide, `null` remonté par `OllamaClient` (entrée
+11) après timeout, ou mot halluciné — retombe sur `OutOfScope`. Une panne d'Ollama à cette étape ne
+provoque donc jamais un accès élargi : elle produit silencieusement la réponse la plus restrictive.
+Le prompt porte une règle affinée après qu'une version plus simple ait mal classé « qui signe la
+fiche de décharge ? » en question de statut personnel — et malgré ce travail, ~27% des cas restent
+mal classés sur le jeu de test, limite documentée dans le fichier lui-même.
+
 ### 13. `src/Agirh.Infrastructure/Llm/OllamaGeneratorAdapter.cs`
 *Le Generator — écrit la réponse finale. Le plus court des 3 fichiers LLM.*
 
@@ -397,6 +563,19 @@ public async IAsyncEnumerable<string> GenerateResponseStreamingAsync(
         yield return MessageIndisponible;
 }
 ```
+
+**Trace d'exécution.** Ce fichier est appelé en dernier dans la branche documentaire, uniquement
+après qu'`AnswerConversationUseCase` (entrée 14) ait déjà décidé qu'un contexte pertinent existe —
+ce n'est pas lui qui refuse de répondre, la décision est prise en amont. `GenerateResponseAsync`
+est la version simple : une réponse vide ou nulle devient `MessageIndisponible`, jamais une chaîne
+vide affichée à l'utilisateur. `GenerateResponseStreamingAsync` résout un problème que la version
+simple n'a pas : au moment de commencer à émettre des fragments, on ignore encore si le flux sera
+vide — d'où `receivedAtLeastOneFragment`, vérifiable seulement APRÈS la fin du `await foreach`. Si
+aucun fragment n'est jamais arrivé, `MessageIndisponible` est émis après coup, la seule façon de le
+savoir avec certitude sur un flux progressif. C'est ce texte, accumulé fragment par fragment côté
+appelant, qu'`AnswerConversationUseCase` relit ensuite en entier pour vérifier s'il s'agit en
+réalité d'un refus du modèle plutôt qu'une vraie réponse sourcée — ce fichier l'ignore, il se
+contente de produire le texte.
 
 ### 14. `src/Agirh.Core/UseCases/AnswerConversationUseCase.cs`
 *Le fichier le plus dense du projet — orchestrateur central de toute la conversation. Contient
@@ -434,6 +613,23 @@ if (best.Count == 0)
     return new DocumentaryPreparation(false, null, Array.Empty<DocumentChunk>());
 ```
 
+**Trace d'exécution.** `ExecuteAsync` (et son jumeau streamé) commence toujours par
+`_router.ClassifyAsync` (entrée 12) : selon l'intention, la question part vers
+`AnswerDocumentaryAsync` (RAG complet), `AnswerCaseStatusAsync` (lecture d'un `WorkflowInstance`),
+ou `OutOfScopeResponse` (aucun appel LLM de plus). Le garde-fou anti-hallucination tient dans
+`PrepareDocumentaryContextAsync`, seule méthode qui touche Qdrant : embedding de la question
+(entrée 7) → `TopKSearch` (5) candidats (entrée 8) → reranking (entrée 9) → filtrage par
+`MinimumRelevanceThreshold` (0.01, bas volontairement — un score de reranking mesure une proximité
+thématique, pas la certitude que la réponse précise s'y trouve) → `TopKAfterReranking` (3)
+meilleurs. Si `candidates` ou `best` est vide, le Generator (entrée 13) n'est JAMAIS appelé — deux
+portes de sortie dans le code, pas dans un prompt ignorable. Même appelé, sa réponse est relue par
+`IsGeneratorRefusal` contre 7 formulations de refus possibles (le modèle 3.8B ne reprend pas
+toujours la formule exacte imposée) : un refus déguisé renvoie `Sourced: false` malgré des chunks
+pertinents. `ExecuteAsync` et sa version streamée partagent cette même préparation, donc ne peuvent
+jamais diverger. Côté statut de dossier, `DepartmentScopeGuard` (entrée 3) s'applique avant toute
+lecture, et sans `targetEmployeeId`, seul un acteur `Employee` obtient une résolution implicite de
+son propre dossier — jamais un RH ou un Admin.
+
 ---
 
 ## D. Dockerisation & déploiement
@@ -464,6 +660,18 @@ depends_on:
     condition: service_started
 ```
 
+**Trace d'exécution.** Un `docker compose up` démarre 4 services à des rythmes différents : `api`
+attend que `sqlserver` réponde `service_healthy` (le `healthcheck` sqlcmd doit réussir, pas
+seulement démarrer) mais seulement `service_started` pour `qdrant`, qui n'a pas de healthcheck
+défini ici — une différence de robustesse assumée, pas un oubli symétrique. Ollama est absent par
+choix explicite (commenté dans le YAML) : il tourne nativement sur l'hôte, joint via
+`host.docker.internal`, un nom résolu par Docker Desktop — `extra_hosts` n'a d'effet que sous
+Docker Engine Linux sans Docker Desktop, sans effet ici. Les variables à double underscore
+(`Jwt__TokenLifetimeMinutes`) sont la convention ASP.NET Core pour mapper vers une clé hiérarchique
+(`Jwt:TokenLifetimeMinutes`), la même config que lit `Program.cs` (entrée 1) avec repli par défaut
+si absente. `rag/models` et `rag/corpus` sont montés en lecture seule depuis l'hôte plutôt que
+copiés dans l'image : à ~850 Mo de modèles, les copier alourdirait chaque build pour rien.
+
 ### 16. `frontend/next.config.ts`
 *13 lignes, mais documente le piège le plus instructif du projet côté frontend.*
 
@@ -483,6 +691,17 @@ const nextConfig: NextConfig = {
   devIndicators: false,
 };
 ```
+
+**Trace d'exécution.** Deux lignes de configuration, mais l'ordre des événements qu'elles
+empêchent mérite d'être tracé : sans `compress: false`, Next.js bufferiserait en entier la réponse
+de `/api/chat/ask` (qui relaie le SSE de `ChatController`, entrée 17) avant de l'envoyer au
+navigateur — le fragment le plus rapide attendrait le dernier, annulant le streaming construit à
+trois niveaux (`OllamaClient`, entrée 11 ; `ChatController.WriteEventAsync`, entrée 17 ;
+`EventSource`, entrée 18). C'est le même piège que `HttpCompletionOption.ResponseHeadersRead`
+(entrée 11), un étage plus haut, côté serveur Next.js plutôt que client HTTP .NET — une
+optimisation par défaut pensée pour des réponses classiques qui casse silencieusement un flux
+progressif. `devIndicators: false` n'a aucun rapport : simple préférence pour ne pas polluer les
+captures d'écran de démo.
 
 ---
 
@@ -519,6 +738,21 @@ var (type, data) = conversationEvent switch
 };
 ```
 
+**Trace d'exécution.** `Ask` est le point d'entrée de toute conversation : `[HttpGet("ask")]`, en
+GET, parce que `EventSource` (entrée 18) ne sait ouvrir une connexion SSE qu'en GET — la question
+voyage en paramètre d'URL, pas dans un corps de requête. Avant d'écrire le moindre octet, la
+méthode pose trois en-têtes manuellement, dont `X-Accel-Buffering: no` (effet seulement derrière un
+reverse proxy Nginx, absent en dev). Le corps se résume à un `await foreach` sur
+`_answerConversation.ExecuteStreamingAsync` (entrée 14) : chaque `ConversationEvent` passe par
+`WriteEventAsync`, qui `switch`e sur le type concret (`TextFragment` → `fragment`,
+`ResponseCompleted` → `done`) pour écrire une frame SSE puis `FlushAsync` explicitement — sans ce
+flush, ASP.NET Core bufferiserait à son tour, un troisième endroit où le piège de `compress: false`
+(entrée 16) pourrait se reproduire. Les noms `"fragment"`/`"done"` doivent correspondre AU
+CARACTÈRE PRÈS aux `addEventListener` du widget React (entrée 18) : un décalage ne lèverait aucune
+erreur, juste un silence côté navigateur. Un `AccessDeniedException` levé plus bas (via
+`DepartmentScopeGuard`, entrée 14) est transformé ici en message conversationnel plutôt qu'un code
+HTTP d'erreur.
+
 ### 18. `frontend/app/chat/chat-widget.tsx`
 *Consommation `EventSource` côté navigateur — ferme la boucle ouverte par ChatController.*
 
@@ -552,6 +786,20 @@ source.addEventListener("done", (evt) => {
 });
 ```
 
+**Trace d'exécution.** `envoyer` ajoute immédiatement deux messages (utilisateur, et un message
+assistant vide à remplir progressivement) puis ouvre `new EventSource(url)` vers `/api/chat/ask` —
+cette requête GET exécute côté serveur tout ce qui est décrit à l'entrée 17. Les deux
+`addEventListener` (`fragment`, `done`) sont l'autre bout exact du contrat SSE de
+`ChatController.WriteEventAsync` : à chaque `fragment`, `mettreAJourDernierMessage` concatène le
+nouveau texte au dernier élément (`m.text + donnees.text`), donnant l'effet de texte qui s'écrit
+progressivement ; à `done`, le même helper attache `sourced`/`sources` puis ferme la connexion et
+redonne la main au formulaire. `eventSourceRef` gère un cas que l'utilisateur peut déclencher
+lui-même : une nouvelle question envoyée pendant qu'une réponse arrive encore ferme l'ancien flux
+avant d'en ouvrir un nouveau, pour ne jamais mélanger deux réponses. Le composant est `"use client"` :
+sans cette directive, `useState`/`useRef`/`EventSource` ne pourraient pas s'exécuter, l'App Router
+traitant tout composant par défaut comme un Server Component, incapable de maintenir une connexion
+ouverte vers le navigateur.
+
 ### 19. `src/Agirh.Api/Controllers/TemplateController.cs`
 *4 endpoints qui correspondent 1:1 aux 4 transitions de `WorkflowTemplate` (entrée 4).*
 
@@ -574,6 +822,20 @@ catch (AccessDeniedException) { return Forbid(); }
 catch (ArgumentException ex) { return BadRequest(ex.Message); }
 catch (InvalidOperationException ex) { return Conflict(ex.Message); }
 ```
+
+**Trace d'exécution.** Les 4 endpoints (`Propose`, `Verify`, `Approve`, `Reject`) ne contiennent
+aucune règle métier propre : chacun construit ses objets depuis le DTO, délègue au use case
+correspondant, puis traduit l'exception en code HTTP — la même table (`AccessDeniedException` →
+403, `InvalidOperationException` → 409, `ArgumentException` → 400) est répétée dans les 4 actions.
+Ce n'est pas un oubli de factorisation : chaque action échoue pour une raison différente selon
+l'état du `WorkflowTemplate` visé (entrée 4) — un `Verify` sur un template déjà `Approved`
+déclenche l'exception de `Verify()`, pas celle de `Approve()`, mais les deux remontent en 409 par
+le même chemin. `Propose` est le seul à reconstruire une structure complexe : il transforme les
+DTOs en véritables `TemplateSection`/`TemplateItem`, en générant un `Guid.NewGuid()` par section et
+par item — ces identifiants ne viennent jamais du client, ce qui empêche un appelant de forcer un
+ID de son choix. Les 4 actions appellent `_currentUser.GetActorAsync` avant même le `try` :
+l'acteur réel, relu en base, est donc toujours résolu avant que le use case ne fasse quoi que ce
+soit avec, RBAC compris.
 
 ### 20. `src/Agirh.Core/UseCases/InstantiateWorkflowUseCase.cs`
 *Le flux d'onboarding de bout en bout, résumé en un seul `ExecuteAsync`.*
@@ -606,6 +868,20 @@ if (!DepartmentScopeGuard.CanAccessEmployee(actor, employee))
 var template = await _templates.GetLastApprovedAsync(type, ct)
     ?? throw new InvalidOperationException($"Aucun template approuvé pour le type {type}.");
 ```
+
+**Trace d'exécution.** `ExecuteAsync` enchaîne, dans un ordre qui ne doit jamais changer, les
+vérifications avant l'action : RBAC (`WorkflowInstantiate`, réservé à HR) → l'employé existe-t-il →
+`DepartmentScopeGuard.CanAccessEmployee` (entrée 3, un RH ne peut instancier que pour son propre
+pôle) → le DERNIER template `Approved` du bon type (`GetLastApprovedAsync` — la contrainte vient
+du circuit de validation qualité, entrées 4 et 19 : un template `Draft` ou `Rejected` ne peut
+jamais servir de base). `template.ResolveApplicableItems(employee.ContractType)` (entrée 4) filtre
+déjà les items non pertinents avant toute construction — c'est ici, et seulement ici dans le flux
+d'onboarding, que la règle « un stagiaire n'a pas de compte SELFRH » (docs/LOGIQUE_METIER.md §5)
+prend effet concrètement, chaque item filtré devenant un `ChecklistItemStatus`. Le même
+enchaînement — RBAC, portée, résolution de ressource, construction — se retrouve à l'identique
+dans les use cases voisins non détaillés ici (`CheckItemUseCase`, `CloseCaseUseCase`,
+`ArchiveCaseUseCase`) : une fois ce fichier compris, les autres se lisent par simple reconnaissance
+de motif.
 
 ---
 
