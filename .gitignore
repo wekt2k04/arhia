@@ -30,6 +30,10 @@ qdrant_storage/
 # ── Presentation generee (binaire, non diffable — regenerable via generate_pptx.py) ──
 docs/presentations/*.pptx
 
+# ── Diagrammes LinkedIn animes (binaires, regenerables via docs/presentations/linkedin/diagram_*.py) ──
+docs/presentations/linkedin/*.mp4
+docs/presentations/linkedin/__pycache__/
+
 # ── Docs internes / personnelles (pas destinees a une presentation publique du depot) ──
 docs/APPRENTISSAGE/
 docs/notebooklm/
