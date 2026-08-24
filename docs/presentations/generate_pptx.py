@@ -410,26 +410,27 @@ add_title(s, "Pipeline RAG (1/2) — Chunking & Embedding")
 add_textbox(s, Inches(0.7), Inches(1.95), Inches(11.9), Inches(0.5),
             "RAG : au lieu de laisser le LLM repondre de memoire (donc halluciner), on cherche les vrais passages avant de generer.",
             size=13.5, color=MUTED)
-add_box(s, Inches(0.7), Inches(2.65), Inches(5.6), Inches(1.9), "", fill=ACCENT_BG, line_color=PRIMARY, corner=True)
+add_box(s, Inches(0.7), Inches(2.65), Inches(5.6), Inches(2.3), "", fill=ACCENT_BG, line_color=PRIMARY, corner=True)
 add_badge(s, Inches(0.95), Inches(2.85), "PHASE 1", fill=PRIMARY, w=Inches(1.1))
 add_textbox(s, Inches(0.95), Inches(3.3), Inches(5.1), Inches(0.4), "Chunking structurel", size=15, color=TEXT, bold=True)
-add_bullets(s, Inches(0.95), Inches(3.75), Inches(5.1), Inches(0.8), [
+add_bullets(s, Inches(0.95), Inches(3.75), Inches(5.1), Inches(1.2), [
     "Decoupage par section Markdown (pas taille fixe aveugle)",
     "Avec recouvrement entre chunks voisins (15% par defaut)",
 ], size=12, space_after=6)
 
-add_box(s, Inches(6.6), Inches(2.65), Inches(5.6), Inches(1.9), "", fill=ACCENT_BG, line_color=PRIMARY, corner=True)
+add_box(s, Inches(6.6), Inches(2.65), Inches(5.6), Inches(2.3), "", fill=ACCENT_BG, line_color=PRIMARY, corner=True)
 add_badge(s, Inches(6.85), Inches(2.85), "PHASE 2", fill=PRIMARY, w=Inches(1.1))
 add_textbox(s, Inches(6.85), Inches(3.3), Inches(5.1), Inches(0.4), "Embedding (768d)", size=15, color=TEXT, bold=True)
-add_bullets(s, Inches(6.85), Inches(3.75), Inches(5.1), Inches(0.8), [
+add_bullets(s, Inches(6.85), Inches(3.75), Inches(5.1), Inches(1.2), [
     "Modele multilingue, ONNX Runtime .NET pur (pas Ollama)",
     "Mean-pooling + normalisation L2 -> 1 vecteur par chunk",
-], size=12, space_after=6)
+    "Tokenizer : offset SentencePiece->Hugging Face corrige (bug trouve empiriquement)",
+], size=11.5, space_after=5)
 
-add_textbox(s, Inches(0.7), Inches(4.95), Inches(11.9), Inches(0.4), "Code reel — src/Agirh.Infrastructure/Rag/MarkdownChunker.cs, lignes 18-28", size=12, color=PRIMARY, bold=True)
+add_textbox(s, Inches(0.7), Inches(5.35), Inches(11.9), Inches(0.4), "Code reel — src/Agirh.Infrastructure/Rag/MarkdownChunker.cs, lignes 18-28", size=12, color=PRIMARY, bold=True)
 code = ("public MarkdownChunker(Func<string,int> countTokens,\n"
         "    int maxTokensPerChunk = 400, double overlapRatio = 0.15)")
-box = add_box(s, Inches(0.7), Inches(5.4), Inches(11.9), Inches(0.95), code, fill=RGBColor(0x0B,0x0B,0x0E),
+box = add_box(s, Inches(0.7), Inches(5.8), Inches(11.9), Inches(0.95), code, fill=RGBColor(0x0B,0x0B,0x0E),
               text_color=RGBColor(0xCB,0xE5,0xCB), size=13, align=PP_ALIGN.LEFT, bold=False, corner=True, line_color=BORDER)
 for p in box.text_frame.paragraphs:
     for r in p.runs:
@@ -542,7 +543,8 @@ add_bullets(s, Inches(0.7), Inches(3.95), Inches(11.9), Inches(2.9), [
     "Anti-hallucination code (pas seulement prompt) : verifie par des tests unitaires dedies",
     ("Limite du routeur documentee comme un compromis assume, pas cachee — mode de defaillance \"gracieusement faux\"", True),
     "Piste testee et abandonnee : plus d'exemples few-shot dans le prompt -> aucun effet mesurable",
-], size=14, space_after=14)
+    "Base de dev peuplee avec un scenario realiste (5 poles, 25 collaborateurs, 2 templates reels) — RBAC et portee departement verifies en HTTP reel sur chaque creation",
+], size=13, space_after=11)
 add_footer(s, 17, SECTION_NAMES[4])
 
 # ============================================================ SLIDE 18 — DEPLOIEMENT
@@ -574,6 +576,7 @@ add_bullets(s, Inches(0.7), Inches(2.5), Inches(5.6), Inches(4.0), [
     "Orchestration + garde-fous anti-hallucination",
     "Frontend temps reel (chat + notifications SSE)",
     "Deploiement Docker Compose complet",
+    "Base de dev peuplee et verifiee (scenario realiste, RBAC teste en conditions reelles)",
 ], size=13.5, space_after=12, bullet_color=GOOD)
 add_textbox(s, Inches(6.9), Inches(2.0), Inches(5.6), Inches(0.4), "Prochaines etapes", size=16, color=PRIMARY, bold=True)
 add_bullets(s, Inches(6.9), Inches(2.5), Inches(5.6), Inches(4.0), [
