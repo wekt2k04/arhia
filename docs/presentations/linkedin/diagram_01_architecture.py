@@ -62,5 +62,6 @@ if __name__ == "__main__":
         ],
         hold_frames=30,
         transition_frames=36,
+        loop=True,
     )
     print(f"OK -> {OUT}")

@@ -54,6 +54,6 @@ if __name__ == "__main__":
     r.render_video(
         OUT,
         segments=[(stack_state, draw_title_only), (final_state, draw_title_and_arrows)],
-        hold_frames=30, transition_frames=36,
+        hold_frames=30, transition_frames=36, loop=True,
     )
     print(f"OK -> {OUT}")
