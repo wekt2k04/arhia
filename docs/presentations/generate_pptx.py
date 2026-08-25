@@ -308,22 +308,16 @@ section_divider(7, 2, "Architecture technique", "Hexagonale, stack, securite")
 s = add_slide()
 add_kicker(s, "Partie 2 — Architecture")
 add_title(s, "Architecture hexagonale : ports & adaptateurs")
-layers = [
-    ("Agirh.Domain", "Entites pures — zero dependance externe"),
-    ("Agirh.Core", "Ports (interfaces) + use cases + RBAC"),
-    ("Agirh.Infrastructure", "Un adaptateur concret par port (EF Core, Qdrant, ONNX, Ollama, SSE)"),
-    ("Agirh.Api", "Controllers + composition root (Program.cs)"),
-]
-y = Inches(1.95)
-lw = Inches(9.4)
-for i, (name, desc) in enumerate(layers):
-    l = Inches(0.9) + Emu(int(i * Inches(0.35)))
-    w = lw - Emu(int(i * Inches(0.7)))
-    add_box(s, l, y, w, Inches(0.72), f"{name}   —   {desc}", fill=ACCENT_BG if i % 2 == 0 else BG_ALT,
-            line_color=PRIMARY, size=13, align=PP_ALIGN.LEFT, corner=True)
-    if i < len(layers) - 1:
-        add_arrow_down(s, l + Inches(1.3), y + Inches(0.72), length=Inches(0.2))
-    y += Inches(0.92)
+# Diagramme statique remplace par la video animee diagram_01_architecture (pulse voyageant
+# Domain->Core->Infrastructure->Api) -- embed_videos.py la reconnait via le nom de cette forme.
+# Carre (toutes les videos linkedin/ sont rendues en 1:1, frame_render.SIZE) : AddMediaObject2
+# preserve l'aspect ratio natif de la video plutot que d'etirer vers des dimensions non
+# carrees -- un slot rectangulaire large laisserait la video inseree minuscule et decalee.
+slot_side = Inches(3.6)
+slot_x = Inches(0.9) + (Inches(11.3) - slot_side) // 2
+slot = add_box(s, slot_x, Inches(1.95), slot_side, slot_side, "▶  VIDEO : architecture hexagonale",
+               fill=BG_ALT, line_color=BORDER, size=13, align=PP_ALIGN.CENTER, corner=True)
+slot.name = "VIDEO_SLOT:diagram_01_architecture"
 add_bullets(s, Inches(0.9), Inches(5.7), Inches(11.3), Inches(1.5), [
     "Le metier (Domain/Core) ne depend jamais de la technique — jamais l'inverse",
     "Domain ne sait meme pas qu'une base de donnees existe",
@@ -403,29 +397,22 @@ add_footer(s, 10, SECTION_NAMES[2])
 # ============================================================ SLIDE 11 — SEPARATEUR PARTIE 3
 section_divider(11, 3, "Coeur IA — RAG & orchestration", "Le sous-systeme le plus dense du projet : 4 phases + 2 modeles + garde-fous")
 
-# ============================================================ SLIDE 12 — RAG 1/2
+# ============================================================ SLIDE 12 — RAG VUE D'ENSEMBLE
 s = add_slide()
 add_kicker(s, "Partie 3 — Coeur IA")
-add_title(s, "Pipeline RAG (1/2) — Chunking & Embedding")
+add_title(s, "Pipeline RAG — les 4 phases")
 add_textbox(s, Inches(0.7), Inches(1.95), Inches(11.9), Inches(0.5),
             "RAG : au lieu de laisser le LLM repondre de memoire (donc halluciner), on cherche les vrais passages avant de generer.",
             size=13.5, color=MUTED)
-add_box(s, Inches(0.7), Inches(2.65), Inches(5.6), Inches(2.3), "", fill=ACCENT_BG, line_color=PRIMARY, corner=True)
-add_badge(s, Inches(0.95), Inches(2.85), "PHASE 1", fill=PRIMARY, w=Inches(1.1))
-add_textbox(s, Inches(0.95), Inches(3.3), Inches(5.1), Inches(0.4), "Chunking structurel", size=15, color=TEXT, bold=True)
-add_bullets(s, Inches(0.95), Inches(3.75), Inches(5.1), Inches(1.2), [
-    "Decoupage par section Markdown (pas taille fixe aveugle)",
-    "Avec recouvrement entre chunks voisins (15% par defaut)",
-], size=12, space_after=6)
-
-add_box(s, Inches(6.6), Inches(2.65), Inches(5.6), Inches(2.3), "", fill=ACCENT_BG, line_color=PRIMARY, corner=True)
-add_badge(s, Inches(6.85), Inches(2.85), "PHASE 2", fill=PRIMARY, w=Inches(1.1))
-add_textbox(s, Inches(6.85), Inches(3.3), Inches(5.1), Inches(0.4), "Embedding (768d)", size=15, color=TEXT, bold=True)
-add_bullets(s, Inches(6.85), Inches(3.75), Inches(5.1), Inches(1.2), [
-    "Modele multilingue, ONNX Runtime .NET pur (pas Ollama)",
-    "Mean-pooling + normalisation L2 -> 1 vecteur par chunk",
-    "Tokenizer : offset SentencePiece->Hugging Face corrige (bug trouve empiriquement)",
-], size=11.5, space_after=5)
+# Diagramme statique (Chunking/Embedding/Recherche/Reranking) remplace par la video animee
+# diagram_02_rag_pipeline (pulse traversant les 4 phases) -- couvre ce que les 2 anciennes
+# slides "1/2"+"2/2" montraient separement en boites statiques.
+# Carre (voir meme remarque qu'a la slide 8) : contraint par la hauteur disponible ici.
+slot_side = Inches(2.5)
+slot_x = Inches(0.7) + (Inches(11.9) - slot_side) // 2
+slot = add_box(s, slot_x, Inches(2.65), slot_side, slot_side, "▶  VIDEO : pipeline RAG (4 phases)",
+               fill=BG_ALT, line_color=BORDER, size=13, align=PP_ALIGN.CENTER, corner=True)
+slot.name = "VIDEO_SLOT:diagram_02_rag_pipeline"
 
 add_textbox(s, Inches(0.7), Inches(5.35), Inches(11.9), Inches(0.4), "Code reel — src/Agirh.Infrastructure/Rag/MarkdownChunker.cs, lignes 18-28", size=12, color=PRIMARY, bold=True)
 code = ("public MarkdownChunker(Func<string,int> countTokens,\n"
@@ -437,33 +424,26 @@ for p in box.text_frame.paragraphs:
         r.font.name = "Consolas"
 add_footer(s, 12, SECTION_NAMES[3])
 
-# ============================================================ SLIDE 13 — RAG 2/2
+# ============================================================ SLIDE 13 — RAG : POURQUOI 2 VITESSES
 s = add_slide()
 add_kicker(s, "Partie 3 — Coeur IA")
-add_title(s, "Pipeline RAG (2/2) — Recherche & Reranking")
-add_box(s, Inches(0.7), Inches(2.0), Inches(5.6), Inches(1.75), "", fill=ACCENT_BG, line_color=PRIMARY, corner=True)
-add_badge(s, Inches(0.95), Inches(2.2), "PHASE 3", fill=PRIMARY, w=Inches(1.1))
-add_textbox(s, Inches(0.95), Inches(2.65), Inches(5.1), Inches(0.4), "Storage & recherche (Qdrant)", size=15, color=TEXT, bold=True)
-add_bullets(s, Inches(0.95), Inches(3.08), Inches(5.1), Inches(0.6), [
-    "Index ANN (HNSW), similarite cosinus",
-], size=12, space_after=6)
+add_title(s, "Pipeline RAG — pourquoi deux vitesses (et un piege reel)")
+# Les 2 boites "Phase 3/Phase 4" (redondantes avec la video de la slide 12) retirees ; le
+# contenu propre a cette slide (comparaison + piege reel) remonte et s'agrandit pour occuper
+# l'espace libere plutot que de laisser la moitie basse de la slide vide.
+add_box(s, Inches(0.7), Inches(2.3), Inches(11.9), Inches(1.3), "Bi-encodeur (embedding) : rapide, separe, approximatif  →  Cross-encodeur (reranking) : lent, ensemble, precis",
+        fill=BG_ALT, line_color=BORDER, size=18, corner=True, bold=False)
+add_textbox(s, Inches(0.7), Inches(3.95), Inches(11.9), Inches(0.7),
+            "Architecture a 2 etages : le bi-encodeur reduit vite tout le corpus a quelques candidats, "
+            "le cross-encodeur les reordonne finement -- lent mais precis, applique seulement aux survivants.",
+            size=16, color=MUTED, line_spacing=1.2)
 
-add_box(s, Inches(6.6), Inches(2.0), Inches(5.6), Inches(1.75), "", fill=ACCENT_BG, line_color=PRIMARY, corner=True)
-add_badge(s, Inches(6.85), Inches(2.2), "PHASE 4", fill=PRIMARY, w=Inches(1.1))
-add_textbox(s, Inches(6.85), Inches(2.65), Inches(5.1), Inches(0.4), "Reranking (cross-encodeur)", size=15, color=TEXT, bold=True)
-add_bullets(s, Inches(6.85), Inches(3.08), Inches(5.1), Inches(0.6), [
-    "Requete + document lus ENSEMBLE -> score precis",
-], size=12, space_after=6)
-
-add_box(s, Inches(0.7), Inches(4.05), Inches(11.9), Inches(0.85), "Bi-encodeur (embedding) : rapide, separe, approximatif  →  Cross-encodeur (reranking) : lent, ensemble, precis",
-        fill=BG_ALT, line_color=BORDER, size=13.5, corner=True, bold=False)
-
-add_textbox(s, Inches(0.7), Inches(5.15), Inches(11.9), Inches(0.4), "Piege reel retenu — src/Agirh.Infrastructure/Rag/OnnxRerankerAdapter.cs, ligne 62", size=12, color=WARN, bold=True)
-add_textbox(s, Inches(0.7), Inches(5.6), Inches(11.9), Inches(1.15),
+add_textbox(s, Inches(0.7), Inches(5.0), Inches(11.9), Inches(0.4), "Piege reel retenu — src/Agirh.Infrastructure/Rag/OnnxRerankerAdapter.cs, ligne 62", size=13.5, color=WARN, bold=True)
+add_textbox(s, Inches(0.7), Inches(5.5), Inches(11.9), Inches(1.4),
             "Un score de reranking eleve (jusqu'a 0.78 observe) ne garantit PAS que le chunk contient la reponse — "
             "seulement qu'il est thematiquement proche. Le score mesure une proximite, pas une verite : la decision finale "
             "\"source ou non\" relit le texte reellement genere, jamais le score seul.",
-            size=13, color=MUTED, line_spacing=1.15)
+            size=15, color=MUTED, line_spacing=1.2)
 add_footer(s, 13, SECTION_NAMES[3])
 
 # ============================================================ SLIDE 14 — ORCHESTRATION

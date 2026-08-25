@@ -44,7 +44,12 @@ from pptx import Presentation
 VIDEO_NOTE_RE = re.compile(r"\[\[video:([\w-]+)\]\]")
 SLOT_PREFIX = "VIDEO_SLOT:"
 
-EMU_PER_PX_AT_96DPI = 9525  # conversion standard OOXML : 1 px (96 dpi) = 9525 EMU
+# Shapes.AddMediaObject2(Left/Top/Width/Height) attend des POINTS (comme Shape.Left/.Top/
+# .Width/.Height eux-memes releus ensuite), PAS des pixels a 96 dpi -- confirme empiriquement
+# (position/taille observees apres insertion = exactement les valeurs "px" calculees avec
+# l'ancienne constante 9525, reinterpretees comme des points : le bug etait bien la, pas
+# ailleurs). 1 point = 1/72 pouce = 12700 EMU.
+EMU_PER_POINT = 12700
 
 
 def find_targets(pptx_path, videos_dir):
@@ -109,7 +114,12 @@ def embed_via_com(pptx_path, output_path, targets):
     app.Visible = True  # PlaySettings/AddMediaObject2 se sont montres peu fiables invisibles
     pres = None
     try:
-        pres = app.Presentations.Open(pptx_path, True, False, False)  # ReadOnly=True : on sauvegarde ailleurs
+        # ReadOnly=False : necessaire meme si output_path == pptx_path n'est pas le cas le plus
+        # frequent -- PowerPoint refuse un SaveAs vers le MEME nom qu'un fichier ouvert ReadOnly
+        # ("must be saved with a different name"), rencontre en pratique en ecrasant le pptx de
+        # soutenance sur place. Sans consequence pour le cas output != pptx_path (fichier source
+        # jamais modifie sur disque avant le SaveAs explicite vers output_path de toute facon).
+        pres = app.Presentations.Open(pptx_path, False, False, False)
         for t in targets:
             slide = pres.Slides.Item(t["slide_index_1based"])
 
@@ -119,13 +129,13 @@ def embed_via_com(pptx_path, output_path, targets):
                         shape.Delete()
                         break
 
-            left_px = t["left"] / EMU_PER_PX_AT_96DPI
-            top_px = t["top"] / EMU_PER_PX_AT_96DPI
-            width_px = t["width"] / EMU_PER_PX_AT_96DPI
-            height_px = t["height"] / EMU_PER_PX_AT_96DPI
+            left_pt = t["left"] / EMU_PER_POINT
+            top_pt = t["top"] / EMU_PER_POINT
+            width_pt = t["width"] / EMU_PER_POINT
+            height_pt = t["height"] / EMU_PER_POINT
 
             shape = slide.Shapes.AddMediaObject2(
-                t["video_path"], False, True, left_px, top_px, width_px, height_px)
+                t["video_path"], False, True, left_pt, top_pt, width_pt, height_pt)
             shape.AnimationSettings.PlaySettings.PlayOnEntry = True
             shape.AnimationSettings.PlaySettings.LoopUntilStopped = True
             shape.AnimationSettings.PlaySettings.HideWhileNotPlaying = False
