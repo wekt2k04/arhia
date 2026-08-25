@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
-"""Diagramme anime #4/5 : circuit de validation des templates."""
+"""
+Diagramme anime #4/5 : circuit de validation des templates.
+Le pulse suit Draft -> InReview puis SE SCINDE en 2 (Approved et Rejected
+s'illuminent simultanement) -- represente honnetement qu'InReview est un
+point de decision a 2 issues possibles, pas un choix arbitraire entre elles.
+"""
 import os
 import frame_render as r
 
 OUT = os.path.join(os.path.dirname(__file__), "diagram_04_validation_circuit.mp4")
 
-stack_state = [
-    {"box": {"x": 380 + i * 3, "y": 480 + i * 3, "w": 320, "h": 100}, "text": t,
-     "text_size": 18, "sub_size": 13}
-    for i, t in enumerate(["Draft", "InReview", "Approved", "Rejected"])
-]
-
-final_state = [
+boxes = [
     {"box": {"x": 90, "y": 260, "w": 900, "h": 150}, "text": "DRAFT\nRedacteur cree le template",
      "text_size": 26, "sub_size": 17},
     {"box": {"x": 90, "y": 470, "w": 900, "h": 150}, "text": "IN REVIEW\nVerificateur != redacteur",
@@ -22,27 +21,23 @@ final_state = [
      "text_size": 22, "sub_size": 15, "fill": r.WARN_BG, "outline": r.WARN},
 ]
 
+arrows = [
+    ((540, 410), (540, 464)),
+    ((460, 620), (300, 694)),
+    ((620, 620), (780, 694)),
+]
 
-def draw_title_only(draw, t):
-    r.draw_centered_text(draw, r.SIZE / 2, 90, "CIRCUIT DE VALIDATION", 32, color=r.PRIMARY)
+stops = [[0], [1], [2, 3]]
 
 
-def draw_title_and_arrows(draw, t):
-    r.draw_centered_text(draw, r.SIZE / 2, 90, "CIRCUIT DE VALIDATION", 32, color=r.PRIMARY)
-    if t > 0.7:
-        r.draw_arrow(draw, (540, 410), (540, 464))
-        r.draw_arrow(draw, (460, 620), (300, 694))
-        r.draw_arrow(draw, (620, 620), (780, 694))
-    if t >= 0.999:
-        r.draw_centered_text(draw, r.SIZE / 2, 940 + 40,
-                              "3 identites distinctes : redacteur, verificateur, approbateur", 18,
-                              bold=False, color=r.MUTED)
+def draw_static(canvas):
+    r.draw_centered_text(canvas, r.SIZE / 2, 90, "CIRCUIT DE VALIDATION", 32, color=r.PRIMARY)
+    r.draw_centered_text(canvas, r.SIZE / 2, 980,
+                          "3 identites distinctes : redacteur, verificateur, approbateur", 18,
+                          bold=False, color=r.MUTED)
 
 
 if __name__ == "__main__":
-    r.render_video(
-        OUT,
-        segments=[(stack_state, draw_title_only), (final_state, draw_title_and_arrows)],
-        hold_frames=30, transition_frames=36, loop=True,
-    )
+    r.render_pulse_loop(OUT, boxes, arrows, stops, draw_static_fn=draw_static,
+                         hold_frames=22, travel_frames=16, fade_frames=12)
     print(f"OK -> {OUT}")
