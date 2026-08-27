@@ -80,7 +80,136 @@ tests/
 
 **Statut : structure cible, pas encore créée.** Vérifier avec `Glob` avant de supposer qu'un de ces dossiers existe.
 
-## 3. Flux — création d'un onboarding et checklist
+## 3. Modèle métier — entités et relations
+
+Le diagramme ci-dessous décrit le modèle réellement porté par `Agirh.Domain/Entities`. Les
+cardinalités `1`/`0..1`/`*` indiquent respectivement une relation obligatoire, optionnelle ou
+multiple. `TemplateSection` et `TemplateItem` appartiennent à un `WorkflowTemplate` ;
+`ChecklistItemStatus` appartient à un `WorkflowInstance` et constitue la copie opérationnelle
+d'un item de template au moment de l'instanciation.
+
+```mermaid
+classDiagram
+  direction LR
+
+  class Department {
+    +Guid Id
+    +string Name
+    +Rename(newName)
+  }
+
+  class UserAccount {
+    +Guid Id
+    +string Email
+    +RoleType Role
+    +Guid? DepartmentId
+    +bool IsActive
+    +ElevateRole(newRole, newDepartmentId)
+    +Deactivate()
+    +Reactivate()
+  }
+
+  class Employee {
+    +Guid Id
+    +EmployeeNumber EmployeeNumber
+    +string LastName
+    +string FirstName
+    +string JobTitle
+    +Guid DepartmentId
+    +ContractType ContractType
+    +DateTime StartDate
+    +DateTime? DepartureDate
+    +Guid? UserAccountId
+    +RecordDeparture(departureDate)
+    +ChangeDepartment(newDepartmentId)
+    +LinkUserAccount(userAccountId)
+  }
+
+  class WorkflowTemplate {
+    +Guid Id
+    +WorkflowType Type
+    +string Version
+    +TemplateStatus Status
+    +Guid AuthorId
+    +Guid? VerifierId
+    +Guid? ApproverId
+    +DateTime CreatedAt
+    +Submit()
+    +Verify(verifierId)
+    +Approve(approverId)
+    +Reject(actorId, reason)
+    +ResolveApplicableItems(contractType)
+  }
+
+  class TemplateSection {
+    +Guid Id
+    +string Name
+    +int Order
+  }
+
+  class TemplateItem {
+    +Guid Id
+    +string Label
+    +int Order
+    +IReadOnlyCollection~ContractType~ ApplicableContractTypes
+    +IsApplicableFor(contractType) bool
+  }
+
+  class WorkflowInstance {
+    +Guid Id
+    +Guid EmployeeId
+    +Guid TemplateId
+    +string TemplateVersion
+    +WorkflowType Type
+    +WorkflowStatus Status
+    +DateTime CreatedAt
+    +DateTime? ClosureDate
+    +Check(itemId, status, checkedBy, checkedDate, comment)
+    +Close(closureDate)
+    +Archive()
+    +Cancel()
+    +Suspend()
+    +Resume()
+  }
+
+  class ChecklistItemStatus {
+    +Guid Id
+    +Guid TemplateItemId
+    +string Label
+    +ItemStatus Status
+    +string? Comment
+    +Guid? CheckedBy
+    +DateTime? CheckedDate
+    +Check(status, checkedBy, checkedDate, comment)
+  }
+
+  class EmployeeNumber {
+    +string Value
+  }
+
+  Department "1" --> "0..*" Employee : appartient à
+  Department "1" --> "0..*" UserAccount : rattache les RH
+  UserAccount "0..1" --> "0..1" Employee : compte lié
+  Employee "1" --> "0..*" WorkflowInstance : possède
+  WorkflowTemplate "1" *-- "1..*" TemplateSection : organise
+  TemplateSection "1" *-- "1..*" TemplateItem : contient
+  WorkflowTemplate "1" --> "0..*" WorkflowInstance : modèle de
+  WorkflowInstance "1" *-- "1..*" ChecklistItemStatus : contient
+  TemplateItem "1" --> "0..*" ChecklistItemStatus : origine logique
+  Employee "1" *-- "1" EmployeeNumber : identifiant métier
+
+  note for WorkflowTemplate "Seul un template Approved peut être instancié."
+  note for TemplateItem "Aucune restriction = applicable à tous les contrats."
+  note for WorkflowInstance "Dossier concret : Onboarding ou Offboarding."
+  note for ChecklistItemStatus "Etat initial : Pending ; puis Done ou Failed."
+```
+
+Le lien `TemplateItem → ChecklistItemStatus` est une traçabilité logique via `TemplateItemId`.
+En revanche, dans le mapping EF Core actuel, les items de checklist sont possédés par
+`WorkflowInstance` et cette référence n'est pas configurée comme une clé étrangère vers
+`TemplateItem`.
+
+## 4. Flux — création d'un onboarding et checklist
 
 ```mermaid
 sequenceDiagram
@@ -98,7 +227,7 @@ sequenceDiagram
     DB-->>RH: Checklist instanciée (statut InProgress)
 ```
 
-## 4. Flux — circuit de validation d'un template
+## 5. Flux — circuit de validation d'un template
 
 ```mermaid
 sequenceDiagram
@@ -115,7 +244,7 @@ sequenceDiagram
     Note over DB: Seul un template Approved peut instancier un WorkflowInstance (LOGIQUE_METIER.md §6)
 ```
 
-## 5. Flux — question conversationnelle (RAG + Router/Generator)
+## 6. Flux — question conversationnelle (RAG + Router/Generator)
 
 ```mermaid
 sequenceDiagram
@@ -140,7 +269,7 @@ sequenceDiagram
     Note over Gen: Si aucun chunk pertinent retourné → "je n'ai pas trouvé cette information" (anti-hallucination, LOGIQUE_METIER.md §9)
 ```
 
-## 6. RBAC — schéma de portée
+## 7. RBAC — schéma de portée
 
 ```mermaid
 graph LR
@@ -155,7 +284,7 @@ graph LR
 
 Un RH qui cible un `WorkflowInstance` hors de son pôle → refus (`DepartmentScopeGuard`), avant même la vérification RBAC de rôle. Voir `.claude/agents/secops-guardian.md`.
 
-## 7. Ouvert / en attente
+## 8. Ouvert / en attente
 
 - Nommage exact des migrations EF Core et des collections Qdrant — à fixer à l'implémentation.
 - Découpage précis des Controllers si un module grossit (ex. séparer `TemplateController` en lecture/écriture) — non bloquant pour démarrer.
