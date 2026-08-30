@@ -5,7 +5,7 @@
 
 ## 1. À qui s'adresse ce guide
 
-Ce guide s'adresse au RH référent d'un pôle dans AGIRH. Dans l'organisation actuelle, il n'existe pas de rôle « Manager » distinct : **le RH du pôle assume lui-même le rôle de point de contact managérial** pour les alertes et le suivi des collaborateurs de son pôle. Ce document explique concrètement comment exercer cette responsabilité au quotidien dans l'application.
+Ce guide s'adresse au RH référent d'un pôle dans arhia. Dans l'organisation actuelle, il n'existe pas de rôle « Manager » distinct : **le RH du pôle assume lui-même le rôle de point de contact managérial** pour les alertes et le suivi des collaborateurs de son pôle. Ce document explique concrètement comment exercer cette responsabilité au quotidien dans l'application.
 
 ## 2. Votre périmètre de responsabilité
 
@@ -15,7 +15,7 @@ Au sein de votre pôle, si vous êtes identifié comme référent IT, vous trait
 
 ## 3. La barre de notifications
 
-Après connexion à AGIRH, vous disposez d'une barre de notifications qui vous informe en temps réel des événements relatifs à votre pôle : nouvelle arrivée à préparer, item de checklist resté trop longtemps en attente, échéance de départ approchant, template de checklist en attente de votre validation si vous êtes également Admin/Qualité.
+Après connexion à arhia, vous disposez d'une barre de notifications qui vous informe en temps réel des événements relatifs à votre pôle : nouvelle arrivée à préparer, item de checklist resté trop longtemps en attente, échéance de départ approchant, template de checklist en attente de votre validation si vous êtes également Admin/Qualité.
 
 Chaque notification vous permet de répondre directement ou de déclencher l'action correspondante, sans devoir naviguer manuellement jusqu'au dossier concerné.
 
@@ -27,7 +27,7 @@ Vous ne pouvez cocher un item que pour un collaborateur de votre pôle. Une fois
 
 ## 5. L'agent conversationnel comme assistant
 
-L'agent conversationnel intégré à AGIRH peut répondre à vos questions sur les politiques et procédures internes (à partir de la base documentaire) ou vous indiquer l'état d'un dossier dont vous avez la responsabilité. Il reste **strictement informatif** : il ne coche jamais un item ni ne déclenche d'action à votre place. Toute action reste de votre responsabilité, exécutée explicitement par vous dans l'interface.
+L'agent conversationnel intégré à arhia peut répondre à vos questions sur les politiques et procédures internes (à partir de la base documentaire) ou vous indiquer l'état d'un dossier dont vous avez la responsabilité. Il reste **strictement informatif** : il ne coche jamais un item ni ne déclenche d'action à votre place. Toute action reste de votre responsabilité, exécutée explicitement par vous dans l'interface.
 
 ## 6. Cas particuliers à signaler
 

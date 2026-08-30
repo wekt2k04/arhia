@@ -1,4 +1,4 @@
-# Architecture — AGIRH V8
+# Architecture — arhia V8
 
 *Document de cadrage suite à `LOGIQUE_METIER.md` et `STACK_TECHNIQUE.md`. Traduit les décisions produit/stack en structure de code concrète (couches, dossiers, ports) et en diagrammes des flux principaux. Document vivant — à ajuster dès que l'implémentation révèle un écart. Sert de référence à `hexagonal-architect` (`.claude/agents/`).*
 
@@ -8,10 +8,10 @@ Même règle de flèche que V7 (`.claude/agents/hexagonal-architect.md`) : dépe
 
 ```mermaid
 graph TB
-    Domain["Agirh.Domain<br/>(pur — zéro NuGet externe)"]
-    Core["Agirh.Core<br/>(ports, RbacMatrix, use cases)"]
-    Infra["Agirh.Infrastructure<br/>(EF Core, Qdrant, ONNX, Ollama, SSE)"]
-    Api["Agirh.Api<br/>(composition root, Controllers)"]
+    Domain["Arhia.Domain<br/>(pur — zéro NuGet externe)"]
+    Core["Arhia.Core<br/>(ports, RbacMatrix, use cases)"]
+    Infra["Arhia.Infrastructure<br/>(EF Core, Qdrant, ONNX, Ollama, SSE)"]
+    Api["Arhia.Api<br/>(composition root, Controllers)"]
     Front["frontend/ (Next.js, BFF)"]
 
     Core --> Domain
@@ -35,7 +35,7 @@ graph TB
 
 ```
 src/
-  Agirh.Domain/
+  Arhia.Domain/
     Entities/          Employee, Department, WorkflowTemplate, WorkflowInstance,
                         ChecklistItem, ItemStatus, Notification, UserAccount
     ValueObjects/       EmployeeNumber, ContractType, NomPole (readonly record struct)
@@ -43,7 +43,7 @@ src/
                         (InProgress|Closed|Archived|Cancelled|Suspended), ItemStatus (Done|Failed|Pending),
                         TemplateStatus (Draft|InReview|Approved|Rejected)
 
-  Agirh.Core/
+  Arhia.Core/
     Ports/              IWorkflowInstanceRepository, ITemplateRepository, IEmployeeRepository,
                         IDepartmentRepository, IVectorSearchPort, IEmbeddingPort, IRerankerPort,
                         ILlmRouterPort, ILlmGeneratorPort, INotificationPort, IAuditTrailPort
@@ -52,15 +52,15 @@ src/
                         ProposeTemplate (Rédacteur), ValiderTemplate (Vérificateur/Approbateur),
                         ArchiveCase, ResoudreReferentielItems (Poste×Pôle×Contrat)
 
-  Agirh.Infrastructure/
-    Persistence/        AgirhDbContext (SQL Server, EF Core), implémentations des repositories
+  Arhia.Infrastructure/
+    Persistence/        ArhiaDbContext (SQL Server, EF Core), implémentations des repositories
     Rag/                MarkdownChunker (structurel + recouvrement), OnnxEmbeddingAdapter,
                         QdrantVectorSearchAdapter, OnnxRerankerAdapter
     Llm/                OllamaRouterAdapter, OllamaGeneratorAdapter
     Realtime/           SseNotificationBroadcaster
     Logging/            TechnicalLogAdapter, AuditTrailAdapter (deux flux séparés, STACK_TECHNIQUE.md §6)
 
-  Agirh.Api/
+  Arhia.Api/
     Controllers/        AuthController, EmployeeController, WorkflowController,
                         TemplateController, ChatController (SSE), NotificationController (SSE)
     Program.cs           composition root
@@ -72,17 +72,17 @@ frontend/
   lib/api/                BFF (cookie httpOnly, jamais le JWT exposé au client)
 
 rag/corpus/                 corpus source du pipeline RAG (6 documents Markdown, milestone 7/9 CHECKLIST.md) —
-                            lu par l'adaptateur d'ingestion (Agirh.Infrastructure/Rag/), jamais par le code applicatif directement
+                            lu par l'adaptateur d'ingestion (Arhia.Infrastructure/Rag/), jamais par le code applicatif directement
 
 tests/
-  Agirh.Tests/            xUnit + Moq + FluentAssertions, miroir de la structure Core/Infrastructure/Api
+  Arhia.Tests/            xUnit + Moq + FluentAssertions, miroir de la structure Core/Infrastructure/Api
 ```
 
 **Statut : structure cible, pas encore créée.** Vérifier avec `Glob` avant de supposer qu'un de ces dossiers existe.
 
 ## 3. Modèle métier — entités et relations
 
-Le diagramme ci-dessous décrit le modèle réellement porté par `Agirh.Domain/Entities`. Les
+Le diagramme ci-dessous décrit le modèle réellement porté par `Arhia.Domain/Entities`. Les
 cardinalités `1`/`0..1`/`*` indiquent respectivement une relation obligatoire, optionnelle ou
 multiple. `TemplateSection` et `TemplateItem` appartiennent à un `WorkflowTemplate` ;
 `ChecklistItemStatus` appartient à un `WorkflowInstance` et constitue la copie opérationnelle
@@ -288,4 +288,4 @@ Un RH qui cible un `WorkflowInstance` hors de son pôle → refus (`DepartmentSc
 
 - Nommage exact des migrations EF Core et des collections Qdrant — à fixer à l'implémentation.
 - Découpage précis des Controllers si un module grossit (ex. séparer `TemplateController` en lecture/écriture) — non bloquant pour démarrer.
-- Les 3 cas particuliers (LOGIQUE_METIER.md §8 : mutation inter-pôle, annulation/suspension, pôle vacant) n'ont pas encore de use case dédié — à ajouter dans `Agirh.Core/UseCases/` une fois leur comportement validé.
+- Les 3 cas particuliers (LOGIQUE_METIER.md §8 : mutation inter-pôle, annulation/suspension, pôle vacant) n'ont pas encore de use case dédié — à ajouter dans `Arhia.Core/UseCases/` une fois leur comportement validé.

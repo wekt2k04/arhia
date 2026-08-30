@@ -1,18 +1,18 @@
 import { NextRequest } from "next/server";
-import { AGIRH_API_URL } from "@/lib/api/config";
+import { ARHIA_API_URL } from "@/lib/api/config";
 import { obtenirToken } from "@/lib/api/session";
 
 export const dynamic = "force-dynamic";
 
 // Même proxy SSE pur que app/api/chat/ask — voir ce fichier pour le détail. Ici la source
-// est Agirh.Api.NotificationController (SseNotificationBroadcaster, rafraîchi toutes les 10s).
+// est Arhia.Api.NotificationController (SseNotificationBroadcaster, rafraîchi toutes les 10s).
 export async function GET(request: NextRequest) {
   const token = await obtenirToken();
   if (!token) {
     return new Response("Non authentifié.", { status: 401 });
   }
 
-  const reponseApi = await fetch(`${AGIRH_API_URL}/api/notifications/stream`, {
+  const reponseApi = await fetch(`${ARHIA_API_URL}/api/notifications/stream`, {
     headers: { Authorization: `Bearer ${token}` },
     signal: request.signal,
   });

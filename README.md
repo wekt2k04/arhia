@@ -1,4 +1,4 @@
-# AGIRH — Assistant RH agentique
+# arhia — Assistant RH agentique
 
 Agent conversationnel d'onboarding et d'offboarding, avec pipeline RAG (Retrieval-Augmented
 Generation) et orchestration LLM locale. Projet de fin d'études (stage été 2026) : conception
@@ -27,10 +27,10 @@ Architecture hexagonale (ports & adaptateurs) — dépendance à sens unique, ja
 
 ```mermaid
 graph TB
-    Domain["Agirh.Domain<br/>entités pures"]
-    Core["Agirh.Core<br/>ports, use cases, RBAC"]
-    Infra["Agirh.Infrastructure<br/>EF Core, Qdrant, ONNX, Ollama, SSE"]
-    Api["Agirh.Api<br/>Controllers, composition root"]
+    Domain["Arhia.Domain<br/>entités pures"]
+    Core["Arhia.Core<br/>ports, use cases, RBAC"]
+    Infra["Arhia.Infrastructure<br/>EF Core, Qdrant, ONNX, Ollama, SSE"]
+    Api["Arhia.Api<br/>Controllers, composition root"]
     Front["frontend/<br/>Next.js (BFF)"]
 
     Core --> Domain
@@ -95,10 +95,10 @@ trouvera rien. Frontend sur `http://localhost:3000`, Api sur `http://localhost:5
 ### Option B — développement local, sans Docker pour l'Api/le frontend
 
 ```bash
-docker start agirh-sql agirh-qdrant     # ou les créer si absents (SQL Server + Qdrant)
+docker start arhia-sql arhia-qdrant     # ou les créer si absents (SQL Server + Qdrant)
 ollama serve                            # avec phi4-mini:3.8b déjà tiré
 
-cd src/Agirh.Api && dotnet run -c Release      # port 5080
+cd src/Arhia.Api && dotnet run -c Release      # port 5080
 cd frontend && npm run dev                      # port 3000, voir .env.example
 ```
 
@@ -113,20 +113,20 @@ powershell -File .claude\scripts\start-dev.ps1
 ### Build & tests
 
 ```bash
-dotnet build Agirh.sln -c Release
-dotnet test Agirh.sln -c Release
+dotnet build Arhia.sln -c Release
+dotnet test Arhia.sln -c Release
 ```
 
 ## Structure du dépôt
 
 ```
 src/
-  Agirh.Domain/          entités métier pures, zéro dépendance externe
-  Agirh.Core/             ports, use cases, RBAC (RbacMatrix, PoleScopeGuard)
-  Agirh.Infrastructure/   adaptateurs : EF Core, Qdrant, ONNX (RAG), Ollama (LLM), SSE
-  Agirh.Api/              Controllers, composition root (Program.cs)
+  Arhia.Domain/          entités métier pures, zéro dépendance externe
+  Arhia.Core/             ports, use cases, RBAC (RbacMatrix, PoleScopeGuard)
+  Arhia.Infrastructure/   adaptateurs : EF Core, Qdrant, ONNX (RAG), Ollama (LLM), SSE
+  Arhia.Api/              Controllers, composition root (Program.cs)
 frontend/                 Next.js — BFF, chat, notifications, pages d'auth
-tests/Agirh.Tests/        xUnit + Moq + FluentAssertions
+tests/Arhia.Tests/        xUnit + Moq + FluentAssertions
 rag/                       données du pipeline RAG, hors du code compilé
   corpus/                  documents source (Markdown, lus par l'ingestion)
   models/                  poids ONNX (embedding + reranking, ~850 Mo, jamais commités)

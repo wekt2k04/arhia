@@ -1,11 +1,11 @@
-# FAQ — Onboarding et Offboarding dans AGIRH
+# FAQ — Onboarding et Offboarding dans arhia
 
 **Référence document :** SMSI.FAQ.06 · **Version :** V8-T0 · **Date d'application :** 15/08/2026
 **Rédacteur :** Rôle RH (pôle concerné) · **Vérificateur :** Rôle Admin/Qualité · **Approbateur :** Rôle Admin/Qualité
 
 ## 1. Questions générales
 
-### Qui peut créer une fiche collaborateur dans AGIRH ?
+### Qui peut créer une fiche collaborateur dans arhia ?
 Seul un RH peut créer une fiche collaborateur, et uniquement pour un collaborateur rattaché à son propre pôle.
 
 ### Un stagiaire suit-il la même checklist qu'un CDI ?
@@ -17,7 +17,7 @@ Il peut être marqué KO avec un commentaire expliquant pourquoi il ne s'appliqu
 ## 2. Questions sur l'onboarding
 
 ### Quand ma checklist d'onboarding est-elle créée ?
-Dès que le RH de votre pôle crée votre fiche collaborateur dans AGIRH, généralement en amont de votre date d'intégration.
+Dès que le RH de votre pôle crée votre fiche collaborateur dans arhia, généralement en amont de votre date d'intégration.
 
 ### Dois-je faire une formation de sécurité obligatoirement ?
 Oui. La sensibilisation à la sécurité de l'information est obligatoire pour tous les collaborateurs, quel que soit le poste occupé.
@@ -38,8 +38,8 @@ La restitution est actée via la fiche de décharge (section restitution), sign�
 
 ## 4. Questions sur les comptes et les rôles
 
-### Comment mon compte AGIRH est-il créé ?
-Vous pouvez vous inscrire vous-même sur AGIRH ; votre compte est alors créé avec le rôle Collaborateur par défaut. Seul un compte Admin/Qualité peut ensuite élever votre rôle (par exemple vers RH), typiquement pour refléter une évolution de poste.
+### Comment mon compte arhia est-il créé ?
+Vous pouvez vous inscrire vous-même sur arhia ; votre compte est alors créé avec le rôle Collaborateur par défaut. Seul un compte Admin/Qualité peut ensuite élever votre rôle (par exemple vers RH), typiquement pour refléter une évolution de poste.
 
 ### Qui valide les modifications de checklist type (templates) ?
 Les modifications de template suivent un circuit à trois étapes : un RH propose la modification (rôle de Rédacteur), puis deux comptes Admin/Qualité distincts la vérifient et l'approuvent successivement. Un template n'est utilisable pour créer de nouveaux dossiers qu'une fois pleinement approuvé.
@@ -49,7 +49,7 @@ Non, sauf si vous disposez d'un compte Admin/Qualité (portée globale). Un RH n
 
 ## 5. Questions sur l'agent conversationnel
 
-### L'agent AGIRH peut-il cocher un item de ma checklist à ma place ?
+### L'agent arhia peut-il cocher un item de ma checklist à ma place ?
 Non. L'agent conversationnel est strictement informatif — il peut répondre à vos questions et vous indiquer l'état de votre dossier, mais ne déclenche aucune action ni modification.
 
 ### Que fait l'agent s'il ne connaît pas la réponse à ma question ?

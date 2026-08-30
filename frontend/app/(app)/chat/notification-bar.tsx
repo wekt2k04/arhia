@@ -11,7 +11,7 @@ type Notification = {
   referenceId: string | null;
 };
 
-// Agirh.Api.NotificationController pousse un tableau JSON complet (pas d'événement nommé),
+// Arhia.Api.NotificationController pousse un tableau JSON complet (pas d'événement nommé),
 // recalculé toutes les 10s (SseNotificationBroadcaster) — pas d'accumulation côté client,
 // chaque frame remplace la liste précédente.
 export function NotificationBar() {

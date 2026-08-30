@@ -1,4 +1,4 @@
-# Historique du projet AGIRH
+# Historique du projet arhia
 
 ## V7 — ce qui a été construit
 
@@ -38,6 +38,6 @@ Pipeline agentique à 6 étapes : `Profiler → PreFlightValidator → ZeroTrust
 
 ## État du code V7
 
-Le code complet de V7 (avant remise à zéro) reste récupérable via le tag git **`v7-archive`** — ex. `git show v7-archive:src/Agirh.Infrastructure/Services/AgentOrchestratorService.cs` pour retrouver un fichier précis, ou `git checkout v7-archive -- <chemin>` pour le restaurer.
+Le code complet de V7 (avant remise à zéro) reste récupérable via le tag git **`v7-archive`** — ex. `git show v7-archive:src/Arhia.Infrastructure/Services/AgentOrchestratorService.cs` pour retrouver un fichier précis, ou `git checkout v7-archive -- <chemin>` pour le restaurer.
 
 *Document créé le 2026-08-14 lors de la remise à zéro complète du projet.*

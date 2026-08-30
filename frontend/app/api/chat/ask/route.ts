@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { AGIRH_API_URL } from "@/lib/api/config";
+import { ARHIA_API_URL } from "@/lib/api/config";
 import { obtenirToken } from "@/lib/api/session";
 
 // Jamais mis en cache/optimisé statiquement : c'est un flux SSE, par nature différent à chaque
@@ -7,7 +7,7 @@ import { obtenirToken } from "@/lib/api/session";
 export const dynamic = "force-dynamic";
 
 // Proxy BFF pur : relit le cookie de session, ajoute le Bearer token, et relaie tel quel le flux
-// SSE de Agirh.Api.ChatController (event: fragment / event: done) — pas de reparsing des
+// SSE de Arhia.Api.ChatController (event: fragment / event: done) — pas de reparsing des
 // frames ici, response.body est déjà un ReadableStream, on le transmet directement.
 export async function GET(request: NextRequest) {
   const token = await obtenirToken();
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
-  const apiUrl = new URL(`${AGIRH_API_URL}/api/chat/ask`);
+  const apiUrl = new URL(`${ARHIA_API_URL}/api/chat/ask`);
   apiUrl.searchParams.set("question", searchParams.get("question") ?? "");
   const targetEmployeeId = searchParams.get("targetEmployeeId");
   if (targetEmployeeId) {

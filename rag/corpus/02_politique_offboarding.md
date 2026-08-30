@@ -11,7 +11,7 @@ L'offboarding vise à sécuriser la fermeture des accès du collaborateur, organ
 
 ## 2. Déclenchement du processus
 
-Le processus est déclenché manuellement par le RH du pôle auquel appartient le collaborateur, qui saisit dans AGIRH la date effective de départ. Cette saisie instancie la checklist d'offboarding correspondante, à partir du dernier template approuvé pour le type « Offboarding ».
+Le processus est déclenché manuellement par le RH du pôle auquel appartient le collaborateur, qui saisit dans arhia la date effective de départ. Cette saisie instancie la checklist d'offboarding correspondante, à partir du dernier template approuvé pour le type « Offboarding ».
 
 Comme pour l'onboarding, un RH ne peut déclencher ou suivre un offboarding que pour un collaborateur de son propre pôle.
 

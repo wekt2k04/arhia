@@ -5,7 +5,7 @@
 
 ## 1. Objet
 
-Ce document rassemble les extraits du règlement intérieur et de la charte collaborateur directement liés aux processus d'onboarding et d'offboarding gérés dans AGIRH. Il ne se substitue pas au règlement intérieur complet de l'entreprise, disponible auprès du service RH.
+Ce document rassemble les extraits du règlement intérieur et de la charte collaborateur directement liés aux processus d'onboarding et d'offboarding gérés dans arhia. Il ne se substitue pas au règlement intérieur complet de l'entreprise, disponible auprès du service RH.
 
 ## 2. Compte SELFRH
 

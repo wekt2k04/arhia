@@ -31,7 +31,7 @@ La solution de sauvegarde cloud d'entreprise est activée et opérationnelle dè
 
 ### 2.6 Logiciels selon profil de poste
 
-La liste des logiciels à installer dépend du poste occupé et du pôle de rattachement — elle est résolue automatiquement par le référentiel de checklist d'AGIRH selon la combinaison poste/pôle/type de contrat. Le RH spécialisé IT vérifie que l'ensemble des logiciels requis pour le profil concerné sont bien installés avant de cocher cet item.
+La liste des logiciels à installer dépend du poste occupé et du pôle de rattachement — elle est résolue automatiquement par le référentiel de checklist d'arhia selon la combinaison poste/pôle/type de contrat. Le RH spécialisé IT vérifie que l'ensemble des logiciels requis pour le profil concerné sont bien installés avant de cocher cet item.
 
 ## 3. Messagerie — onboarding
 

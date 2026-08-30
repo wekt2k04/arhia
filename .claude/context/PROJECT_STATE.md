@@ -1,4 +1,4 @@
-# État du projet — AGIRH V8
+# État du projet — arhia V8
 
 Le projet a été **entièrement remis à zéro** le 2026-08-14 (V7 → V8, voir `docs/HISTORIQUE.md` à la racine). Le code V7 est supprimé ; les agents custom (`.claude/agents/`) ont été réalignés sur les décisions V8, mais **toute règle qui cite un fichier/chemin V7** doit être traitée comme obsolète tant que ce fichier n'existe pas réellement — vérifier avec `Glob`/`Grep` avant de s'appuyer dessus.
 
@@ -10,7 +10,7 @@ Le projet a été **entièrement remis à zéro** le 2026-08-14 (V7 → V8, voir
 5. **`.claude/HANDOFF/NEXT_SESSION.md`** + **`.claude/HANDOFF/LOG.md`** — protocole de continuité multi-appareils (PC ↔ mobile), décrit dans `CLAUDE.md` à la racine. Une session fraîche (y compris ces agents custom) doit s'y référer pour l'état courant plutôt que de le redécouvrir.
 
 ## Code existant (milestones 3-4, docs/CHECKLIST.md)
-`Agirh.sln` (.NET 8, pas 10 — SDK réellement installé) : `Agirh.Domain`, `Agirh.Core`, `Agirh.Infrastructure` (EF Core + SQL Server, JWT, password hashing), `Agirh.Api` (ASP.NET Core, AuthController), `Agirh.Tests`. **121/121 tests verts**, 0 warning. Migration `InitialCreate` appliquée sur le conteneur Docker réel `agirh-sql` (port 1433, remis à zéro pour V8) ; flux register/login/me vérifié en HTTP réel.
+`Arhia.sln` (.NET 8, pas 10 — SDK réellement installé) : `Arhia.Domain`, `Arhia.Core`, `Arhia.Infrastructure` (EF Core + SQL Server, JWT, password hashing), `Arhia.Api` (ASP.NET Core, AuthController), `Arhia.Tests`. **121/121 tests verts**, 0 warning. Migration `InitialCreate` appliquée sur le conteneur Docker réel `arhia-sql` (port 1433, remis à zéro pour V8) ; flux register/login/me vérifié en HTTP réel.
 
 **Toujours pas fait** : endpoints Collaborateur/Workflow/Template (seul Auth a un Controller), pipeline RAG, orchestration conversationnelle, frontend, `docker-compose.yml` (Qdrant/Ollama pas encore ajoutés). Ne pas supposer qu'un contrôleur au-delà d'Auth existe sans vérifier avec `Glob`.
 

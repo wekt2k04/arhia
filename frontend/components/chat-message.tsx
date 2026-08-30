@@ -25,14 +25,14 @@ export function ChatMessage({ message, estEnCours }: { message: Message; estEnCo
 
       <div
         className={cn(
-          "max-w-[80%] rounded-2xl px-4 py-2 text-sm",
+          "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm",
           estUtilisateur
             ? "rounded-tr-sm bg-primary text-primary-foreground"
             : "rounded-tl-sm border border-border bg-card text-card-foreground",
         )}
       >
         {message.text ? (
-          <div className="prose prose-sm max-w-none break-words prose-p:my-1 prose-p:leading-relaxed dark:prose-invert">
+          <div className="prose prose-sm max-w-none break-words prose-p:my-2 prose-p:leading-relaxed first:prose-p:mt-0 last:prose-p:mb-0 dark:prose-invert">
             <ReactMarkdown>{message.text}</ReactMarkdown>
           </div>
         ) : (

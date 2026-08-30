@@ -1,4 +1,4 @@
-# Stack technique — AGIRH V8
+# Stack technique — arhia V8
 
 *Document de cadrage issu d'une série de questions/réponses avec le porteur du projet, suite à `LOGIQUE_METIER.md`. Sert de référence pour `ARCHITECTURE.md` (hexagonal, arborescence, diagrammes) et pour tout agent custom (`.claude/agents/`). Document vivant — mis à jour à chaque décision technique qui change.*
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AGIRH_API_URL } from "@/lib/api/config";
+import { ARHIA_API_URL } from "@/lib/api/config";
 import { definirSession } from "@/lib/api/session";
 
 // BFF (docs/STACK_TECHNIQUE.md #2) : le navigateur appelle cette route, jamais l'Api .NET
@@ -8,7 +8,7 @@ import { definirSession } from "@/lib/api/session";
 export async function POST(request: NextRequest) {
   const corps = await request.json();
 
-  const reponse = await fetch(`${AGIRH_API_URL}/api/auth/login`, {
+  const reponse = await fetch(`${ARHIA_API_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(corps),

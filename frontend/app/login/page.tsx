@@ -47,7 +47,7 @@ export default function PageConnexion() {
         return;
       }
 
-      router.push("/chat");
+      router.push("/dashboard");
       router.refresh();
     } finally {
       setEnCours(false);
@@ -62,7 +62,7 @@ export default function PageConnexion() {
         <form onSubmit={soumettre} noValidate>
           <CardHeader>
             <CardTitle className="text-xl">Connexion</CardTitle>
-            <CardDescription>Accédez à votre espace AGIRH.</CardDescription>
+            <CardDescription>Accédez à votre espace arhia.</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">

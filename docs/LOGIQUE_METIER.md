@@ -1,4 +1,4 @@
-# Logique métier — AGIRH V8 (Onboarding / Offboarding)
+# Logique métier — arhia V8 (Onboarding / Offboarding)
 
 *Document de cadrage issu d'une série de questions/réponses avec le porteur du projet. Sert de référence pour la conception technique (data model, workflow engine, RBAC, agent IA). Toute section marquée **"à valider"** n'a pas encore de décision explicite — proposition à confirmer avant implémentation.*
 

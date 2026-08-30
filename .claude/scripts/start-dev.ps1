@@ -1,6 +1,6 @@
 <#
 Demarre l'environnement de dev complet en une seule commande : Docker Desktop (si besoin),
-conteneurs agirh-sql/agirh-qdrant (jamais recrees), Ollama natif, Api .NET (profil Maison) et
+conteneurs arhia-sql/arhia-qdrant (jamais recrees), Ollama natif, Api .NET (profil Maison) et
 frontend Next.js - chacun dans sa propre fenetre PowerShell (hot-reload conserve, aucune donnee
 touchee, mode dev identique a un demarrage manuel). Idempotent : ne relance pas ce qui tourne
 deja. A lancer depuis n'importe quel repertoire :
@@ -11,7 +11,7 @@ $ErrorActionPreference = "Stop"
 
 # $PSScriptRoot = .claude/scripts -> 2 niveaux vers le haut pour atteindre la racine du depot
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$apiDir = Join-Path $root "src\Agirh.Api"
+$apiDir = Join-Path $root "src\Arhia.Api"
 $frontendDir = Join-Path $root "frontend"
 
 function Test-DockerReady {
@@ -61,8 +61,8 @@ if (-not $dockerReady) {
     exit 1
 }
 
-Write-Host "Docker pret. Demarrage des conteneurs agirh-sql / agirh-qdrant (jamais recrees)..."
-docker start agirh-sql agirh-qdrant
+Write-Host "Docker pret. Demarrage des conteneurs arhia-sql / arhia-qdrant (jamais recrees)..."
+docker start arhia-sql arhia-qdrant
 
 # --- 2. Ollama (natif, jamais conteneurise) ---
 Write-Host "Verification d'Ollama (port 11434)..."
@@ -70,17 +70,17 @@ if (Test-PortOpen -ComputerName "localhost" -Port 11434) {
     Write-Host "Ollama deja actif, rien a faire."
 } else {
     Write-Host "Ollama non detecte -> lancement dans une nouvelle fenetre..."
-    Start-InNewWindow -Title "AGIRH - Ollama" -Command "ollama serve"
+    Start-InNewWindow -Title "arhia - Ollama" -Command "ollama serve"
     Start-Sleep -Seconds 3
 }
 
 # --- 3. Api (.NET, profil Maison = Ollama local, cf. launchSettings.json) ---
 Write-Host "Lancement de l'Api (dotnet run --launch-profile Maison)..."
-Start-InNewWindow -Title "AGIRH - Api (.NET)" -WorkingDirectory $apiDir -Command "dotnet run --launch-profile Maison"
+Start-InNewWindow -Title "arhia - Api (.NET)" -WorkingDirectory $apiDir -Command "dotnet run --launch-profile Maison"
 
 # --- 4. Frontend (Next.js) ---
 Write-Host "Lancement du frontend (npm run dev)..."
-Start-InNewWindow -Title "AGIRH - Frontend (Next.js)" -WorkingDirectory $frontendDir -Command "npm run dev"
+Start-InNewWindow -Title "arhia - Frontend (Next.js)" -WorkingDirectory $frontendDir -Command "npm run dev"
 
 Write-Host ""
 Write-Host "3 fenetres ouvertes (Ollama si besoin, Api, Frontend) + celle-ci pour Docker."

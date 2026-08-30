@@ -40,7 +40,7 @@ export default function PageDeGarde() {
           </span>
 
           <h1 className="mt-5 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            AGIRH
+            arhia
           </h1>
           <p className="mt-3 text-lg text-muted-foreground">
             Assistant RH pour l&apos;onboarding et l&apos;offboarding des collaborateurs.

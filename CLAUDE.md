@@ -53,4 +53,4 @@ dotnet build Agirh.sln -c Release
 dotnet test Agirh.sln -c Release
 ```
 
-Base de données locale : conteneur Docker `agirh-sql` (SQL Server, port 1433). Démarrer avec `docker start agirh-sql` si arrêté — **ne pas le recréer**, il contient déjà le schéma V8 à jour. Identifiants et clé JWT dans `src/Agirh.Api/appsettings.Development.json` (non commité — voir `appsettings.json.example` pour la structure attendue).
+Base de données locale : conteneur Docker `arhia-sql` (SQL Server, port 1433). Démarrer avec `docker start arhia-sql` si arrêté — **ne pas le recréer**, il contient déjà le schéma V8 à jour. Identifiants et clé JWT dans `src/Agirh.Api/appsettings.Development.json` (non commité — voir `appsettings.json.example` pour la structure attendue).

@@ -56,6 +56,14 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        status: {
+          pending: { DEFAULT: "hsl(var(--status-pending))", foreground: "hsl(var(--status-pending-foreground))" },
+          done: { DEFAULT: "hsl(var(--status-done))", foreground: "hsl(var(--status-done-foreground))" },
+          failed: { DEFAULT: "hsl(var(--status-failed))", foreground: "hsl(var(--status-failed-foreground))" },
+          inprogress: { DEFAULT: "hsl(var(--status-inprogress))", foreground: "hsl(var(--status-inprogress-foreground))" },
+          closed: { DEFAULT: "hsl(var(--status-closed))", foreground: "hsl(var(--status-closed-foreground))" },
+          archived: { DEFAULT: "hsl(var(--status-archived))", foreground: "hsl(var(--status-archived-foreground))" },
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

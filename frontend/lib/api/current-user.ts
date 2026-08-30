@@ -1,4 +1,4 @@
-import { AGIRH_API_URL } from "./config";
+import { ARHIA_API_URL } from "./config";
 import { obtenirToken } from "./session";
 
 export type UtilisateurCourant = {
@@ -14,7 +14,7 @@ export async function obtenirUtilisateurCourant(): Promise<UtilisateurCourant | 
   const token = await obtenirToken();
   if (!token) return null;
 
-  const reponse = await fetch(`${AGIRH_API_URL}/api/auth/me`, {
+  const reponse = await fetch(`${ARHIA_API_URL}/api/auth/me`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });

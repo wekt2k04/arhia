@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 12%;
 
-    /* AGIRH — indigo : identité de l'agent conversationnel, distinct du gris neutre par défaut. */
+    /* arhia — indigo : identité de l'agent conversationnel, distinct du gris neutre par défaut. */
     --primary: 243 75% 59%;
     --primary-foreground: 0 0% 100%;
 
@@ -34,36 +34,66 @@
     --ring: 243 75% 59%;
 
     --radius: 0.625rem;
+
+    --status-pending: 38 92% 50%;
+    --status-pending-foreground: 32 95% 12%;
+    --status-done: 142 71% 35%;
+    --status-done-foreground: 0 0% 100%;
+    --status-failed: 0 72% 51%;
+    --status-failed-foreground: 0 0% 100%;
+    --status-inprogress: 217 91% 55%;
+    --status-inprogress-foreground: 0 0% 100%;
+    --status-closed: 240 4% 46%;
+    --status-closed-foreground: 0 0% 100%;
+    --status-archived: 240 5% 65%;
+    --status-archived-foreground: 240 10% 12%;
   }
 
   .dark {
-    --background: 240 10% 8%;
-    --foreground: 0 0% 96%;
+    /* Ardoise bleutée plutôt que gris neutre pur : évite le rendu plat d'un simple gris/noir
+       inversé et reste cohérent avec l'indigo de la marque. */
+    --background: 226 22% 8%;
+    --foreground: 220 15% 94%;
 
-    --card: 240 8% 11%;
-    --card-foreground: 0 0% 96%;
+    /* Carte nettement plus claire que le fond (pas juste +2-3%) pour une vraie hiérarchie
+       visuelle en mode sombre. */
+    --card: 224 19% 13%;
+    --card-foreground: 220 15% 94%;
 
-    --popover: 240 8% 11%;
-    --popover-foreground: 0 0% 96%;
+    --popover: 224 19% 13%;
+    --popover-foreground: 220 15% 94%;
 
-    --primary: 243 80% 70%;
-    --primary-foreground: 240 10% 8%;
+    --primary: 243 85% 74%;
+    --primary-foreground: 226 22% 8%;
 
-    --secondary: 240 6% 16%;
-    --secondary-foreground: 0 0% 96%;
+    --secondary: 224 16% 18%;
+    --secondary-foreground: 220 15% 94%;
 
-    --muted: 240 6% 16%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 224 16% 18%;
+    --muted-foreground: 220 10% 68%;
 
-    --accent: 243 30% 20%;
-    --accent-foreground: 243 80% 85%;
+    --accent: 243 35% 23%;
+    --accent-foreground: 243 85% 88%;
 
-    --destructive: 0 63% 55%;
+    --destructive: 0 68% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 6% 20%;
-    --input: 240 6% 20%;
-    --ring: 243 80% 70%;
+    --border: 224 15% 22%;
+    --input: 224 15% 22%;
+    --ring: 243 85% 74%;
+
+    --status-pending: 38 95% 63%;
+    --status-pending-foreground: 32 95% 12%;
+    --status-done: 142 55% 50%;
+    --status-done-foreground: 142 70% 10%;
+    --status-failed: 0 68% 50%;
+    --status-failed-foreground: 0 0% 100%;
+    --status-inprogress: 217 91% 68%;
+    --status-inprogress-foreground: 222 70% 12%;
+    --status-closed: 220 10% 68%;
+    --status-closed-foreground: 226 22% 8%;
+    --status-archived: 220 10% 40%;
+    --status-archived-foreground: 220 15% 94%;
   }
 }
 

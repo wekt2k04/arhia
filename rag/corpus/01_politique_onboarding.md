@@ -5,7 +5,7 @@
 
 ## 1. Objet et périmètre
 
-Cette politique décrit le processus d'intégration (onboarding) applicable à tout nouveau collaborateur de l'entreprise, quel que soit son poste, son pôle de rattachement ou son type de contrat (CDI, CDD, stage, alternance). Elle s'applique dès la validation de l'embauche et jusqu'à la clôture formelle du dossier d'intégration dans l'application AGIRH.
+Cette politique décrit le processus d'intégration (onboarding) applicable à tout nouveau collaborateur de l'entreprise, quel que soit son poste, son pôle de rattachement ou son type de contrat (CDI, CDD, stage, alternance). Elle s'applique dès la validation de l'embauche et jusqu'à la clôture formelle du dossier d'intégration dans l'application arhia.
 
 L'onboarding poursuit trois objectifs : sécuriser l'accès du collaborateur aux ressources de l'entreprise dans le respect du Système de Management de la Sécurité de l'Information (SMSI), garantir sa conformité administrative et RH dès son arrivée, et lui offrir une expérience d'intégration claire et sans oubli.
 
@@ -13,11 +13,11 @@ L'onboarding poursuit trois objectifs : sécuriser l'accès du collaborateur aux
 
 ### 2.1 Personnalisation du parcours
 
-Le parcours d'onboarding n'est pas uniforme : la checklist générée par AGIRH est résolue automatiquement selon trois critères combinés — le **poste**, le **pôle** de rattachement et le **type de contrat**. Certains items ne s'appliquent qu'à certains types de contrat (par exemple, un stagiaire ne signe pas de processus disciplinaire ni n'ouvre de compte SELFRH complet). Cette résolution est portée par le référentiel du template d'onboarding, versionné et validé selon le circuit qualité décrit en section 5.
+Le parcours d'onboarding n'est pas uniforme : la checklist générée par arhia est résolue automatiquement selon trois critères combinés — le **poste**, le **pôle** de rattachement et le **type de contrat**. Certains items ne s'appliquent qu'à certains types de contrat (par exemple, un stagiaire ne signe pas de processus disciplinaire ni n'ouvre de compte SELFRH complet). Cette résolution est portée par le référentiel du template d'onboarding, versionné et validé selon le circuit qualité décrit en section 5.
 
 ### 2.2 Un dossier, un pôle, un RH référent
 
-Chaque collaborateur est rattaché à un pôle unique. Le RH de ce pôle est responsable de la création de la fiche collaborateur dans AGIRH et du suivi de son onboarding. Un RH ne peut instancier ou suivre un onboarding que pour les collaborateurs de son propre pôle — cette règle est appliquée techniquement par le système (contrôle de portée), pas seulement organisationnellement.
+Chaque collaborateur est rattaché à un pôle unique. Le RH de ce pôle est responsable de la création de la fiche collaborateur dans arhia et du suivi de son onboarding. Un RH ne peut instancier ou suivre un onboarding que pour les collaborateurs de son propre pôle — cette règle est appliquée techniquement par le système (contrôle de portée), pas seulement organisationnellement.
 
 ## 3. Rôles et responsabilités
 
@@ -32,7 +32,7 @@ Chaque collaborateur est rattaché à un pôle unique. Le RH de ce pôle est res
 
 ### 4.1 Avant l'arrivée
 
-Dès que l'embauche est confirmée, le RH du pôle crée la fiche du futur collaborateur dans AGIRH (nom, prénom, matricule, poste, pôle, type de contrat, date d'intégration). Cette création instancie automatiquement la checklist adaptée à son profil, à partir du dernier template approuvé pour le type « Onboarding ».
+Dès que l'embauche est confirmée, le RH du pôle crée la fiche du futur collaborateur dans arhia (nom, prénom, matricule, poste, pôle, type de contrat, date d'intégration). Cette création instancie automatiquement la checklist adaptée à son profil, à partir du dernier template approuvé pour le type « Onboarding ».
 
 En amont du jour J, le RH spécialisé IT prépare le poste de travail et les accès nécessaires, selon les items de la section IT de la checklist (voir document SMSI.PROC.04 — Procédures IT et Sécurité).
 

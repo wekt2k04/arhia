@@ -47,7 +47,7 @@ export default function PageInscription() {
         return;
       }
 
-      router.push("/chat");
+      router.push("/dashboard");
       router.refresh();
     } finally {
       setEnCours(false);
