@@ -65,7 +65,20 @@ Le projet a été remis à zéro (V7→V8, voir `.claude/context/PROJECT_STATE.m
 - CORS : Development peut être permissif ; production DOIT whitelister origines, headers, méthodes spécifiques. Jamais allow-all en production.
 
 ## Fichiers critiques arhia
-**Existant** : auth dans `src/Arhia.Api/Controllers/AuthController.cs` (register/login/me/elever-role, JWT via `Arhia.Infrastructure/Security/JwtTokenGenerator.cs`, hash via `AspNetIdentityPasswordHasher.cs`), RBAC dans `src/Arhia.Core/Security/` (`RbacMatrix`, `PoleScopeGuard`), identité dérivée des claims dans `src/Arhia.Api/Auth/CurrentUserAccessor.cs`. Secrets (SA password, clé de signature JWT) dans `appsettings.Development.json` (gitignored) — jamais dans `appsettings.json` (tracké, placeholders vides). **Pas encore écrit** : logging technique/audit séparé (`Arhia.Infrastructure/Logging/`), BFF frontend. Vérifier avec `Glob` avant de citer un chemin comme établi.
+**Existant** (vérifié le 2026-08-30 — 8 Controllers, pas seulement Auth) : `src/Arhia.Api/Controllers/`
+(`AuthController` : register/login/me/elevate-role ; `EmployeeController`, `DepartmentController`,
+`WorkflowController`, `TemplateController` — CRUD + circuit de validation ; `ChatController`/
+`NotificationController` : SSE ; `AdminController` : `POST /api/admin/reindex-corpus`, QualityAdmin
+uniquement). JWT via `Arhia.Infrastructure/Security/JwtTokenGenerator.cs`, hash via
+`AspNetIdentityPasswordHasher.cs`. RBAC dans `src/Arhia.Core/Security/` (`RbacMatrix`,
+**`DepartmentScopeGuard`** — pas `PoleScopeGuard`, renommé lors de la migration vocabulaire).
+Identité dérivée des claims dans `src/Arhia.Api/Auth/CurrentUserAccessor.cs` (relit le compte en
+base à chaque requête — un compte désactivé ou dont le rôle a changé est pris en compte
+immédiatement). Frontend BFF complet dans `frontend/` (cookie httpOnly, JWT jamais exposé au
+navigateur). Secrets (SA password, clé de signature JWT) dans `appsettings.Development.json`
+(gitignored) — jamais dans `appsettings.json` (tracké, placeholders vides). **Toujours pas écrit** :
+logging technique/audit trail séparé (`IAuditTrailPort` documenté dans `ARCHITECTURE.md`, aucun
+adaptateur concret n'existe). Vérifier avec `Glob` avant de citer un chemin comme établi.
 
 ## Checklist de revue
 - [ ] Chaque endpoint protégé a-t-il JWT + une vraie décision d'autorisation ?

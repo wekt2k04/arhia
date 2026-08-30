@@ -7,8 +7,9 @@ opérationnel démontrable de bout en bout.
 
 ## Aperçu
 
-- **Interface agent-first** : page de garde, connexion/inscription, puis un chat conversationnel
-  comme point d'entrée principal — pas de dashboard séparé.
+- **Interface authentifiée par rôle** : page de garde publique, connexion/inscription, puis un
+  tableau de bord adapté au rôle connecté (Collaborateur/RH/Admin), des pages Dossiers et
+  Collaborateurs, et un chat conversationnel — pas seulement un chat comme point d'entrée unique.
 - **Réponses sourcées** : chaque réponse documentaire cite les documents dont elle est extraite ;
   l'agent refuse explicitement plutôt que d'inventer quand rien de pertinent n'est trouvé
   (anti-hallucination encodée en code, pas seulement dans le prompt).
@@ -88,9 +89,10 @@ cp .env.example .env               # renseigner SQL_SA_PASSWORD et JWT_SIGNING_K
 docker compose up -d --build       # sqlserver + qdrant + api + frontend
 ```
 
-Au tout premier démarrage sur une base fraîche : promouvoir un compte en `AdminQualite` en SQL,
-puis `POST /api/admin/reindexer-corpus` pour peupler Qdrant — sans ça le chat documentaire ne
-trouvera rien. Frontend sur `http://localhost:3000`, Api sur `http://localhost:5080`.
+Au tout premier démarrage sur une base fraîche : promouvoir un compte en `QualityAdmin` en SQL,
+puis `POST /api/admin/reindex-corpus` (ou le bouton "Relancer l'ingestion" du tableau de bord
+Admin/Qualité) pour peupler Qdrant — sans ça le chat documentaire ne trouvera rien. Frontend sur
+`http://localhost:3000`, Api sur `http://localhost:5080`.
 
 ### Option B — développement local, sans Docker pour l'Api/le frontend
 
@@ -122,7 +124,7 @@ dotnet test Arhia.sln -c Release
 ```
 src/
   Arhia.Domain/          entités métier pures, zéro dépendance externe
-  Arhia.Core/             ports, use cases, RBAC (RbacMatrix, PoleScopeGuard)
+  Arhia.Core/             ports, use cases, RBAC (RbacMatrix, DepartmentScopeGuard)
   Arhia.Infrastructure/   adaptateurs : EF Core, Qdrant, ONNX (RAG), Ollama (LLM), SSE
   Arhia.Api/              Controllers, composition root (Program.cs)
 frontend/                 Next.js — BFF, chat, notifications, pages d'auth
@@ -132,8 +134,9 @@ rag/                       données du pipeline RAG, hors du code compilé
   models/                  poids ONNX (embedding + reranking, ~850 Mo, jamais commités)
   eval/                    jeu de questions/réponses de référence (gold_qa.json)
 docs/                      documents de cadrage (LOGIQUE_METIER, STACK_TECHNIQUE, ARCHITECTURE,
-                            CHECKLIST, HISTORIQUE, SUJET_STAGE) + docs/notebooklm/ (synthèses
-                            approfondies) + docs/APPRENTISSAGE/ (notes de montée en compétence)
+                            CHECKLIST, HISTORIQUE, SUJET_STAGE) — quelques sous-dossiers
+                            supplémentaires existent en local (notes personnelles, synthèses) mais
+                            ne sont pas suivis par git, voir `.gitignore`
 .claude/                   outillage Claude Code : agents, commandes, HANDOFF/ (continuité entre
                             sessions), scripts/ (téléchargement des modèles)
 ```
@@ -147,12 +150,16 @@ docs/                      documents de cadrage (LOGIQUE_METIER, STACK_TECHNIQUE
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Détail hexagonal, arborescence, diagrammes de flux |
 | [`docs/CHECKLIST.md`](docs/CHECKLIST.md) | Suivi milestone par milestone, statut réel |
 | [`docs/HISTORIQUE.md`](docs/HISTORIQUE.md) | Pourquoi le projet a été reconstruit de zéro (V7→V8) |
-| [`docs/notebooklm/`](docs/notebooklm/) | Approfondissements (architecture, RAG, orchestration IA, Docker, workflows) |
 
 ## Statut du projet
 
 Milestones 0-9 et 11 terminés — application fonctionnelle de bout en bout, y compris en Docker
 Compose sur base fraîche : inscription/connexion, chat en streaming réel, notifications en
-direct. Restent ouverts : l'affinage du routeur conversationnel (~27% de mauvais routage mesuré,
-mis de côté volontairement), la reconfirmation du jeu de questions/réponses de référence, et
-quelques endpoints de lecture annexes. Détail exhaustif dans [`docs/CHECKLIST.md`](docs/CHECKLIST.md).
+direct, tableau de bord/dossiers/collaborateurs par rôle, déclenchement de la réindexation du
+corpus RAG depuis l'interface (Admin/Qualité), mode sombre. 245 tests automatisés (244 verts, 1
+flake pré-existant sans rapport), 0 warning au build. Restent ouverts : l'affinage du routeur conversationnel (~27% de mauvais routage mesuré sur
+le jeu de test, mis de côté volontairement), la reconfirmation du jeu de questions/réponses de
+référence après les derniers correctifs, les 3 cas particuliers métier (mutation inter-pôle,
+annulation/suspension, pôle vacant), et la suite du frontend (modèles de checklist, administration
+complémentaire, finitions chat/notifications). Détail exhaustif dans
+[`docs/CHECKLIST.md`](docs/CHECKLIST.md).

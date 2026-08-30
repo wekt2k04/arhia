@@ -71,7 +71,17 @@ Tout value object → `readonly record struct` (ou `sealed record` si référenc
 - La portée d'un RH élargie au-delà de son pôle (docs/LOGIQUE_METIER.md §1) codée ailleurs que dans la couche RBAC/Core → RBAC dispersé
 
 ## Fichiers critiques arhia
-Arborescence cible détaillée dans `docs/ARCHITECTURE.md` §2. **Existant** (milestones 3-4, docs/CHECKLIST.md) : `src/Arhia.Domain/{Entities,ValueObjects,Enums.cs}`, `src/Arhia.Core/{Ports,Security,UseCases}`, `src/Arhia.Infrastructure/{Persistence,Security}` (EF Core + SQL Server, JWT, password hashing), `src/Arhia.Api/{Controllers,Auth}` (AuthController uniquement) — compile, 121/121 tests verts, migration appliquée sur SQL Server réel. **Pas encore créé** : controllers Collaborateur/Workflow/Template, `frontend/`, adaptateurs Qdrant/ONNX/Ollama. Vérifier avec `Glob` avant de citer un chemin.
+Arborescence cible détaillée dans `docs/ARCHITECTURE.md` §2. **Existant** (vérifié le 2026-08-30,
+la quasi-totalité des milestones 0-11 sont livrés, docs/CHECKLIST.md) : `src/Arhia.Domain/
+{Entities,ValueObjects,Enums.cs}` ; `src/Arhia.Core/{Ports,Security,UseCases}` (RBAC, pipeline RAG
+et orchestration inclus) ; `src/Arhia.Infrastructure/{Persistence,Security,Rag,Llm}` (EF Core +
+SQL Server, JWT, password hashing, adaptateurs Qdrant/ONNX/Ollama tous écrits) ; `src/Arhia.Api/
+Controllers/` (8 controllers : Auth, Employee, Department, Workflow, Template, Chat, Notification,
+Admin) ; `frontend/` (Next.js, BFF, layout authentifié par rôle) — compile, 245 tests (244 verts +
+1 flake pré-existant sans rapport, hors catégorie Evaluation). **Toujours
+pas créé** : adaptateur de logging technique/audit trail séparé (`IAuditTrailPort` documenté dans
+`ARCHITECTURE.md`, jamais implémenté), use cases pour les 3 cas particuliers métier (§8
+`LOGIQUE_METIER.md`). Vérifier avec `Glob` avant de citer un chemin précis, ce projet évolue vite.
 
 ## Piège EF Core à ne pas réintroduire
 Une navigation de collection owned (`OwnsMany`) ne peut JAMAIS être un paramètre de constructeur — EF le rejette au démarrage ("Navigations to related entities... cannot be bound"). `WorkflowTemplate`, `TemplateSection`, `WorkflowInstance` ont donc un second constructeur **privé, scalaires uniquement**, dédié à la matérialisation EF (backing field peuplé après coup via `.Navigation(...).UsePropertyAccessMode(PropertyAccessMode.Field)`), en plus du constructeur public riche pour le code applicatif. Vérifier ce pattern si une nouvelle entité Domain gagne une collection de type owned.

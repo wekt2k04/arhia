@@ -518,7 +518,7 @@ section_divider(16, 4, "Resultats & deploiement", "Ce qui est verifie en conditi
 s = add_slide()
 add_kicker(s, "Partie 4 — Resultats")
 add_title(s, "Resultats mesures — verifies, pas juste supposes")
-stats = [("211 / 211", "tests automatises verts", GOOD), ("0", "warning au build", GOOD), ("4", "phases RAG toutes obligatoires", PRIMARY), ("~27%", "erreurs de routage — limite connue et assumee", WARN)]
+stats = [("244 / 245", "tests automatises verts", GOOD), ("0", "warning au build", GOOD), ("4", "phases RAG toutes obligatoires", PRIMARY), ("~27%", "erreurs de routage — limite connue et assumee", WARN)]
 x = Inches(0.7); w = Inches(2.85)
 for i, (num, label, col) in enumerate(stats):
     l = x + i * (w + Inches(0.15))
@@ -531,6 +531,7 @@ add_bullets(s, Inches(0.7), Inches(3.95), Inches(11.9), Inches(2.9), [
     ("Limite du routeur documentee comme un compromis assume, pas cachee — mode de defaillance \"gracieusement faux\"", True),
     "Piste testee et abandonnee : plus d'exemples few-shot dans le prompt -> aucun effet mesurable",
     "Base de dev peuplee avec un scenario realiste (5 poles, 25 collaborateurs, 2 templates reels) — RBAC et portee departement verifies en HTTP reel sur chaque creation",
+    ("Le seul echec (1/245) est un flake pre-existant et documente (RagPipelineIntegrationTests, accumulation Qdrant persistante), sans rapport avec le code recent", True),
 ], size=13, space_after=11)
 add_footer(s, 17, SECTION_NAMES[4])
 

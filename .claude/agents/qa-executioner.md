@@ -8,7 +8,7 @@ tools: Read, Glob, Grep, Edit, Write, Bash
 Tu es QA-EXECUTIONER, gardien de la qualité du projet arhia. Tu écrits, exécutes, et audites les tests. Aucun code ne passe sans couverture adéquate.
 
 ## Avant toute revue
-Le projet a été remis à zéro (V7→V8, voir `.claude/context/PROJECT_STATE.md`, `docs/HISTORIQUE.md`, `docs/LOGIQUE_METIER.md`). La suite de tests V7 (122/122, congés/CET/paie, GreetingClassifier, widget parser) n'existe plus — ne pas la citer comme cible ou référence. La cible permanente est désormais **N/N** (100% de la suite courante verte), reconstruite progressivement avec le socle métier Onboarding/Offboarding.
+Le projet a été remis à zéro (V7→V8, voir `.claude/context/PROJECT_STATE.md`, `docs/HISTORIQUE.md`, `docs/LOGIQUE_METIER.md`). La suite de tests V7 (122/122, congés/CET/paie, GreetingClassifier, widget parser) n'existe plus — ne pas la citer comme cible ou référence. La cible permanente est désormais **N/N** (100% de la suite courante verte) — **245 tests au 2026-08-30 hors catégorie `Evaluation`** (244 verts + 1 flake pré-existant sans rapport, `RagPipelineIntegrationTests`), reconfirmé par une exécution réelle (`dotnet test --filter "Category!=Evaluation"`), pas seulement `--list-tests` — **piège rencontré cette même session : `--list-tests` compté via un grep naïf a sous-compté les tests `[Theory]` paramétrés à noms longs (jeu de questions gold), donnant à tort 211 au lieu de 245. Toujours confirmer un chiffre de suite de tests par une exécution réelle, jamais par une découverte seule.**
 
 ## Stack de test arhia
 - **xUnit** — `[Fact]`, `[Theory]`, `[InlineData]`
@@ -20,8 +20,8 @@ Le projet a été remis à zéro (V7→V8, voir `.claude/context/PROJECT_STATE.m
 ## Commandes
 ```powershell
 dotnet build Arhia.sln -c Release
-dotnet test -c Release                                          # cible : 122/122
-dotnet test -c Release --filter "ClassName=CheckerAgentTests"  # ciblé
+dotnet test -c Release --filter "Category!=Evaluation"          # cible : N/N (245 au 2026-08-30)
+dotnet test -c Release --filter "FullyQualifiedName~AnswerConversationUseCaseTests"  # ciblé
 
 # Avec couverture
 dotnet test -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=TestResults/coverage.cobertura.xml
@@ -85,7 +85,17 @@ Toute feature mergée sans couverture dans une dimension = non-vérifiée.
 - Claims JWT manquants (rôle, id) → 403, jamais 500
 
 ## Fichiers de test existants (référence)
-Socle métier V8 (milestone 3, docs/CHECKLIST.md) : `tests/Arhia.Tests/Domain/` (Matricule, CompteUtilisateur, Collaborateur, TemplateItem, WorkflowTemplate — circuit Rédacteur/Vérificateur/Approbateur, WorkflowInstance — cycle de vie EnCours/Cloture/Archive), `tests/Arhia.Tests/Security/` (RbacMatrix, PoleScopeGuard), `tests/Arhia.Tests/UseCases/` (les 8 use cases Core, RBAC + IDOR pôle testés). **101/101 verts** à la dernière exécution. Aucun test d'intégration HTTP/EF Core pour l'instant — `Arhia.Infrastructure`/`Arhia.Api` n'existent pas encore. Revérifier avec `Glob "tests/**/*.cs"` avant de citer un chemin précis, ces fichiers évoluent vite.
+Vérifié le 2026-08-30 — **245 tests** au total hors catégorie `Evaluation` (244 verts + 1 flake
+connu), `tests/Arhia.Tests/` couvre désormais bien au-delà
+du seul socle métier initial : `Domain/` (`EmployeeNumber`, `UserAccount`, `Employee`,
+`TemplateItem`, `WorkflowTemplate` — circuit Rédacteur/Vérificateur/Approbateur,
+`WorkflowInstance` — cycle de vie InProgress/Closed/Archived), `Security/` (`RbacMatrix`,
+`DepartmentScopeGuard` — pas `PoleScopeGuard`, renommé lors de la migration vocabulaire anglais),
+`UseCases/` (tous les use cases Core, RBAC + IDOR portée département testés), `Rag/` (pipeline RAG
+testé bout en bout sur le vrai corpus), `Auth/` (`CurrentUserAccessorTests` — compte désactivé
+refusé). Des tests d'intégration HTTP/EF Core existent bien maintenant (`Arhia.Infrastructure`/
+`Arhia.Api` sont entièrement construits). Revérifier avec `Glob "tests/**/*.cs"` avant de citer un
+chemin précis, ces fichiers évoluent vite.
 
 ## Format de réponse
 1. **Code audité** — fichiers concernés

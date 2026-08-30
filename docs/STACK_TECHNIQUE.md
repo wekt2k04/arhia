@@ -17,7 +17,7 @@ Les choix de framework (backend/frontend) sont conservés de V7 — expertise d�
 ## 2. Frontend
 
 - **Next.js** (BFF pattern, cookie httpOnly — le frontend ne détient jamais le JWT en clair côté client).
-- Interface **agent-first** (LOGIQUE_METIER.md §9) : page de garde publique, puis après connexion chat + barre de notifications comme point d'entrée principal ; pas de dashboard structuré séparé dans la première itération.
+- Interface **agent-first** (LOGIQUE_METIER.md §9) : page de garde publique, puis après connexion chat + barre de notifications comme point d'entrée principal ; pas de dashboard structuré séparé dans la première itération. **Mise à jour (2026-08-29/30)** : un layout authentifié partagé a depuis été ajouté (tableau de bord par rôle, pages Dossiers et Collaborateurs), sur constat direct que le chat seul ne suffisait pas à exposer les fonctionnalités backend déjà codées — le chat reste un point d'entrée, plus le seul.
 - TailwindCSS, react-markdown pour le rendu des réponses de l'agent.
 - **shadcn/ui** (composants copiés dans `frontend/components/ui/`, pas une dépendance npm classique) bâti sur **Radix UI** pour les primitives accessibles, décidé le 2026-08-16 pour l'amélioration UX/UI (branding, chat, accessibilité). Style "new-york", palette indigo via CSS variables (`app/globals.css`).
 

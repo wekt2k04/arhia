@@ -67,7 +67,17 @@ L'agent est **informatif uniquement** (docs/LOGIQUE_METIER.md §9) : aucune acti
 - Tester que le reranking modifie effectivement l'ordre des candidats Qdrant bruts sur un cas où le score cosinus seul donnerait un ordre différent
 
 ## Fichiers critiques arhia
-Arborescence cible dans `docs/ARCHITECTURE.md` §2 : `Arhia.Infrastructure/Rag/` (MarkdownChunker, OnnxEmbeddingAdapter, QdrantVectorSearchAdapter, OnnxRerankerAdapter), `Arhia.Infrastructure/Llm/` (OllamaRouterAdapter, OllamaGeneratorAdapter), port Core `IWorkflowInstanceRepository` pour la lecture de statut. Diagramme de séquence du flux RAG+chat : §5. **Code pas encore écrit** — vérifier avec `Glob` avant de citer un chemin comme établi.
+Vérifié le 2026-08-30 — **le pipeline est entièrement écrit et testé** (245 tests hors catégorie Evaluation, 244 verts + 1 flake pré-existant sans rapport) :
+`Arhia.Infrastructure/Rag/` (`MarkdownChunker`, `XlmRobertaTokenizer`, `OnnxEmbeddingAdapter`,
+`QdrantVectorSearchAdapter`, `OnnxRerankerAdapter`), `Arhia.Infrastructure/Llm/` (`OllamaClient`,
+`OllamaRouterAdapter`, `OllamaGeneratorAdapter`), orchestrateur central
+`Arhia.Core/UseCases/AnswerConversationUseCase.cs` (garde-fou anti-hallucination : deux portes de
+sortie anticipée avant tout appel Generator), endpoint `Arhia.Api/Controllers/ChatController.cs`
+(SSE), port Core `IWorkflowInstanceRepository` pour la lecture de statut. Diagramme de séquence du
+flux RAG+chat : `docs/ARCHITECTURE.md` §6. Limite mesurée et assumée : ~27% de mauvais classement
+du routeur (13/48) — ne pas re-proposer few-shot doublé ou température basse sans nouvelle mesure
+Gold E2E à l'appui, les deux ont déjà été testés et abandonnés (voir `.claude/HANDOFF/NEXT_SESSION.md`).
+Toujours vérifier avec `Glob` avant de citer un numéro de ligne précis, le code évolue.
 
 ## Format de réponse
 1. **Analyse** — pipeline étape par étape (Router → RAG 4 phases → Generator), invariants vérifiés
