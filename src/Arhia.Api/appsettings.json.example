@@ -1,0 +1,11 @@
+{
+  "ConnectionStrings": {
+    "ArhiaDb": "Server=localhost,1433;Database=ArhiaDb;User Id=sa;Password=<mot-de-passe-sa-local>;TrustServerCertificate=True;"
+  },
+  "Jwt": {
+    "Issuer": "Arhia",
+    "Audience": "Arhia.Clients",
+    "SigningKey": "<clé secrète locale, 32 caractères minimum, jamais committée>",
+    "TokenLifetimeMinutes": 60
+  }
+}

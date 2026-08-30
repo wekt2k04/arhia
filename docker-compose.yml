@@ -37,7 +37,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: src/Agirh.Api/Dockerfile
+      dockerfile: src/Arhia.Api/Dockerfile
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -47,9 +47,9 @@ services:
       - "host.docker.internal:host-gateway"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__AgirhDb: "Server=sqlserver,1433;Database=AgirhDb;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True;"
-      Jwt__Issuer: Agirh
-      Jwt__Audience: Agirh.Clients
+      ConnectionStrings__ArhiaDb: "Server=sqlserver,1433;Database=ArhiaDb;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True;"
+      Jwt__Issuer: Arhia
+      Jwt__Audience: Arhia.Clients
       Jwt__SigningKey: ${JWT_SIGNING_KEY}
       Jwt__TokenLifetimeMinutes: "60"
       Ollama__BaseUrl: "http://host.docker.internal:11434"

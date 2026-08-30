@@ -1,0 +1,61 @@
+using System.Linq;
+using Arhia.Domain;
+using Arhia.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Arhia.Infrastructure.Persistence.Configurations;
+
+public class WorkflowTemplateConfiguration : IEntityTypeConfiguration<WorkflowTemplate>
+{
+    public void Configure(EntityTypeBuilder<WorkflowTemplate> builder)
+    {
+        builder.ToTable("WorkflowTemplates");
+        builder.HasKey(t => t.Id);
+        builder.Property(t => t.Type).HasConversion<string>().HasMaxLength(20).IsRequired();
+        builder.Property(t => t.Version).IsRequired().HasMaxLength(20);
+        builder.Property(t => t.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
+        builder.Property(t => t.AuthorId).IsRequired();
+        builder.Property(t => t.VerifierId);
+        builder.Property(t => t.ApproverId);
+        builder.Property(t => t.RejectionReason).HasMaxLength(500);
+        builder.Property(t => t.CreatedAt).IsRequired();
+        builder.HasIndex(t => new { t.Type, t.Version }).IsUnique();
+
+        builder.OwnsMany(t => t.Sections, section =>
+        {
+            section.ToTable("TemplateSections");
+            section.WithOwner().HasForeignKey("WorkflowTemplateId");
+            section.HasKey(s => s.Id);
+            section.Property(s => s.Name).IsRequired().HasMaxLength(100);
+            section.Property(s => s.Order).IsRequired();
+
+            section.OwnsMany(s => s.Items, item =>
+            {
+                item.ToTable("TemplateItems");
+                item.WithOwner().HasForeignKey("TemplateSectionId");
+                item.HasKey(i => i.Id);
+                item.Property(i => i.Label).IsRequired().HasMaxLength(300);
+                item.Property(i => i.Order).IsRequired();
+
+                var conditionsComparer = new ValueComparer<IReadOnlyCollection<ContractType>>(
+                    (a, b) => a!.SequenceEqual(b!),
+                    c => c.Aggregate(0, (hash, v) => HashCode.Combine(hash, v)),
+                    c => c.ToList());
+
+                item.Property(i => i.ApplicableContractTypes)
+                    .HasConversion(
+                        list => string.Join(',', list.Select(c => c.ToString())),
+                        text => string.IsNullOrEmpty(text)
+                            ? new List<ContractType>()
+                            : text.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Enum.Parse<ContractType>).ToList())
+                    .Metadata.SetValueComparer(conditionsComparer);
+            });
+
+            section.Navigation(s => s.Items).UsePropertyAccessMode(PropertyAccessMode.Field);
+        });
+
+        builder.Navigation(t => t.Sections).UsePropertyAccessMode(PropertyAccessMode.Field);
+    }
+}

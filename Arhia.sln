@@ -1,0 +1,57 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{DFF7C8CA-60FB-46C7-ADE7-BDB1096E8D56}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arhia.Domain", "src\Arhia.Domain\Arhia.Domain.csproj", "{89197B66-413B-493C-92A2-A50663B6D070}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arhia.Core", "src\Arhia.Core\Arhia.Core.csproj", "{AC377875-8B07-460B-8E36-BE8FFD224EC2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F637091A-5C06-437A-9E4C-CAAADFEEC9B9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arhia.Tests", "tests\Arhia.Tests\Arhia.Tests.csproj", "{DFEB5BDC-31B0-4FF0-AA33-F6E1065A992D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arhia.Infrastructure", "src\Arhia.Infrastructure\Arhia.Infrastructure.csproj", "{C112A87F-AE98-4329-9EBA-C0A79FAC87EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arhia.Api", "src\Arhia.Api\Arhia.Api.csproj", "{6DAAE010-EE84-4C5B-BD4E-9080C44ADF89}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{89197B66-413B-493C-92A2-A50663B6D070}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89197B66-413B-493C-92A2-A50663B6D070}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89197B66-413B-493C-92A2-A50663B6D070}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89197B66-413B-493C-92A2-A50663B6D070}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC377875-8B07-460B-8E36-BE8FFD224EC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC377875-8B07-460B-8E36-BE8FFD224EC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC377875-8B07-460B-8E36-BE8FFD224EC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC377875-8B07-460B-8E36-BE8FFD224EC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFEB5BDC-31B0-4FF0-AA33-F6E1065A992D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFEB5BDC-31B0-4FF0-AA33-F6E1065A992D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFEB5BDC-31B0-4FF0-AA33-F6E1065A992D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFEB5BDC-31B0-4FF0-AA33-F6E1065A992D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C112A87F-AE98-4329-9EBA-C0A79FAC87EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C112A87F-AE98-4329-9EBA-C0A79FAC87EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C112A87F-AE98-4329-9EBA-C0A79FAC87EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C112A87F-AE98-4329-9EBA-C0A79FAC87EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DAAE010-EE84-4C5B-BD4E-9080C44ADF89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DAAE010-EE84-4C5B-BD4E-9080C44ADF89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DAAE010-EE84-4C5B-BD4E-9080C44ADF89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DAAE010-EE84-4C5B-BD4E-9080C44ADF89}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{89197B66-413B-493C-92A2-A50663B6D070} = {DFF7C8CA-60FB-46C7-ADE7-BDB1096E8D56}
+		{AC377875-8B07-460B-8E36-BE8FFD224EC2} = {DFF7C8CA-60FB-46C7-ADE7-BDB1096E8D56}
+		{DFEB5BDC-31B0-4FF0-AA33-F6E1065A992D} = {F637091A-5C06-437A-9E4C-CAAADFEEC9B9}
+		{C112A87F-AE98-4329-9EBA-C0A79FAC87EA} = {DFF7C8CA-60FB-46C7-ADE7-BDB1096E8D56}
+		{6DAAE010-EE84-4C5B-BD4E-9080C44ADF89} = {DFF7C8CA-60FB-46C7-ADE7-BDB1096E8D56}
+	EndGlobalSection
+EndGlobal
