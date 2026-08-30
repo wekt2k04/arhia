@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Genere docs/presentations/AGIRH_Soutenance.pptx (soutenance de stage, 20 slides).
+Genere docs/presentations/arhia_Soutenance.pptx (soutenance de stage, 20 slides).
 
 Le .pptx genere n'est PAS commite (binaire non-diffable, voir .gitignore) - ce script
 source, texte et versionnable, est la reference reproductible.
 
-Dependance externe (hors depot) : les logos AGIRH/ENSA Safi vivent dans
-C:\\Users\\Wilfried\\OneDrive\\Bureau\\presentation\\assets\\ (fournis par le porteur du
-projet, pas versionnes ici - remplacer ASSETS ci-dessous si ce chemin change).
+Dependance externe (hors depot) : les logos AGIRH (entreprise d'accueil) / ENSA Safi
+vivent dans C:\\Users\\Wilfried\\OneDrive\\Bureau\\presentation\\assets\\ (fournis par le
+porteur du projet, pas versionnes ici - remplacer ASSETS ci-dessous si ce chemin
+change). Le logo du produit arhia, lui, vient du depot (frontend/public/arhia-logo.png,
+deja versionne) - aucune dependance externe pour celui-la.
 
 Usage : python docs/presentations/generate_pptx.py   (necessite `pip install python-pptx`)
 """
@@ -19,22 +21,24 @@ from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE, MSO_CONNECTOR
 from pptx.oxml.ns import qn
 
-# ---------- Palette (extraite de frontend/app/globals.css, mode sombre reel du produit) ----------
-BG          = RGBColor(0x12, 0x12, 0x16)   # --background dark
-BG_ALT      = RGBColor(0x19, 0x19, 0x20)   # --card dark, legerement plus clair
-PRIMARY     = RGBColor(0x7B, 0x75, 0xF0)   # --primary dark (indigo clair)
+# ---------- Palette (extraite de frontend/app/globals.css, mode sombre reel du produit,
+# retravaille le 2026-08-30 - ardoise bleutee + vraie hierarchie carte/fond) ----------
+BG          = RGBColor(0x10, 0x12, 0x19)   # --background dark
+BG_ALT      = RGBColor(0x1B, 0x1E, 0x27)   # --card dark, nettement plus clair (vraie hierarchie)
+PRIMARY     = RGBColor(0x8A, 0x84, 0xF5)   # --primary dark (indigo clair)
 PRIMARY_DK  = RGBColor(0x50, 0x48, 0xE5)   # --primary light mode (indigo plus sature)
-TEXT        = RGBColor(0xF5, 0xF5, 0xF5)   # --foreground dark
-MUTED       = RGBColor(0xA6, 0xA6, 0xB3)   # --muted-foreground dark
-BORDER      = RGBColor(0x3A, 0x3A, 0x46)   # --border dark
-ACCENT_BG   = RGBColor(0x24, 0x22, 0x3D)   # --accent dark (fond de badge/encadre)
-GOOD        = RGBColor(0x4A, 0xDE, 0x80)   # vert (succes/tests)
-WARN        = RGBColor(0xF5, 0xA5, 0x24)   # orange (limite connue)
+TEXT        = RGBColor(0xED, 0xEF, 0xF2)   # --foreground dark
+MUTED       = RGBColor(0xA5, 0xAB, 0xB6)   # --muted-foreground dark
+BORDER      = RGBColor(0x30, 0x34, 0x41)   # --border dark
+ACCENT_BG   = RGBColor(0x28, 0x26, 0x4F)   # --accent dark (fond de badge/encadre)
+GOOD        = RGBColor(0x39, 0xC6, 0x6D)   # --status-done dark (vert, recalcule WCAG AA)
+WARN        = RGBColor(0xFA, 0xB9, 0x47)   # --status-pending dark (orange, recalcule WCAG AA)
 
 FONT = "Segoe UI"
 ASSETS = r"C:\Users\Wilfried\OneDrive\Bureau\presentation\assets"
 AGIRH_LOGO = ASSETS + r"\agirh_white_rgba.png"
 ENSA_LOGO  = ASSETS + r"\ensa_white_rgba.png"
+ARHIA_LOGO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "frontend", "public", "arhia-logo.png")
 
 prs = Presentation()
 prs.slide_width  = Inches(13.333)
@@ -111,7 +115,7 @@ def add_title(slide, text, y=Inches(0.75), size=27, color=TEXT):
     return line
 
 def add_footer(slide, n, section=""):
-    add_textbox(slide, Inches(0.7), Inches(7.08), Inches(6), Inches(0.3), "AGIRH — Assistant RH agentique" + ((" · " + section) if section else ""),
+    add_textbox(slide, Inches(0.7), Inches(7.08), Inches(6), Inches(0.3), "arhia — Assistant RH agentique" + ((" · " + section) if section else ""),
                 size=9, color=MUTED, font=FONT)
     add_textbox(slide, Inches(12.5), Inches(7.08), Inches(0.5), Inches(0.3), str(n), size=9, color=MUTED, font=FONT, align=PP_ALIGN.RIGHT)
 
@@ -175,8 +179,11 @@ add_logo(s, AGIRH_LOGO, Inches(0.9), Inches(0.7), h=Inches(0.62))
 add_logo(s, ENSA_LOGO, Inches(10.13), Inches(0.86), w=Inches(2.6))
 add_textbox(s, Inches(0.9), Inches(2.75), Inches(11.5), Inches(0.5), "PROJET DE FIN D'ANNEE — SOUTENANCE DE STAGE",
             size=14, color=PRIMARY, bold=True)
-add_textbox(s, Inches(0.9), Inches(3.15), Inches(11.5), Inches(1.3), "AGIRH — Assistant RH Agentique",
-            size=44, color=TEXT, bold=True)
+# Le mot-marque "arhia" vit deja dans le logo (hexagone + texte, degrade indigo) - pas de
+# repeter le mot en texte brut a cote, seulement le descriptif qui le complete.
+add_logo(s, ARHIA_LOGO, Inches(0.85), Inches(3.05), h=Inches(1.0))
+add_textbox(s, Inches(4.55), Inches(3.05), Inches(7.5), Inches(1.0), "Assistant RH Agentique",
+            size=32, color=TEXT, bold=True, anchor=MSO_ANCHOR.MIDDLE)
 add_textbox(s, Inches(0.9), Inches(4.05), Inches(11.5), Inches(0.7),
             "Onboarding & Offboarding assistes par IA — pipeline RAG, orchestration conversationnelle et garde-fous anti-hallucination",
             size=16, color=MUTED)
@@ -385,7 +392,7 @@ add_box(s, Inches(6.9), Inches(2.55), Inches(1.55), Inches(0.85), "Navigateur", 
 add_arrow_right(s, Inches(8.45), Inches(2.975), length=Inches(0.32))
 add_box(s, Inches(8.77), Inches(2.55), Inches(1.75), Inches(0.85), "Next.js\n(BFF)", fill=ACCENT_BG, line_color=PRIMARY, size=11, corner=True)
 add_arrow_right(s, Inches(10.52), Inches(2.975), length=Inches(0.32))
-add_box(s, Inches(10.84), Inches(2.55), Inches(1.56), Inches(0.85), "Agirh.Api", fill=BG_ALT, line_color=BORDER, size=11, corner=True)
+add_box(s, Inches(10.84), Inches(2.55), Inches(1.56), Inches(0.85), "Arhia.Api", fill=BG_ALT, line_color=BORDER, size=11, corner=True)
 add_textbox(s, Inches(6.9), Inches(3.65), Inches(5.7), Inches(0.35), "↳ appel serveur avec JWT + pose d'un cookie httpOnly", size=11.5, color=MUTED)
 add_bullets(s, Inches(6.9), Inches(4.2), Inches(5.7), Inches(2.2), [
     "Le JWT n'est jamais accessible en JavaScript cote navigateur",
@@ -414,7 +421,7 @@ slot = add_box(s, slot_x, Inches(2.65), slot_side, slot_side, "▶  VIDEO : pipe
                fill=BG_ALT, line_color=BORDER, size=13, align=PP_ALIGN.CENTER, corner=True)
 slot.name = "VIDEO_SLOT:diagram_02_rag_pipeline"
 
-add_textbox(s, Inches(0.7), Inches(5.35), Inches(11.9), Inches(0.4), "Code reel — src/Agirh.Infrastructure/Rag/MarkdownChunker.cs, lignes 18-28", size=12, color=PRIMARY, bold=True)
+add_textbox(s, Inches(0.7), Inches(5.35), Inches(11.9), Inches(0.4), "Code reel — src/Arhia.Infrastructure/Rag/MarkdownChunker.cs, lignes 18-28", size=12, color=PRIMARY, bold=True)
 code = ("public MarkdownChunker(Func<string,int> countTokens,\n"
         "    int maxTokensPerChunk = 400, double overlapRatio = 0.15)")
 box = add_box(s, Inches(0.7), Inches(5.8), Inches(11.9), Inches(0.95), code, fill=RGBColor(0x0B,0x0B,0x0E),
@@ -438,7 +445,7 @@ add_textbox(s, Inches(0.7), Inches(3.95), Inches(11.9), Inches(0.7),
             "le cross-encodeur les reordonne finement -- lent mais precis, applique seulement aux survivants.",
             size=16, color=MUTED, line_spacing=1.2)
 
-add_textbox(s, Inches(0.7), Inches(5.0), Inches(11.9), Inches(0.4), "Piege reel retenu — src/Agirh.Infrastructure/Rag/OnnxRerankerAdapter.cs, ligne 62", size=13.5, color=WARN, bold=True)
+add_textbox(s, Inches(0.7), Inches(5.0), Inches(11.9), Inches(0.4), "Piege reel retenu — src/Arhia.Infrastructure/Rag/OnnxRerankerAdapter.cs, ligne 62", size=13.5, color=WARN, bold=True)
 add_textbox(s, Inches(0.7), Inches(5.5), Inches(11.9), Inches(1.4),
             "Un score de reranking eleve (jusqu'a 0.78 observe) ne garantit PAS que le chunk contient la reponse — "
             "seulement qu'il est thematiquement proche. Le score mesure une proximite, pas une verite : la decision finale "
@@ -491,7 +498,7 @@ add_box(s, Inches(4.05), Inches(3.35), Inches(3.1), Inches(1.2), "Rien ne passe\
 add_arrow_right(s, Inches(7.25), Inches(3.95), length=Inches(0.45))
 add_box(s, Inches(7.8), Inches(3.35), Inches(4.6), Inches(1.2), "→ refus immediat,\nGENERATOR JAMAIS APPELE", fill=RGBColor(0x1A,0x30,0x1E), line_color=GOOD, size=13, corner=True)
 
-add_textbox(s, Inches(0.7), Inches(5.05), Inches(11.9), Inches(0.4), "Code reel — src/Agirh.Core/UseCases/AnswerConversationUseCase.cs, lignes 179-194", size=12, color=PRIMARY, bold=True)
+add_textbox(s, Inches(0.7), Inches(5.05), Inches(11.9), Inches(0.4), "Code reel — src/Arhia.Core/UseCases/AnswerConversationUseCase.cs, lignes 179-194", size=12, color=PRIMARY, bold=True)
 code = ("if (candidates.Count == 0)\n"
         "    return new DocumentaryPreparation(false, null, ...);\n"
         "// ... reranking, filtrage par MinimumRelevanceThreshold = 0.01f ...\n"
@@ -550,18 +557,20 @@ s = add_slide()
 add_kicker(s, "Partie 4 — Resultats")
 add_title(s, "Bilan & perspectives")
 add_textbox(s, Inches(0.7), Inches(2.0), Inches(5.6), Inches(0.4), "Livre et verifie", size=16, color=GOOD, bold=True)
-add_bullets(s, Inches(0.7), Inches(2.5), Inches(5.6), Inches(4.0), [
+add_bullets(s, Inches(0.7), Inches(2.5), Inches(5.6), Inches(4.5), [
     "Socle metier complet (RBAC, workflows, circuit qualite)",
     "Pipeline RAG 4 phases, ONNX de bout en bout",
     "Orchestration + garde-fous anti-hallucination",
-    "Frontend temps reel (chat + notifications SSE)",
+    "Interface complete par role — dashboard, workflows, employes (au-dela du seul chat)",
+    "Administration : relance de l'ingestion RAG depuis l'UI (QualityAdmin)",
+    "Frontend temps reel (chat + notifications SSE) + mode sombre",
     "Deploiement Docker Compose complet",
     "Base de dev peuplee et verifiee (scenario realiste, RBAC teste en conditions reelles)",
 ], size=13.5, space_after=12, bullet_color=GOOD)
 add_textbox(s, Inches(6.9), Inches(2.0), Inches(5.6), Inches(0.4), "Prochaines etapes", size=16, color=PRIMARY, bold=True)
-add_bullets(s, Inches(6.9), Inches(2.5), Inches(5.6), Inches(4.0), [
+add_bullets(s, Inches(6.9), Inches(2.5), Inches(5.6), Inches(4.5), [
     "Ameliorer la precision du routeur (nouvelle approche a evaluer)",
-    "Endpoints de lecture/liste (vues RH au-dela du chat)",
+    "Templates, admin complementaire, polish chat/notifications (phases frontend restantes)",
     "3 cas particuliers metier (mutation, suspension, pole vacant)",
     "Profil Ollama entreprise (modeles plus capables)",
 ], size=13.5, space_after=12)
@@ -569,12 +578,12 @@ add_footer(s, 19, SECTION_NAMES[4])
 
 # ============================================================ SLIDE 20 — MERCI
 s = add_slide()
-add_logo(s, AGIRH_LOGO, Inches(5.6), Inches(2.1), Inches(0.7))
+add_logo(s, ARHIA_LOGO, Inches(5.07), Inches(2.1), Inches(0.9))
 add_textbox(s, Inches(0.9), Inches(3.3), Inches(11.5), Inches(1.0), "Merci de votre attention", size=40, color=TEXT, bold=True, align=PP_ALIGN.CENTER)
 add_textbox(s, Inches(0.9), Inches(4.3), Inches(11.5), Inches(0.5), "Questions & demonstration en direct", size=16, color=MUTED, align=PP_ALIGN.CENTER)
 line = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(6.17), Inches(4.95), Inches(1.0), Pt(3))
 line.fill.solid(); line.fill.fore_color.rgb = PRIMARY; line.line.fill.background(); line.shadow.inherit = False
 
-sortie = os.path.join(os.path.dirname(os.path.abspath(__file__)), "AGIRH_Soutenance.pptx")
+sortie = os.path.join(os.path.dirname(os.path.abspath(__file__)), "arhia_Soutenance.pptx")
 prs.save(sortie)
 print("OK -", len(prs.slides.__iter__.__self__._sldIdLst), "slides ->", sortie)
