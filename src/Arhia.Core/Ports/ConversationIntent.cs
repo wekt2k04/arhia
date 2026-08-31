@@ -4,5 +4,7 @@ public enum ConversationIntent
 {
     DocumentaryQuestion,
     CaseStatus,
+    Greeting,
+    Unknown,
     OutOfScope
 }

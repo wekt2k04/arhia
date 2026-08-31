@@ -264,6 +264,7 @@ sequenceDiagram
         Router->>Stat: Lecture WorkflowInstance (RBAC : pôle du RH ou dossier de l'Employee)
         Stat-->>Gen: État du dossier
     end
+    Note over Router: Salutation ou message incertain -> appel direct au Generator (reponse chaleureuse ou de clarification, sans RAG ni WorkflowInstance). Hors perimetre -> reponse fixe sans appel LLM.
     Gen-->>Api: Réponse (streamée frame par frame)
     Api-->>U: SSE frames + frame terminale
     Note over Gen: Si aucun chunk pertinent retourné → "je n'ai pas trouvé cette information" (anti-hallucination, LOGIQUE_METIER.md §9)

@@ -44,7 +44,7 @@ Repensé intégralement (pas de reprise de l'embedding `embeddinggemma` via Olla
 Distincte du pipeline RAG ci-dessus — c'est la partie qui produit la réponse conversationnelle elle-même :
 
 ```
-Router (Ollama, petit modèle)  → intention : documentaire | statut de dossier | hors-périmètre
+Router (Ollama, petit modèle)  → intention : documentaire | statut de dossier | salutation | incertain | hors-périmètre
 Generator (Ollama, modèle plus capable) → réponse finale, sourcée si RAG utilisé
 ```
 

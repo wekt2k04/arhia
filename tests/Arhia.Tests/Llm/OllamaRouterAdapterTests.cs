@@ -32,6 +32,7 @@ public class OllamaRouterAdapterTests
     [InlineData("Quelle est la politique de mot de passe de l'entreprise ?", ConversationIntent.DocumentaryQuestion)]
     [InlineData("Où en est mon onboarding ?", ConversationIntent.CaseStatus)]
     [InlineData("Mon dossier est-il clôturé ?", ConversationIntent.CaseStatus)]
+    [InlineData("Bonjour", ConversationIntent.Greeting)]
     [InlineData("Quel temps fait-il ?", ConversationIntent.OutOfScope)]
     public async Task ClassifyAsync_RepresentativeQuestions_ClassifiesCorrectly(string question, ConversationIntent expected)
     {
@@ -42,6 +43,24 @@ public class OllamaRouterAdapterTests
         var intent = await adapter.ClassifyAsync(question);
 
         intent.Should().Be(expected);
+    }
+
+    [Fact]
+    public async Task ClassifyAsync_AmbiguousMessage_NeverMisroutesToDataTouchingIntent()
+    {
+        // Cas volontairement hors de ClassifyAsync_RepresentativeQuestions_ClassifiesCorrectly : la
+        // distinction Unknown/OutOfScope est intrinsequement floue (aucune des deux ne touche de
+        // donnee) - une egalite stricte serait flaky sur un modele 3.8B jamais calibre sur ce cas
+        // precis. Ce test verifie l'invariant qui compte cote securite : un message ambigu ne doit
+        // jamais finir classe comme une intention qui touche une donnee reelle.
+        if (!await OllamaAvailableAsync()) return;
+
+        var adapter = CreateAdapter();
+
+        var intent = await adapter.ClassifyAsync("Dossier ?");
+
+        intent.Should().BeOneOf(new[] { ConversationIntent.Unknown, ConversationIntent.OutOfScope },
+            "un message ambigu doit rester dans les intentions sans acces aux donnees, meme si le routeur hesite entre Unknown et OutOfScope");
     }
 
     [Fact]

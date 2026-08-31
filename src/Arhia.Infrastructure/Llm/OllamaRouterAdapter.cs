@@ -17,14 +17,18 @@ public sealed class OllamaRouterAdapter : ILlmRouterPort
     // en plus de son Ollama local. Defaut inchange si non configure.
     private readonly string _model;
 
-    // Les libelles de sortie (DOCUMENTAIRE/STATUT_DOSSIER/HORS_PERIMETRE) restent en francais a
-    // dessein : c'est un contrat de prompt calibre empiriquement avec le modele, pas du
-    // vocabulaire de code — les traduire risquerait de degrader silencieusement un routage deja
-    // imparfait (~27% d'erreur connu, voir HANDOFF) sans aucun benefice mesurable.
+    // Les libelles de sortie (DOCUMENTAIRE/STATUT_DOSSIER/SALUTATION/INCERTAIN/HORS_PERIMETRE)
+    // restent en francais a dessein : c'est un contrat de prompt calibre empiriquement avec le
+    // modele, pas du vocabulaire de code — les traduire risquerait de degrader silencieusement un
+    // routage deja imparfait (~27% d'erreur connu, voir HANDOFF) sans aucun benefice mesurable.
+    // SALUTATION et INCERTAIN sont nouveaux (ajout Greeting/Unknown) et n'ont pas encore
+    // l'historique de calibration empirique du jeu de questions gold que DOCUMENTAIRE/
+    // STATUT_DOSSIER/HORS_PERIMETRE ont deja — a reevaluer lors de la prochaine mesure Gold E2E,
+    // pas suppose fiable d'emblee.
     private const string SystemPrompt = """
-        Tu es un classifieur d'intention pour un assistant RH interne. Classe la question dans EXACTEMENT une categorie parmi les trois suivantes. Reponds UNIQUEMENT par un de ces 3 mots exacts, en majuscules, rien d'autre : DOCUMENTAIRE, STATUT_DOSSIER, HORS_PERIMETRE.
+        Tu es un classifieur d'intention pour un assistant RH interne. Classe la question dans EXACTEMENT une categorie parmi les cinq suivantes. Reponds UNIQUEMENT par un de ces 5 mots exacts, en majuscules, rien d'autre : DOCUMENTAIRE, STATUT_DOSSIER, SALUTATION, INCERTAIN, HORS_PERIMETRE.
 
-        Regle salutations (prioritaire, verifie-la en premier) : si la question est UNIQUEMENT une salutation, formule de politesse ou remerciement (bonjour, salut, bonsoir, merci, au revoir, bonne journee...), sans aucune autre question ni demande, reponds HORS_PERIMETRE directement, sans appliquer la regle suivante.
+        Regle salutations (prioritaire, verifie-la en premier) : si la question est UNIQUEMENT une salutation, formule de politesse ou remerciement (bonjour, salut, bonsoir, merci, au revoir, bonne journee...), sans aucune autre question ni demande, reponds SALUTATION directement, sans appliquer la regle suivante.
 
         Regle cle (sinon) : si la question ne contient PAS "mon", "ma", "je", "j'ai", ou "moi", classe-la TOUJOURS en DOCUMENTAIRE (jamais STATUT_DOSSIER), meme si elle parle de dossier, fiche ou signature en general.
 
@@ -39,13 +43,24 @@ public sealed class OllamaRouterAdapter : ILlmRouterPort
         "Mon dossier est-il cloture ?" -> STATUT_DOSSIER
         "Il me reste quoi a faire ?" -> STATUT_DOSSIER
 
-        HORS_PERIMETRE : toute autre question sans lien avec les politiques de l'entreprise ou un dossier onboarding/offboarding — y compris les salutations, remerciements et formules de politesse, qui ne sont JAMAIS DOCUMENTAIRE.
+        SALUTATION : UNIQUEMENT une salutation, formule de politesse ou remerciement, sans aucune autre question ni demande (voir regle salutations ci-dessus — cette categorie ne s'applique qu'a ce cas precis, jamais si une vraie question accompagne la salutation).
+        "Bonjour" -> SALUTATION
+        "Salut !" -> SALUTATION
+        "Merci, au revoir" -> SALUTATION
+        "Bonne journee" -> SALUTATION
+
+        INCERTAIN : message trop vague, trop court ou trop ambigu pour etre rattache avec confiance a une categorie precise — ni une salutation claire, ni une question comprehensible sur les politiques de l'entreprise ou un dossier, ni clairement hors sujet. En cas de doute reel entre INCERTAIN et une autre categorie, prefere INCERTAIN plutot que de deviner.
+        "Aide" -> INCERTAIN
+        "Je sais pas trop" -> INCERTAIN
+        "Dossier ?" -> INCERTAIN
+        "???" -> INCERTAIN
+
+        HORS_PERIMETRE : question CLAIRE et COMPREHENSIBLE mais dont le sujet n'a aucun lien avec les politiques de l'entreprise ou un dossier onboarding/offboarding. Ne s'applique jamais a une salutation (-> SALUTATION) ni a un message trop flou pour etre compris (-> INCERTAIN).
         "Quel temps fait-il ?" -> HORS_PERIMETRE
         "Raconte-moi une blague" -> HORS_PERIMETRE
-        "Bonjour" -> HORS_PERIMETRE (salutation, pas une question sur une politique)
-        "Merci, au revoir" -> HORS_PERIMETRE
+        "Quelle est la capitale de l'Espagne ?" -> HORS_PERIMETRE
 
-        Reponds uniquement par DOCUMENTAIRE, STATUT_DOSSIER, ou HORS_PERIMETRE.
+        Reponds uniquement par DOCUMENTAIRE, STATUT_DOSSIER, SALUTATION, INCERTAIN, ou HORS_PERIMETRE.
         """;
 
     private readonly OllamaClient _client;
@@ -71,6 +86,12 @@ public sealed class OllamaRouterAdapter : ILlmRouterPort
 
         if (normalized.Contains("DOCUMENTAIRE"))
             return ConversationIntent.DocumentaryQuestion;
+
+        if (normalized.Contains("SALUTATION"))
+            return ConversationIntent.Greeting;
+
+        if (normalized.Contains("INCERTAIN"))
+            return ConversationIntent.Unknown;
 
         return ConversationIntent.OutOfScope;
     }

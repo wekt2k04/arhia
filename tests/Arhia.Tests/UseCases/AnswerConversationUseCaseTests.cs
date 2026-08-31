@@ -69,6 +69,52 @@ public class AnswerConversationUseCaseTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_GreetingIntent_CallsGeneratorWithGreetingPromptAndReturnsNonSourcedResponse()
+    {
+        var (router, generator, embedding, vectorSearch, reranker, employees, workflowInstances, useCase) = CreateUseCase();
+        var actor = CreateEmployeeActor(Guid.NewGuid());
+        router.Setup(r => r.ClassifyAsync("Bonjour", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ConversationIntent.Greeting);
+        generator.Setup(g => g.GenerateResponseAsync(
+                It.Is<string>(sp => sp.Contains("salutation", StringComparison.OrdinalIgnoreCase)),
+                "Bonjour", It.IsAny<CancellationToken>()))
+            .ReturnsAsync("Bonjour ! Comment puis-je vous aider aujourd'hui ?");
+
+        var response = await useCase.ExecuteAsync(actor, "Bonjour", null);
+
+        response.Sourced.Should().BeFalse();
+        response.Text.Should().Be("Bonjour ! Comment puis-je vous aider aujourd'hui ?");
+        embedding.Verify(e => e.GenerateEmbeddingAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        vectorSearch.Verify(v => v.SearchAsync(It.IsAny<float[]>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        reranker.Verify(r => r.RerankAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<DocumentChunk>>(), It.IsAny<CancellationToken>()), Times.Never);
+        employees.Verify(e => e.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+        workflowInstances.Verify(w => w.GetByEmployeeAsync(It.IsAny<Guid>(), It.IsAny<WorkflowType>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_UnknownIntent_CallsGeneratorWithUnknownPromptAndReturnsNonSourcedResponse()
+    {
+        var (router, generator, embedding, vectorSearch, reranker, employees, workflowInstances, useCase) = CreateUseCase();
+        var actor = CreateEmployeeActor(Guid.NewGuid());
+        router.Setup(r => r.ClassifyAsync("Dossier ?", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ConversationIntent.Unknown);
+        generator.Setup(g => g.GenerateResponseAsync(
+                It.Is<string>(sp => sp.Contains("ambigu", StringComparison.OrdinalIgnoreCase)),
+                "Dossier ?", It.IsAny<CancellationToken>()))
+            .ReturnsAsync("Je ne suis pas sûr d'avoir bien compris — vous voulez faire le point sur un dossier ?");
+
+        var response = await useCase.ExecuteAsync(actor, "Dossier ?", null);
+
+        response.Sourced.Should().BeFalse();
+        response.Text.Should().Be("Je ne suis pas sûr d'avoir bien compris — vous voulez faire le point sur un dossier ?");
+        embedding.Verify(e => e.GenerateEmbeddingAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        vectorSearch.Verify(v => v.SearchAsync(It.IsAny<float[]>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        reranker.Verify(r => r.RerankAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<DocumentChunk>>(), It.IsAny<CancellationToken>()), Times.Never);
+        employees.Verify(e => e.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+        workflowInstances.Verify(w => w.GetByEmployeeAsync(It.IsAny<Guid>(), It.IsAny<WorkflowType>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_DocumentaryQuestion_NoCandidateFound_RefusesWithoutCallingTheGenerator()
     {
         var (router, generator, embedding, vectorSearch, _, _, _, useCase) = CreateUseCase();
@@ -251,6 +297,58 @@ public class AnswerConversationUseCaseTests
         events[0].Should().BeOfType<TextFragment>().Which.Text.Should().Contain("RH");
         events[1].Should().BeOfType<ResponseCompleted>().Which.Sourced.Should().BeFalse();
         generator.Verify(g => g.GenerateResponseStreamingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ExecuteStreamingAsync_GreetingIntent_StreamsFragmentsThenNonSourcedCompletion()
+    {
+        var (router, generator, embedding, _, _, _, _, useCase) = CreateUseCase();
+        var actor = CreateEmployeeActor(Guid.NewGuid());
+        router.Setup(r => r.ClassifyAsync("Bonjour", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ConversationIntent.Greeting);
+        generator.Setup(g => g.GenerateResponseStreamingAsync(
+                It.Is<string>(sp => sp.Contains("salutation", StringComparison.OrdinalIgnoreCase)),
+                "Bonjour", It.IsAny<CancellationToken>()))
+            .Returns(FragmentsAsync("Bonjour ", "et bienvenue !"));
+
+        var events = new List<ConversationEvent>();
+        await foreach (var ev in useCase.ExecuteStreamingAsync(actor, "Bonjour", null))
+            events.Add(ev);
+
+        var fragments = events.OfType<TextFragment>().ToList();
+        fragments.Should().HaveCount(2);
+        string.Concat(fragments.Select(f => f.Text)).Should().Be("Bonjour et bienvenue !");
+
+        var completed = events.OfType<ResponseCompleted>().Should().ContainSingle().Which;
+        completed.Sourced.Should().BeFalse();
+        completed.Sources.Should().BeEmpty();
+        embedding.Verify(e => e.GenerateEmbeddingAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ExecuteStreamingAsync_UnknownIntent_StreamsFragmentsThenNonSourcedCompletion()
+    {
+        var (router, generator, embedding, _, _, _, _, useCase) = CreateUseCase();
+        var actor = CreateEmployeeActor(Guid.NewGuid());
+        router.Setup(r => r.ClassifyAsync("Dossier ?", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ConversationIntent.Unknown);
+        generator.Setup(g => g.GenerateResponseStreamingAsync(
+                It.Is<string>(sp => sp.Contains("ambigu", StringComparison.OrdinalIgnoreCase)),
+                "Dossier ?", It.IsAny<CancellationToken>()))
+            .Returns(FragmentsAsync("Pas sûr de comprendre, ", "vous pouvez préciser ?"));
+
+        var events = new List<ConversationEvent>();
+        await foreach (var ev in useCase.ExecuteStreamingAsync(actor, "Dossier ?", null))
+            events.Add(ev);
+
+        var fragments = events.OfType<TextFragment>().ToList();
+        fragments.Should().HaveCount(2);
+        string.Concat(fragments.Select(f => f.Text)).Should().Be("Pas sûr de comprendre, vous pouvez préciser ?");
+
+        var completed = events.OfType<ResponseCompleted>().Should().ContainSingle().Which;
+        completed.Sourced.Should().BeFalse();
+        completed.Sources.Should().BeEmpty();
+        embedding.Verify(e => e.GenerateEmbeddingAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
