@@ -1,0 +1,47 @@
+@startuml
+skinparam backgroundColor transparent
+skinparam dpi 200
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 15
+skinparam shadowing false
+skinparam activity {
+  BorderColor #4F46E5
+  BorderThickness 1.2
+  BackgroundColor #EEF2FF
+  FontColor #1E1B4B
+  DiamondBorderColor #4F46E5
+  DiamondBackgroundColor #E0E7FF
+  DiamondFontColor #1E1B4B
+  ArrowColor #4F46E5
+  ArrowFontColor #312E81
+  StartColor #4F46E5
+  EndColor #4F46E5
+}
+
+start
+:Question utilisateur (chat SSE);
+:**Router** (Ollama, phi4-mini)\nclassification de l'intention;
+if (intention ?) then (documentaire)
+  :Embedding requête (ONNX);
+  :Recherche **Qdrant** (top-K, ANN/HNSW);
+  if (aucun candidat ?) then (oui)
+    #pink:Refus — Generator **jamais appelé**;
+    stop
+  else (non)
+    :**Reranking** cross-encodeur (ONNX);
+    if (tous sous le seuil de pertinence ?) then (oui)
+      #pink:Refus — Generator **jamais appelé**;
+      stop
+    else (non)
+      :Chunks sourcés retenus;
+    endif
+  endif
+elseif (statut de dossier)
+  :Lecture seule **WorkflowInstance**\n(RBAC : pôle RH / dossier propre Employee);
+else (hors périmètre)
+  #pink:Refus poli;
+  stop
+endif
+:**Generator** (Ollama)\nréponse en streaming (SSE, sourcée);
+stop
+@enduml

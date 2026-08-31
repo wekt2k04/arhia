@@ -1,0 +1,568 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{needspace}
+
+\definecolor{arhiaindigo}{HTML}{4F46E5}
+\definecolor{arhiadark}{HTML}{1E1B4B}
+\definecolor{arhiabg}{HTML}{EEF2FF}
+\definecolor{arhiagray}{HTML}{6B7280}
+
+\hypersetup{colorlinks=true,linkcolor=arhiaindigo,urlcolor=arhiaindigo,citecolor=arhiaindigo,
+  pdftitle={arhia --- Rapport de Fin de Stage},pdfauthor={Wilfried Tsetse}}
+
+\linespread{1.15}
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+
+\titleformat{\section}{\Large\bfseries\color{arhiaindigo}}{\thesection.}{0.5em}{}
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+\titleformat{\subsection}{\large\bfseries\color{arhiadark}}{\thesubsection}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{arhiadark}}{\thesubsubsection}{0.5em}{}
+\titlespacing*{\subsubsection}{0pt}{8pt}{3pt}
+
+\setlist[itemize]{topsep=2pt,itemsep=2pt,parsep=0pt,leftmargin=1.3em}
+\setlist[enumerate]{topsep=2pt,itemsep=2pt,parsep=0pt,leftmargin=1.5em}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\footnotesize\color{arhiagray} arhia --- Rapport de Fin de Stage}
+\fancyhead[R]{\footnotesize\color{arhiagray} Wilfried TSETSE --- ENSA Safi}
+\fancyfoot[C]{\footnotesize\color{arhiagray} \thepage/\pageref{LastPage}}
+
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\shot}[2]{%
+  \begin{center}
+  \fcolorbox{arhiaindigo}{white}{\includegraphics[width=#1\textwidth]{#2}}
+  \end{center}
+}
+\newcommand{\shotcap}[1]{\begin{center}\small\textit{#1}\end{center}\vspace{2pt}}
+
+\begin{document}
+
+% ================================================================ PAGE DE GARDE
+\thispagestyle{empty}
+\begin{center}
+  \vspace*{0.3cm}
+  \raisebox{-0.5\height}{\includegraphics[height=1.7cm]{ensa-logo.png}}\hspace{1.8cm}\raisebox{-0.5\height}{\includegraphics[height=1.4cm]{agirh-logo.png}}
+
+  \vspace{0.4cm}
+  {\small \'Ecole Nationale des Sciences Appliqu\'ees de Safi --- Universit\'e Cadi Ayyad}\\
+  {\small Fili\`ere G\'enie Informatique de Donn\'ees et Intelligence Artificielle (GIDIA)}
+
+  \vspace{0.5cm}
+  {\color{arhiaindigo}\rule{0.75\textwidth}{0.8pt}}
+
+  \vspace{0.55cm}
+  {\Large\bfseries\color{arhiadark} RAPPORT DE FIN DE STAGE}\\[2pt]
+  {\small\itshape Projet de Fin d'Ann\'ee (PFA)}
+
+  \vspace{0.45cm}
+  {\small\itshape Effectu\'e \`a}\\[1pt]
+  {\normalsize\bfseries AGIRH}
+
+  \vspace{0.4cm}
+  {\small\itshape Pr\'esent\'e en vue de l'obtention du Dipl\^ome d'Ing\'enieur d'\'Etat}\\[1pt]
+  {\normalsize\bfseries G\'enie Informatique de Donn\'ees et Intelligence Artificielle}
+
+  \vspace{0.55cm}
+  \includegraphics[height=1.7cm]{arhia-logo.png}
+
+  \vspace{0.4cm}
+  {\Large\color{arhiadark} Conception et r\'ealisation d'un agent IA\\[2pt] d'Onboarding et d'Offboarding RH}
+
+  \vspace{0.35cm}
+  {\normalsize\itshape R\'epondre aux questions RH par recherche documentaire sourc\'ee\\ et informer sur l'avancement d'un dossier --- sans jamais ex\'ecuter\\ d'action irr\'eversible depuis la conversation.}
+
+  \vspace{0.55cm}
+  {\color{arhiaindigo}\rule{0.75\textwidth}{0.8pt}}
+
+  \vspace{0.5cm}
+  {\small
+  \begin{tabularx}{0.75\textwidth}{@{}X X@{}}
+    \toprule
+    \textbf{R\'ealis\'e par} & \textbf{Encadrant entreprise} \\
+    \midrule
+    M. Komla Edem Wilfried TSETSE & M. Moulay Rachid Didi Alaoui \\
+    \bottomrule
+  \end{tabularx}
+  }
+
+  \vspace{0.4cm}
+  {\small D\'ep\^ot du code (priv\'e, acc\`es sur demande) : \href{https://github.com/wekt2k04/arhia}{github.com/wekt2k04/arhia}}
+
+  \vfill
+  \textcolor{arhiaindigo}{\rule{0.35\textwidth}{0.6pt}}\\[4pt]
+  {\footnotesize\color{arhiagray} Architecture hexagonale $\cdot$ pipeline RAG multi-phases $\cdot$ orchestration conversationnelle sous garde-fou anti-hallucination}\\[6pt]
+  {\footnotesize\color{arhiagray} Ann\'ee universitaire 2025--2026}
+  \vspace{0.5cm}
+\end{center}
+\newpage
+
+% ================================================================ REMERCIEMENTS
+\section*{Remerciements}
+\addcontentsline{toc}{section}{Remerciements}
+
+Je tiens \`a exprimer ma sinc\`ere reconnaissance \`a M. Moulay Rachid Didi Alaoui, mon encadrant au sein d'AGIRH, pour la confiance qu'il m'a accord\'ee en me confiant un sujet exigeant et pour la libert\'e de conception qu'il m'a laiss\'ee tout en restant disponible \`a chaque \'etape d\'ecisive du projet.
+
+Je remercie tout particuli\`erement M. Saad Khadir, AI and Software Engineer chez AGIRH, qui m'a encadr\'e au quotidien tout au long de ce stage~: sa disponibilit\'e technique et ses retours exigeants ont directement fa\c{c}onn\'e la qualit\'e du travail pr\'esent\'e dans ce rapport.
+
+Mes remerciements vont \'egalement \`a M. Mitar Issam, Directeur G\'en\'eral Adjoint d'AGIRH, pour son accueil et la confiance accord\'ee \`a ce projet au sein de l'entreprise.
+
+Je remercie \'egalement le corps professoral de l'\'Ecole Nationale des Sciences Appliqu\'ees de Safi, et en particulier les enseignants de la fili\`ere G\'enie Informatique de Donn\'ees et Intelligence Artificielle, pour la formation qui m'a permis d'aborder un sujet combinant ing\'enierie logicielle classique et intelligence artificielle appliqu\'ee avec les bases n\'ecessaires.
+
+Je remercie l'ensemble des personnes qui, au sein d'AGIRH, ont pris le temps de r\'epondre \`a mes questions sur les processus r\'eels d'onboarding et d'offboarding, sans lesquelles ce projet serait rest\'e un exercice acad\'emique d\'econnect\'e d'un besoin concret.
+
+Enfin, je remercie mes parents pour leur soutien constant tout au long de mes \'etudes et de ce stage.
+
+\newpage
+
+% ================================================================ RESUME
+\section*{R\'esum\'e}
+\addcontentsline{toc}{section}{R\'esum\'e}
+
+Ce rapport pr\'esente le travail r\'ealis\'e durant un stage de fin d'ann\'ee au sein de l'entreprise AGIRH, consistant \`a concevoir et r\'ealiser \textbf{arhia}, un agent conversationnel dédié \`a l'onboarding et \`a l'offboarding des collaborateurs. Le projet repose sur une architecture hexagonale en .NET~8 et Next.js~15, un pipeline de g\'en\'eration augment\'ee par r\'ecup\'eration (RAG) \`a quatre phases obligatoires (d\'ecoupage structurel, embedding ONNX multilingue, indexation vectorielle Qdrant, reranking par cross-encodeur), et une couche d'orchestration conversationnelle \`a deux mod\`eles (Router/Generator) prot\'eg\'ee par un garde-fou anti-hallucination \'ecrit en code plut\^ot que confi\'e \`a une simple consigne de prompt.
+
+Le syst\`eme est v\'erifi\'e de bout en bout~: 245 tests automatis\'es (244 verts, un flake pr\'eexistant document\'e), un d\'eploiement Docker Compose fonctionnel sur base fra\^iche, et des r\'eponses conversationnelles r\'eellement sourc\'ees, mesur\'ees plut\^ot que suppos\'ees. Les limites connues --- notamment un taux de mauvais classement du routeur d'intention d'environ 27~\% avec le mod\`ele local disponible --- sont assum\'ees et document\'ees comme telles.
+
+\textbf{Mots-cl\'es :} RAG, architecture hexagonale, LLM, garde-fou anti-hallucination, RBAC, ONNX Runtime, Qdrant, agent conversationnel RH.
+
+\vspace{4mm}
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+
+This report presents the work carried out during a final-year internship at AGIRH, consisting of designing and building \textbf{arhia}, a conversational agent dedicated to employee onboarding and offboarding. The project relies on a hexagonal architecture in .NET~8 and Next.js~15, a four-phase Retrieval-Augmented Generation (RAG) pipeline (structural chunking, multilingual ONNX embedding, Qdrant vector indexing, cross-encoder reranking), and a two-model conversational orchestration layer (Router/Generator) protected by an anti-hallucination guard implemented in code rather than left to prompt instructions alone.
+
+The system is verified end-to-end: 245 automated tests (244 passing, one documented pre-existing flake), a working Docker Compose deployment on a fresh database, and conversational answers that are genuinely sourced, measured rather than assumed. Known limitations --- notably an intent-routing misclassification rate of around 27~\% with the currently available local model --- are documented rather than hidden.
+
+\textbf{Keywords:} RAG, hexagonal architecture, LLM, anti-hallucination guardrail, RBAC, ONNX Runtime, Qdrant, HR conversational agent.
+
+\newpage
+\tableofcontents
+\newpage
+
+% ================================================================ INTRODUCTION
+\section*{Introduction g\'en\'erale}
+\addcontentsline{toc}{section}{Introduction g\'en\'erale}
+
+L'int\'egration et le d\'epart d'un collaborateur sont deux moments critiques de la vie d'une entreprise~: ils mobilisent simultan\'ement les ressources humaines, l'informatique et le management, et reposent aujourd'hui, dans de nombreuses organisations, sur des checklists suivies manuellement --- avec le risque d'oubli que cela implique (un acc\`es informatique non r\'evoqu\'e, un document non sign\'e). C'est dans ce contexte qu'AGIRH, l'entreprise d'accueil de ce stage, a propos\'e un sujet consistant \`a concevoir un agent intelligent capable d'accompagner ces deux processus.
+
+Ce rapport documente le travail r\'ealis\'e en r\'eponse \`a ce sujet~: la conception et la r\'ealisation d'\textbf{arhia}\footnote{Le nom du produit, \textit{arhia}, est distinct du nom de l'entreprise d'accueil, AGIRH --- une distinction volontaire, introduite en cours de stage pour ne pas confondre le prototype r\'ealis\'e avec l'identit\'e de l'entreprise.}, un assistant conversationnel dédi\'e \`a l'onboarding et \`a l'offboarding, appuy\'e sur un pipeline de recherche documentaire (RAG) et une orchestration conversationnelle par mod\`eles de langage locaux. Le p\'erim\`etre du projet a \'et\'e d\'elib\'er\'ement resserr\'e \`a ces deux processus --- \`a l'exclusion des cong\'es, de la paie ou de la gestion des temps --- afin de livrer un socle solide plut\^ot qu'un prototype large mais fragile, une contrainte de p\'erim\`etre qui s'est av\'er\'ee, avec le recul, l'une des d\'ecisions les plus structurantes du stage.
+
+Ce rapport s'organise en neuf chapitres. Le chapitre~1 pr\'esente le contexte du stage, le sujet confi\'e et le p\'erim\`etre m\'etier retenu. Le chapitre~2 d\'ecrit l'architecture et les choix techniques. Le chapitre~3, le plus dense, d\'etaille le c\oe{}ur du syst\`eme~: le pipeline RAG et l'orchestration conversationnelle sous garde-fou. Le chapitre~4 pr\'esente les workflows m\'etier et leur circuit de validation qualit\'e. Le chapitre~5 pr\'esente l'interface utilisateur r\'ealis\'ee. Le chapitre~6 rassemble les r\'esultats mesur\'es et les v\'erifications effectu\'ees. Le chapitre~7 revient sur les difficult\'es techniques rencontr\'ees, le chapitre~8 sur les comp\'etences acquises, et le chapitre~9 dresse un bilan et ouvre sur les perspectives restantes, avant une conclusion g\'en\'erale.
+
+\newpage
+% ================================================================ CHAPITRE 1
+\section{Contexte et cadrage du projet}
+
+\subsection{L'entreprise d'accueil et le sujet de stage}
+
+AGIRH est un \'editeur marocain de logiciels de Gestion Int\'egr\'ee des Ressources Humaines (SIRH), fond\'e par ISIS SOFT. D\'eploy\'ee dans plus de 400 entreprises au Maroc --- dont environ 30~\% des 500 plus grandes entreprises du pays, tous secteurs confondus (textile, maritime, pharmaceutique, assurance, automobile, agroalimentaire) --- sa solution couvre l'ensemble des processus RH~: administration du personnel, paie, organigramme, recrutement, formation, gestion des temps, \'evaluation, notes de frais et pilotage social par indicateurs. L'entreprise a r\'ecemment renforc\'e son expansion en Afrique via un partenariat avec Inetum.
+
+Le stage s'est d\'eroul\'e au sein d'AGIRH. Le sujet, tel que confi\'e par l'entreprise, demandait la r\'ealisation d'un \textit{Agent IA d'Onboarding et d'Offboarding RH}~: un assistant capable d'accompagner un nouveau collaborateur d\`es son int\'egration (pr\'esentation de l'entreprise, documents \`a fournir, acc\`es aux outils, formations obligatoires, questions fr\'equentes) et de structurer le d\'epart d'un collaborateur en fin de contrat, mobilit\'e ou d\'emission (restitution du mat\'eriel, cl\^oture des acc\`es, passation des dossiers, entretien de sortie). Le sujet mentionnait explicitement la possibilit\'e de s'appuyer sur une base de connaissances RH, des workflows param\'etrables, et une compr\'ehension du langage naturel pour fournir des r\'eponses contextualis\'ees --- sans pour autant en faire un p\'erim\`etre ferm\'e, laissant une part de conception au stagiaire.
+
+Cette formulation ouverte a impos\'e un premier travail, avant tout code~: cadrer pr\'ecis\'ement ce que le syst\`eme devait faire, pour qui, et surtout ce qu'il ne devait \textbf{jamais} faire --- une question centrale d\`es lors qu'un agent conversationnel touche \`a des donn\'ees RH sensibles.
+
+\subsection{P\'erim\`etre retenu et source de v\'erit\'e m\'etier}
+
+Le p\'erim\`etre a \'et\'e volontairement resserr\'e \`a l'onboarding et l'offboarding uniquement --- sans conges/CET, sans paie, sans avance sur salaire. Ce choix n'est pas anodin~: un p\'erim\`etre plus large aurait dilu\'e l'effort entre trop de processus \`a la fois, au d\'etriment de la qualit\'e de ce qui \'etait r\'eellement demand\'e.
+
+La source de v\'erit\'e m\'etier retenue n'est pas une sp\'ecification abstraite, mais deux checklists qualit\'e r\'eelles de l'entreprise, au format SMSI (Syst\`eme de Management de la S\'ecurit\'e de l'Information, ISO~27001)~: \code{SMSI.ENR.10-1} pour l'onboarding et \code{SMSI.ENR.10-2} pour l'offboarding. Les noms de personnes figurant dans ces documents r\'eels (r\'edacteur, v\'erificateur, approbateur du template) ont \'et\'e syst\'ematiquement anonymis\'es dans le code, la documentation et ce rapport.
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}l X l@{}}
+\toprule
+\textbf{Section (Onboarding)} & \textbf{Items repr\'esentatifs} & \textbf{Responsable} \\
+\midrule
+IT & Bitlocker, Kaspersky, filtrage web, agent GLPI, OneDrive & RH sp\'ecialis\'e IT \\
+Messagerie & Double authentification, Office~365 & RH sp\'ecialis\'e IT \\
+Active Directory & Restrictions USB/ex\'ecutables, VLAN, synchro NTP & RH sp\'ecialis\'e IT \\
+Sensibilisation SI & Politique mots de passe (10~car. min.), t\'el\'etravail & RH du p\^ole \\
+RH & Compte SELFRH, non-divulgation, fiche de d\'echarge & RH du p\^ole \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+L'offboarding suit la m\^eme logique en sens inverse (formatage du poste, suppression des acc\`es, d\'esactivation du profil AD, restitution). Un point de conception important~: un seul workflow g\'en\'erique existe par type, quel que soit le motif de d\'epart (fin de contrat, d\'emission, mobilit\'e, licenciement) --- fid\`ele au document r\'eel, qui ne distingue pas les motifs.
+
+\subsection{R\^oles et organisation}
+
+Trois r\^oles structurent l'ensemble du syst\`eme, \`a port\'ee croissante~: l'\textbf{Employee} (r\^ole par d\'efaut \`a l'auto-inscription) ne voit que ses propres donn\'ees~; le \textbf{RH}, un par p\^ole (d\'epartement), cr\'ee les fiches de ses collaborateurs et joue le r\^ole de r\'edacteur dans le circuit de validation des templates~; l'\textbf{Admin/Qualit\'e} a une port\'ee globale et est seul habilit\'e \`a \'elever le r\^ole d'un compte ou \`a valider un template. Il n'existe pas de r\^ole IT s\'epar\'e~: le travail informatique est port\'e par le RH ``sp\'ecialis\'e IT'' de chaque p\^ole, conform\'ement \`a la structure r\'eelle observ\'ee.
+
+\subsection{Garde-fous m\'etier de l'agent conversationnel}
+
+D\`es le cadrage, une r\`egle non n\'egociable a \'et\'e pos\'ee~: l'agent conversationnel est strictement \textbf{informatif}. Il ne d\'eclenche \textbf{aucune action destructrice ou irr\'eversible} depuis la conversation --- ni suppression de compte, ni r\'evocation d'acc\`es, ni signature. Un statut de dossier peut \^etre \textit{lu}, jamais modifi\'e depuis le chat. Cette contrainte, red\'etaill\'ee au chapitre~3, n'est pas une simple pr\'ecaution produit~: sans garde-fou \'equivalent \'ecrit en code, rien n'emp\^eche un agent conversationnel de produire une r\'eponse plausible mais non fond\'ee --- un risque particuli\`erement sensible d\`es lors que la conversation touche \`a des donn\'ees RH.
+
+\newpage
+% ================================================================ CHAPITRE 2
+\section{Architecture et choix techniques}
+
+\subsection{Architecture hexagonale}
+
+Le backend suit une architecture hexagonale (ports et adaptateurs) \`a quatre couches, avec une r\`egle unique~: une couche ne d\'epend que de celles list\'ees en dessous d'elle, jamais l'inverse.
+
+\shot{0.62}{architecture.png}
+\shotcap{Architecture en couches~: le frontend ne parle qu'\`a Arhia.Api, qui orchestre Core et Infrastructure sans jamais laisser la d\'ependance remonter vers Domain.}
+
+\textbf{Arhia.Domain} contient les entit\'es pures --- \code{Employee}, \code{Department}, \code{WorkflowTemplate}, \code{WorkflowInstance}, \code{UserAccount} --- sans la moindre d\'ependance externe~; ce projet ne sait m\^eme pas qu'une base de donn\'ees existe. \textbf{Arhia.Core} d\'efinit les ports (interfaces) et la logique m\'etier elle-m\^eme~: use cases, RBAC. \textbf{Arhia.Infrastructure} fournit un adaptateur concret par port --- EF~Core, Qdrant, ONNX Runtime, Ollama, SSE --- sans aucune r\`egle m\'etier, uniquement de la traduction m\'ecanique. \textbf{Arhia.Api} est la composition root~: le seul endroit du projet qui d\'ecide quel adaptateur concret brancher derri\`ere chaque port, dans \code{Program.cs}.
+
+Le b\'en\'efice concret de cette discipline s'est v\'erifi\'e \`a plusieurs reprises pendant le stage~: remplacer un composant d'infrastructure (par exemple, faire \'evoluer le mod\`ele d'embedding) ne touche que la couche Infrastructure, et la logique m\'etier se teste enti\`erement sans la moindre infrastructure r\'eelle --- au moyen de doubles de test (Moq), ce qui a permis de construire une suite de 245~tests sans jamais d\'emarrer un serveur SQL ou un moteur ONNX pour valider une r\`egle m\'etier.
+
+\subsection{Mod\`ele de donn\'ees}
+
+Le mod\`ele de donn\'ees porte l'ensemble des r\`egles m\'etier du chapitre~1. Un \code{WorkflowTemplate} organise des \code{TemplateSection}, elles-m\^emes compos\'ees de \code{TemplateItem}~; un \code{WorkflowInstance} --- le dossier concret d'un collaborateur --- poss\`ede une collection de \code{ChecklistItemStatus}, copie op\'erationnelle d'un item de template au moment de l'instanciation.
+
+\shot{0.82}{entity_model.png}
+\shotcap{Mod\`ele de donn\'ees simplifi\'e. Un \code{WorkflowInstance} n'est jamais construit \`a partir d'un template autre qu'\code{Approved} --- contrainte impos\'ee par le code, pas seulement document\'ee (voir \S\ref{sec:workflows}).}
+
+Un d\'etail d'impl\'ementation m\'erite d'\^etre soulign\'e~: le lien logique entre un \code{TemplateItem} et les \code{ChecklistItemStatus} qu'il g\'en\`ere passe par un identifiant de tra\c{c}abilit\'e (\code{TemplateItemId}), et non par une cl\'e \'etrang\`ere EF~Core configur\'ee comme telle --- un choix de mapping assum\'e, qui refl\`ete le fait qu'une checklist instanci\'ee est une \textit{copie ind\'ependante} du template au moment T, non un lien vivant vers lui.
+
+\subsection{Justification des choix techniques}
+
+Les frameworks backend et frontend ont \'et\'e conserv\'es de la premi\`ere version~: une expertise d\'ej\`a acquise n'apportait aucune valeur \`a r\'eapprendre pour un projet de stage \`a p\'erim\`etre resserr\'e. En revanche, tout ce qui touche \`a l'intelligence artificielle et \`a l'infrastructure de donn\'ees a \'et\'e repens\'e int\'egralement, sans reprendre les d\'ecisions de la premi\`ere version par d\'efaut.
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}l X@{}}
+\toprule
+\textbf{Composant} & \textbf{Choix et justification} \\
+\midrule
+Backend & .NET~8 (LTS), ASP.NET Core, EF~Core --- seul SDK install\'e au d\'emarrage de l'impl\'ementation, changement \`a co\^ut faible si besoin \\
+Frontend & Next.js~15, pattern \textbf{BFF} (Backend For Frontend) --- le JWT n'est jamais expos\'e au navigateur \\
+Authentification & JWT + ASP.NET Identity --- Keycloak envisag\'e puis \'ecart\'e comme disproportionn\'e pour 3~r\^oles et une dizaine de comptes \\
+Donn\'ees relationnelles & SQL~Server --- r\'eutilise l'infrastructure et l'expertise EF~Core d\'ej\`a en place \\
+Donn\'ees vectorielles & Qdrant, d\'edi\'e --- la valorisation d'une vraie comp\'etence d'infrastructure IA prime sur la simplicit\'e d'une solution embarqu\'ee \\
+Chunking & Structurel (titres Markdown) avec recouvrement, via \code{Microsoft.ML.Tokenizers} (paquet officiel, WordPiece \emph{et} SentencePiece) \\
+Embedding & ONNX Runtime .NET pur, mod\`ele multilingue 768d (\code{paraphrase-multilingual-mpnet-base-v2}) --- corpus en fran\c{c}ais, contr\^ole total de la latence sans appel \`a Ollama pour cette \'etape \\
+Reranking & Cross-encodeur ONNX \code{BAAI/bge-reranker-v2-m3}, poids publi\'es directement --- \textbf{obligatoire}, pas une am\'elioration optionnelle \\
+LLM Router + Generator & Ollama local, \code{phi4-mini:3.8b} pour les deux r\^oles (\'ecart document\'e ci-dessous) \\
+Temps r\'eel & SSE (Server-Sent Events) --- un seul m\'ecanisme pour le chat en streaming et les notifications \\
+D\'eploiement & Docker Compose, 4~services, Ollama natif sur l'h\^ote \\
+Tests & xUnit + Moq + FluentAssertions \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{\'Ecart assum\'e~: un seul mod\`ele pour deux r\^oles.} L'intention initiale pr\'evoyait un mod\`ele distinct, plus capable, pour le Generator. En pratique, \code{gemma4:12b} --- candidat naturel --- a \'et\'e test\'e r\'eellement sur la machine de d\'eveloppement et n'a produit \textbf{aucune r\'eponse en plus de deux minutes}, faute de GPU adapt\'e. \code{phi4-mini:3.8b} r\'epond en quelques secondes et reste la seule option praticable sur cette infrastructure pour les deux r\^oles. Ce compromis, document\'e plut\^ot que dissimul\'e, est repris et approfondi au chapitre~3.
+
+\subsection{S\'ecurit\'e~: RBAC \`a port\'ee et pattern BFF}
+\label{sec:securite}
+
+Le contr\^ole d'acc\`es repose sur deux m\'ecanismes \textbf{distincts et v\'erifi\'es s\'epar\'ement}. Le premier, le RBAC, r\'epond \`a la question \guillemotleft~ce r\^ole peut-il faire cette action, en g\'en\'eral~?~\guillemotright~; toute la logique tient dans un dictionnaire figé (\code{RbacMatrix}), constante en code plut\^ot que donn\'ee en base, donc jamais d\'esynchronis\'ee et trivialement testable.
+
+\shot{0.55}{rbac_scope.png}
+\shotcap{Port\'ee croissante des trois r\^oles~: un Employee ne voit que ses propres donn\'ees, un RH g\`ere son p\^ole, seul l'Admin/Qualit\'e a une port\'ee globale et peut \'elever un r\^ole.}
+
+Le second m\'ecanisme, \code{DepartmentScopeGuard}, r\'epond \`a une question plus fine~: \guillemotleft~ce compte a-t-il le droit sur \textbf{cette} cible pr\'ecise~?~\guillemotright. Il est syst\'ematiquement v\'erifi\'e \textbf{apr\`es} le RBAC, jamais \`a sa place~: un RH qui cible un dossier hors de son p\^ole est refus\'e, quel que soit son r\^ole par ailleurs --- une garantie v\'erifi\'ee en conditions r\'eelles pendant le stage (chapitre~6).
+
+Enfin, le pattern \textbf{BFF} garantit que le navigateur ne d\'etient jamais le JWT~: le frontend Next.js appelle l'API c\^ot\'e serveur avec le jeton, puis pose un cookie \code{httpOnly}, invisible en JavaScript --- invuln\'erable, en particulier, \`a un vol de jeton par script inject\'e (XSS).
+
+\subsection{Temps r\'eel~: un seul m\'ecanisme pour deux usages}
+
+Le chat en streaming et la barre de notifications reposent tous deux sur \textbf{SSE} (Server-Sent Events)~: un flux HTTP unidirectionnel serveur vers client, plus l\'eger \`a mettre en \oe{}uvre que des WebSockets pour un besoin strictement descendant. Ce choix a r\'ev\'el\'e, en cours de d\'eveloppement, un pi\`ege instructif d\'etaill\'e au chapitre~7~: une optimisation par d\'efaut, invisible en apparence, peut casser silencieusement un flux progressif.
+
+\newpage
+% ================================================================ CHAPITRE 4
+\section{Le c\oe{}ur du projet~: pipeline RAG et orchestration conversationnelle}
+
+Ce chapitre d\'ecrit le sous-syst\`eme le plus dense du projet, celui qui concentre la plus grande valeur ajout\'ee technique. Deux sous-syst\`emes distincts et compl\'ementaires le composent~: le \textbf{pipeline RAG}, qui r\'epond \`a la question \guillemotleft~o\`u chercher l'information~?~\guillemotright, et l'\textbf{orchestration conversationnelle}, qui r\'epond \`a \guillemotleft~que faire de la question~?~\guillemotright.
+
+\subsection{Pourquoi un RAG, et pourquoi un garde-fou}
+
+Un mod\`ele de langage laiss\'e \`a lui-m\^eme r\'epond \textit{de m\'emoire}~: il peut produire une r\'eponse plausible mais fausse (une hallucination), en particulier sur des politiques internes qu'il n'a \'evidemment jamais vues \`a l'entra\^inement. Le RAG (\textit{Retrieval-Augmented Generation}) r\'epond \`a ce probl\`eme en cherchant d'abord les passages r\'eellement pertinents dans un corpus documentaire, puis en for\c{c}ant le mod\`ele \`a ne s'appuyer que sur ce contexte retrouv\'e. C'est pr\'ecis\'ement le risque pris au s\'erieux d\`es la conception de ce projet~: sans reranking ni garde-fou explicite, rien ne garantit qu'une r\'eponse \guillemotleft~sourc\'ee~\guillemotright~le soit r\'eellement.
+
+\subsection{Le pipeline RAG en quatre phases obligatoires}
+
+\shot{0.5}{ai_pipeline.png}
+\shotcap{Les quatre phases du pipeline RAG, ex\'ecut\'ees \`a l'ingestion (1--3) et \`a chaque question (2--4).}
+
+\textbf{Phase 1 --- Chunking structurel.} Les documents sont d\'ecoup\'es par structure (titres Markdown), pas par taille fixe aveugle, avec un recouvrement entre chunks voisins pour ne jamais perdre une information \`a cheval sur une fronti\`ere de d\'ecoupage~:
+\begin{center}\footnotesize
+\begin{verbatim}
+public MarkdownChunker(
+    Func<string, int> countTokens,
+    int maxTokensPerChunk = 400,
+    double overlapRatio = 0.15)
+\end{verbatim}
+\end{center}
+Une section sous le budget (400~tokens par d\'efaut) devient un chunk tel quel~; une section plus longue est sous-d\'ecoup\'ee paragraphe par paragraphe, avec 15~\% de recouvrement conserv\'e entre sous-chunks.
+
+\textbf{Phase 2 --- Embedding.} Chaque chunk devient un vecteur de 768~dimensions, via un mod\`ele multilingue ex\'ecut\'e en ONNX~Runtime~.NET pur --- aucun appel \`a Ollama pour cette \'etape, pour un contr\^ole total de la latence. La tokenisation elle-m\^eme a exig\'e un travail de correction non trivial~: le tokenizer SentencePiece utilis\'e (\code{Microsoft.ML.Tokenizers}) produit des identifiants dans un espace diff\'erent de celui attendu par les poids ONNX publi\'es (convention Hugging Face) --- un d\'ecalage v\'erifi\'e empiriquement contre le fichier \code{tokenizer.json} du mod\`ele, puis corrig\'e par une fonction de correspondance d\'edi\'ee.
+
+\textbf{Phase 3 --- Storage.} Les vecteurs sont index\'es dans \textbf{Qdrant}, en similarit\'e cosinus, avec une recherche approximative (ANN, via HNSW)~: on renonce \`a la garantie d'exactitude en \'echange d'une vitesse largement sup\'erieure \`a grande \'echelle. Le corpus r\'eel du projet --- six documents --- a \'et\'e index\'e et v\'erifi\'e~: 72~chunks au total.
+
+\textbf{Phase 4 --- Reranking.} Cette phase, la plus d\'eterminante pour la qualit\'e des r\'eponses, distingue un pipeline RAG r\'eellement fiable d'un RAG na\"if. L'embedding (phase~2) est un \textbf{bi-encodeur}~: il encode requ\^ete et documents \textit{s\'epar\'ement}, rapide mais approximatif. Le reranking est un \textbf{cross-encodeur}~: il encode la paire requ\^ete-document \textit{ensemble}, en une seule passe --- plus lent, nettement plus pr\'ecis --- selon le format standard de la famille RoBERTa (\code{<s> requ\^ete </s></s> document </s>}). D'o\`u l'architecture \`a deux vitesses~: le bi-encodeur r\'eduit rapidement tout le corpus \`a quelques candidats, le cross-encodeur les r\'eordonne finement.
+
+\textbf{Pi\`ege r\'eel retenu.} Un score de reranking \'elev\'e (jusqu'\`a 0,78 observ\'e) ne garantit \textbf{pas} que le chunk contient la r\'eponse --- seulement qu'il est th\'ematiquement proche. Le score mesure une proximit\'e, pas une v\'erit\'e~: c'est pourquoi, comme le montre la section suivante, la d\'ecision finale relit le texte r\'eellement g\'en\'er\'e, jamais le score seul.
+
+\subsection{Orchestration~: Router et Generator}
+
+Deux r\^oles distincts se partagent deux appels \`a Ollama. Le \textbf{Router} classe chaque question en une intention parmi trois valeurs ferm\'ees~: \code{DOCUMENTAIRE}, \code{STATUT\_DOSSIER}, \code{HORS\_PERIMETRE} --- des libell\'es volontairement laiss\'es en fran\c{c}ais dans le code, calibr\'es empiriquement avec le mod\`ele. Sa sortie brute n'est \textbf{jamais} utilis\'ee telle quelle~:
+\begin{center}\footnotesize
+\begin{verbatim}
+if (normalized.Contains("STATUT_DOSSIER"))
+    return ConversationIntent.CaseStatus;
+if (normalized.Contains("DOCUMENTAIRE"))
+    return ConversationIntent.DocumentaryQuestion;
+return ConversationIntent.OutOfScope;
+// vide, timeout, mot hallucine : jamais un acces elargi
+\end{verbatim}
+\end{center}
+Ce test par \code{.Contains(...)}, jamais par \'egalit\'e stricte, tol\`ere qu'un mod\`ele de 3,8 milliards de param\`etres ajoute du texte autour du mot attendu. Surtout~: tout ce qui ne correspond exactement \`a aucune des deux premi\`eres valeurs --- une sortie vide, un timeout r\'eseau, un mot invent\'e --- retombe par d\'efaut sur \code{HORS\_PERIMETRE}. C'est un syst\`eme \textbf{fail-safe, pas fail-open}~: une panne ou une ambigu\"it\'e du mod\`ele ne peut jamais, par construction, \'elargir accidentellement un acc\`es.
+
+Le \textbf{Generator}, lui, ne re\c{c}oit que le contexte d\'ej\`a filtr\'e et \'ecrit la r\'eponse en streaming, fragment par fragment, via SSE.
+
+\subsection{Le garde-fou anti-hallucination~: deux portes de sortie en code}
+
+C'est, de l'aveu m\^eme de l'exp\'erience de ce stage, le point le plus important de tout le projet --- et la r\'eponse directe \`a l'\'echec silencieux constat\'e dans la premi\`ere version. Deux portes de sortie anticip\'ee existent \textbf{avant m\^eme} d'envisager d'appeler le Generator~:
+\begin{center}\footnotesize
+\begin{verbatim}
+if (candidates.Count == 0)
+    return new DocumentaryPreparation(
+        false, null, Array.Empty<DocumentChunk>());
+// ... reranking, filtrage par MinimumRelevanceThreshold = 0.01f ...
+if (best.Count == 0)
+    return new DocumentaryPreparation(
+        false, null, Array.Empty<DocumentChunk>());
+\end{verbatim}
+\end{center}
+Si Qdrant ne retourne aucun candidat, ou si aucun ne passe le seuil de pertinence apr\`es reranking, le Generator n'est \textbf{jamais invoqu\'e}~: le syst\`eme r\'epond directement qu'il n'a pas trouv\'e l'information. Le seuil retenu (0,01) est volontairement bas~: il sert de filtre de bruit, pas de garantie \`a lui seul --- c'est le texte r\'eellement g\'en\'er\'e qui est ensuite relu contre plusieurs formulations de refus possibles, pour d\'etecter un refus d\'eguis\'e m\^eme lorsque des chunks pertinents \'etaient disponibles. Ce n'est donc pas une consigne de prompt qu'un mod\`ele pourrait ignorer sur une question ambigu\"e~: c'est un garde-fou \'ecrit en code, v\'erifiable, et couvert par des tests unitaires d\'edi\'es. C'est ce qui rend le mode de d\'efaillance du syst\`eme \guillemotleft~gracieusement faux~\guillemotright~--- il peut se tromper de cat\'egorie, mais ne ment jamais avec assurance sur un fait.
+
+\subsection{Limites mesur\'ees et d\'emarche empirique}
+
+Le routeur se trompe sur environ \textbf{27~\%} des questions d'un jeu de test de 48~questions (13 sur 48 mal class\'ees, en \code{STATUT\_DOSSIER} ou \code{HORS\_PERIMETRE} au lieu de \code{DOCUMENTAIRE}). Cette limite est mesur\'ee et assum\'ee, pas masqu\'ee. Une tentative d'am\'elioration --- doubler les exemples few-shot dans le prompt du routeur --- a \'et\'e test\'ee empiriquement puis \textbf{abandonn\'ee}~: reconfirm\'ee sur 11~cas r\'eels apr\`es coup, elle n'a corrig\'e qu'un seul cas sur onze, sans effet mesurable jugé suffisant, et la modification a \'et\'e annul\'ee plut\^ot que conserv\'ee sans preuve de b\'en\'efice. Une seconde tentative, ajoutant une temp\'erature basse au routeur dans l'espoir d'un comportement plus d\'eterministe, a \'et\'e mesur\'ee \`a deux reprises (temp\'erature 0,0 puis 0,15) sur le jeu de 48~questions complet~: le score a \textbf{baiss\'e} \`a chaque fois (25/48 contre une base de 30/48), r\'esultat contre-intuitif mais coh\'erent avec l'hypoth\`ese qu'un mod\`ele de cette taille, n'ayant pas v\'eritablement appris la r\`egle de classification, devient d\'eterministement faux sur les cas limites plut\^ot que parfois juste par hasard. Cette tentative a \'egalement \'et\'e abandonn\'ee.
+
+Sur l'ensemble du pipeline conversationnel (routage puis recherche document\'ee puis g\'en\'eration), une mesure compl\`ete r\'ealis\'ee sur le jeu de 48~questions a produit 21~r\'eponses correctes, avant l'application de trois correctifs cibl\'es~: (1)~un indicateur \code{Sourced} qui restait \`a \code{true} m\^eme lorsque le g\'en\'erateur avait en r\'ealit\'e refus\'e en texte --- un score de reranking \'elev\'e ne garantissant pas la pr\'esence de la r\'eponse, comme d\'ej\`a not\'e~; (2)~une clarification du prompt du g\'en\'erateur pour r\'eduire les refus injustifi\'es lorsque le contexte contenait pourtant la r\'eponse~; (3)~une correction de mots-cl\'es trop stricts dans le jeu de questions lui-m\^eme. \textbf{Ces correctifs n'ont pas \'et\'e reconfirm\'es sur l'ensemble des 48~questions} \`a la date de r\'edaction de ce rapport --- une limitation assum\'ee plut\^ot qu'un chiffre invent\'e pour para\^itre plus favorable.
+
+Le vrai levier identifi\'e pour am\'eliorer le routage n'est ni le prompt, ni la temp\'erature, mais la taille du mod\`ele~: un plan de bascule vers un serveur Ollama d'entreprise, avec des mod\`eles plus capables (\code{phi4:14b} pour le routeur, \code{qwen3.5:9b} pour le g\'en\'erateur), a \'et\'e pr\'epar\'e pour une pr\'esentation en fin de stage. Les r\'esultats de ce test, mesur\'e en conditions r\'eelles contre l'infrastructure de l'entreprise, ne sont pas encore consolid\'es dans la documentation du projet \`a la date de r\'edaction de ce rapport et ne sont donc pas pr\'esent\'es ici comme acquis.
+
+\newpage
+% ================================================================ CHAPITRE 5
+\section{Workflows m\'etier}
+\label{sec:workflows}
+
+\subsection{De l'employ\'e au dossier r\'eel~: le flux d'onboarding}
+
+Cr\'eer une fiche collaborateur (poste, p\^ole, type de contrat, date) d\'eclenche la r\'esolution des items attendus contre le \textbf{dernier template approuv\'e} du type correspondant, crois\'e sur trois dimensions~: poste~$\times$~p\^ole~$\times$~type de contrat. Un stagiaire, par exemple, ne re\c{c}oit typiquement pas de compte SELFRH ni de processus disciplinaire \`a signer --- une personnalisation r\'eellement appliqu\'ee par le code (\code{ResolveApplicableItems}), pas seulement document\'ee~: sur le jeu de donn\'ees de d\'eveloppement, les collaborateurs en contrat de stage re\c{c}oivent syst\'ematiquement moins d'items que leurs coll\`egues en CDI (par exemple 20 items sur 22 en onboarding). Le \code{WorkflowInstance} ainsi cr\'e\'e porte une collection de \code{ChecklistItemStatus} coch\'es ind\'ependamment --- chacun constituant une trace d'audit horodatable --- jusqu'\`a cl\^oture, puis archivage en lecture seule d\'efinitive.
+
+\subsection{Circuit de validation qualit\'e des templates}
+
+Un template de checklist n'est jamais modifi\'e librement~: il suit un circuit \`a trois identit\'es distinctes, reproduisant le processus qualit\'e r\'eel de l'entreprise.
+
+\shot{0.42}{workflow_circuit.png}
+\shotcap{Un RH \textbf{propose}, un premier compte Admin/Qualit\'e \textbf{v\'erifie}, un second \textbf{approuve} --- trois identit\'es distinctes, jamais la m\^eme personne deux fois.}
+
+Cette contrainte de s\'eparation des r\^oles est impos\'ee \textbf{par le code de l'entit\'e elle-m\^eme}, pas par une simple convention~: la m\'ethode \code{Approve} refuse explicitement qu'un vérificateur approuve son propre travail, et qu'un r\'edacteur approuve le sien. Surtout~: \textbf{seul un template au statut \code{Approved} peut instancier un dossier r\'eel} --- une garantie v\'erifi\'ee par le use case d'instanciation lui-m\^eme, pas seulement document\'ee dans ce rapport.
+
+\subsection{Cycle de vie et archivage}
+
+Une fois l'offboarding termin\'e (cl\^oture sign\'ee), le dossier du collaborateur est archiv\'e en lecture seule~: consultable par RH et Admin/Qualit\'e \`a des fins d'audit, mais plus jamais modifiable. Ce statut \code{Archived} est distinct d'un statut \code{Closed} interm\'ediaire, ce qui permet de distinguer, dans les donn\'ees de d\'eveloppement, un dossier r\'ecemment cl\^otur\'e d'un dossier d\'efinitivement clos --- une distinction visible dans l'interface (chapitre~5).
+
+\newpage
+% ================================================================ CHAPITRE 6
+\section{Interface utilisateur}
+
+Le frontend suit le pattern BFF d\'ej\`a d\'ecrit (\S\ref{sec:securite})~: chaque page authentifi\'ee est servie par Next.js, qui relaie les appels vers l'API .NET c\^ot\'e serveur, sans jamais exposer le JWT au navigateur. L'interface reprend l'identit\'e visuelle du produit --- un indigo distinctif et un logo hexagonal, clin d'\oe{}il \`a l'architecture hexagonale r\'eelle du syst\`eme --- disponible en mode clair et sombre, avec une palette sombre recalcul\'ee pour respecter un ratio de contraste WCAG~AA plut\^ot qu'une simple inversion de couleurs.
+
+\subsection{Tableau de bord par r\^ole}
+
+Apr\`es connexion, le tableau de bord affiche un contenu adapt\'e au r\^ole connect\'e~: un Employee ne voit que son propre dossier, un RH voit les dossiers en cours de son p\^ole, un Admin/Qualit\'e voit l'ensemble des p\^oles avec des compteurs agr\'eg\'es. Une carte d\'edi\'ee, visible uniquement pour ce dernier r\^ole, permet de d\'eclencher la r\'eindexation du corpus documentaire sans passer par une commande manuelle --- une fonctionnalit\'e ajout\'ee en cours de stage \`a la demande explicite de l'encadrant.
+
+\shot{0.85}{captures/dashboard_light.jpg}
+\shotcap{Tableau de bord, vue Admin/Qualit\'e --- 23 dossiers en cours, 29 au total, 456 items en attente, donn\'ees r\'eelles de l'environnement de d\'eveloppement.}
+
+\subsection{Dossiers et collaborateurs}
+
+Les pages Dossiers et Collaborateurs exposent, en lecture, l'ensemble des donn\'ees d\'ej\`a manipulables c\^ot\'e API~: statuts de workflow (badges color\'es distincts pour en~cours, cl\^otur\'e, archiv\'e), progression de checklist, et types de contrat. Le d\'etail d'un dossier affiche la checklist compl\`ete, group\'ee par section, avec le statut de chaque item et sa date de traitement.
+
+\shot{0.85}{captures/workflows_list_light.jpg}
+\shotcap{Liste des dossiers --- statuts \guillemotleft~Archiv\'e~\guillemotright~et \guillemotleft~En cours~\guillemotright~visibles simultan\'ement, donn\'ees r\'eelles.}
+
+\shot{0.85}{captures/workflow_detail_light.jpg}
+\shotcap{D\'etail d'un dossier d'offboarding cl\^otur\'e et archiv\'e (8/8 items), avec la date de traitement de chaque item.}
+
+\subsection{L'agent conversationnel en action}
+
+La page \guillemotleft~Assistant~\guillemotright~expose le c\oe{}ur IA d\'ecrit au chapitre~3. La capture ci-dessous montre un \'echange r\'eel~: la question pos\'ee d\'eclenche le pipeline complet (classification, recherche vectorielle, reranking, g\'en\'eration en streaming), et la r\'eponse affich\'ee cite explicitement le document source.
+
+\shot{0.85}{captures/chat_light.jpg}
+\shotcap{\'Echange r\'eel avec l'agent~: r\'eponse sourc\'ee sur \code{04\_procedures\_it\_securite.md}, conforme au contenu r\'eel du document.}
+
+\newpage
+% ================================================================ CHAPITRE 7
+\section{R\'esultats et v\'erifications}
+
+Une exigence a \'et\'e tenue tout au long du stage~: ne jamais consid\'erer une fonctionnalit\'e termin\'ee sur la seule base d'une lecture de code, mais la v\'erifier en conditions r\'eelles --- HTTP r\'eel, base de donn\'ees r\'eelle, mod\`ele r\'eellement invoqu\'e --- chaque fois que possible.
+
+\subsection{Tests automatis\'es}
+
+La suite de tests compte \textbf{245~tests} (xUnit, Moq, FluentAssertions) pour \textbf{0~warning} au build --- 244 verts. Le seul échec est un flake pré-existant et documenté, \code{Rag\-Pipeline\-Integration\-Tests} --- accumulation de données dans la collection Qdrant persistante entre exécutions, sans rapport avec le code récent. Elle couvre la logique m\'etier (RBAC, portée d\'epartement, machine \`a \'etats des templates), le pipeline RAG (chunking, tokenisation, reranking) et l'orchestration conversationnelle --- notamment les cas de garde-fou (z\'ero candidat, tout sous le seuil de pertinence, dossier introuvable, portée refus\'ee) --- gr\^ace \`a la testabilit\'e permise par l'architecture hexagonale~: aucun de ces tests ne d\'emarre de base de donn\'ees, de moteur ONNX ou de serveur Ollama r\'eel.
+
+\subsection{V\'erifications de bout en bout}
+
+Plusieurs garanties ont \'et\'e v\'erifi\'ees directement en HTTP, au-del\`a des tests unitaires~: un RH tentant d'ouvrir directement l'URL d'un dossier hors de son p\^ole re\c{c}oit un refus explicite, jamais les donn\'ees~; une question document\'ee produit une r\'eponse sourc\'ee, arrivant token par token en streaming~; une question hors p\'erim\`etre est refus\'ee poliment~; et un compte d\'esactiv\'e (\code{IsActive=false}) ne peut plus agir m\^eme avec un jeton encore valide, l'acteur \'etant relu en base \`a chaque requ\^ete plut\^ot que d\'eduit uniquement du contenu du jeton.
+
+\subsection{\'Evaluation du pipeline RAG}
+
+Un jeu de 48~questions de r\'ef\'erence (\guillemotleft~gold~\guillemotright), r\'edig\'e sp\'ecifiquement pour ce projet et ancr\'e sur le corpus r\'eel --- 36~questions document\'ees, 6~hors p\'erim\`etre, 6~hors corpus --- sert \`a mesurer objectivement le pipeline plut\^ot que de se fier \`a une impression qualitative. Isol\'ee du reste du pipeline (sans appel LLM), l'\'etape de recherche documentaire seule atteint \textbf{36/36}~: le probl\`eme mesur\'e au chapitre~3 ne vient donc pas de la recherche, mais de l'\'etape de classification d'intention en amont.
+
+\subsection{D\'eploiement}
+
+Le d\'eploiement complet --- quatre services orchestr\'es par Docker Compose, plus Ollama natif sur l'h\^ote, rejoint via \code{host.docker.internal} --- a \'et\'e v\'erifi\'e sur une base fra\^iche~: une seule commande d\'emarre la pile, les migrations EF~Core s'appliquent automatiquement, et un parcours complet (inscription, connexion, question sourc\'ee) a \'et\'e r\'ealis\'e de bout en bout \`a travers toute la pile conteneuris\'ee.
+
+\newpage
+% ================================================================ CHAPITRE 8
+\section{Difficult\'es rencontr\'ees}
+
+Plusieurs difficult\'es techniques concr\`etes ont demand\'e un vrai travail d'investigation --- retenues ici parce qu'elles ont \'et\'e les plus formatrices.
+
+\subsection{Un d\'ecalage d'indices invisible entre deux tokenizers}
+
+Le mod\`ele d'embedding attend des identifiants de tokens dans l'espace de convention Hugging Face, alors que le tokenizer SentencePiece officiel de Microsoft produit des identifiants dans son propre espace natif --- un d\'ecalage qui ne se manifeste par \textbf{aucune erreur explicite}~: le mod\`ele produit des vecteurs, simplement incorrects, sans avertissement. Le diagnostic a exig\'e une comparaison ligne \`a ligne avec le fichier \code{tokenizer.json} officiel du mod\`ele pour identifier pr\'ecis\'ement la correspondance attendue, avant d'\'ecrire une fonction de correction d\'edi\'ee. Cette classe de bug --- un r\'esultat plausible mais faux, sans signal d'erreur --- s'est r\'ev\'el\'ee la plus dangereuse rencontr\'ee pendant le stage, pr\'ecis\'ement parce qu'elle ne se signale pas d'elle-m\^eme.
+
+\subsection{Une optimisation par d\'efaut qui casse un flux progressif}
+
+Le streaming SSE s'est heurt\'e, \`a deux niveaux ind\'ependants de la pile, au m\^eme pi\`ege~: une optimisation de bufferisation, pens\'ee pour des r\'eponses HTTP classiques, incompatible avec un flux progressif. C\^ot\'e client .NET vers Ollama, l'absence du drapeau \code{HttpCompletionOption.ResponseHeadersRead} aurait fait attendre \`a \code{HttpClient} la r\'eponse compl\`ete avant de la rendre disponible. C\^ot\'e serveur Next.js, la compression HTTP int\'egr\'ee bufferisait de la m\^eme mani\`ere toute la r\'eponse avant envoi --- corrig\'e par \code{compress: false} dans la configuration. Les deux pi\`eges ont \'et\'e trouv\'es empiriquement, en observant qu'aucun octet n'arrivait avant la fin compl\`ete du flux, plut\^ot que suppos\'es \`a l'avance.
+
+\subsection{Un renommage de dossier refus\'e par Windows}
+
+Le renommage du produit (voir note en introduction) a exig\'e de renommer des dossiers de projet .NET r\'ecemment reconstruits. Windows a refus\'e le renommage (\guillemotleft~Acc\`es refus\'e~\guillemotright) sur plusieurs dossiers~: la cause, trouv\'ee par \'elimination, \'etait des processus \code{dotnet.exe} de type serveur de compilation (MSBuild), laiss\'es vivants en arri\`ere-plan par une commande de build ant\'erieure et tenant encore des fichiers ouverts. Un arr\^et explicite de ces serveurs de compilation a r\'esolu la majorit\'e des cas~; pour le dossier restant, un contournement fiable a consist\'e \`a cr\'eer le nouveau dossier vide puis \`a d\'eplacer chaque fichier individuellement plut\^ot que de renommer le dossier entier d'un bloc.
+
+\subsection{V\'erifier une palette de couleurs plut\^ot que de la juger \`a l'\oe{}il}
+
+Lors du retravail de la palette sombre de l'interface (chapitre~5), un calcul program\'e du ratio de contraste WCAG --- plut\^ot qu'une appr\'eciation visuelle --- a r\'ev\'el\'e que deux des six couleurs de statut existantes tombaient en dessous du seuil d'accessibilit\'e AA (3,58:1 et 3,95:1 mesur\'es, contre 4,5:1 requis), alors qu'elles paraissaient lisibles \`a l'\oe{}il sur l'\'ecran de d\'eveloppement. Corrig\'ees en assombrissant l\'eg\`erement leur teinte de fond jusqu'\`a franchir le seuil, elles ont \'et\'e revérifi\'ees par le calcul et en navigateur --- une preuve concr\`ete qu'une mesure objective d\'etecte des probl\`emes qu'une simple relecture manque.
+
+\enlargethispage{\baselineskip}
+\newpage
+% ================================================================ CHAPITRE 9
+\section{Comp\'etences acquises}
+
+\subsection{Comp\'etences techniques}
+
+Ce stage a \'et\'e l'occasion d'une mont\'ee en comp\'etence concr\`ete sur un pipeline RAG complet --- du chunking structurel au reranking par cross-encodeur --- au-del\`a d'un simple appel \`a une API d'embedding~: comprendre pourquoi un bi-encodeur et un cross-encodeur ne jouent pas le m\^eme r\^ole, pourquoi une similarit\'e cosinus exige une normalisation L2 en amont, ou pourquoi un score de similarit\'e n'est pas une preuve de v\'erit\'e, sont des enseignements qui d\'epassent ce seul projet. La mise en \oe{}uvre d'une architecture hexagonale \`a l'\'echelle r\'eelle d'un projet complet --- pas seulement sur un exemple d'\'ecole --- a \'egalement \'et\'e formatrice, en particulier sur la discipline qu'elle impose~: r\'esister \`a la tentation de faire fuiter une d\'ependance d'infrastructure dans la couche m\'etier, m\^eme quand un raccourci semble plus rapide sur le moment.
+
+\subsection{Comp\'etences m\'ethodologiques}
+
+Le stage a impos\'e une discipline d'audit critique et continu du travail d\'ej\`a produit --- une comp\'etence rarement mise en pratique aussi directement dans un cadre acad\'emique, o\`u l'on cherche plus souvent \`a terminer un travail commenc\'e qu'\`a le remettre en question d\`es qu'un probl\`eme structurel appara\^it. La rigueur de mesure adopt\'ee tout au long du projet --- ne jamais affirmer un chiffre non mesur\'e, documenter une tentative abandonn\'ee aussi honn\^etement qu'une r\'eussite --- s'est impos\'ee progressivement comme une m\'ethode de travail \`a part enti\`ere, illustr\'ee \`a plusieurs reprises dans ce rapport (chapitre~3, chapitre~7).
+
+\subsection{Comp\'etences transversales}
+
+Le stage s'est d\'eroul\'e avec une large autonomie de conception, contrebalanc\'ee par des points de d\'ecision explicites avec l'encadrant sur les choix engageants (p\'erim\`etre, architecture, arbitrages de mod\`eles) --- un \'equilibre qui a exig\'e de savoir identifier, seul, quelles d\'ecisions rel\`event effectivement d'un arbitrage produit \`a faire valider, plut\^ot que de tout remonter ou, \`a l'inverse, de tout trancher sans en r\'ef\'erer.
+
+\newpage
+% ================================================================ CHAPITRE 10
+\section{Bilan et perspectives}
+
+\subsection{Ce qui est livr\'e et v\'erifi\'e}
+
+\begin{itemize}
+  \item Un socle m\'etier complet --- RBAC \`a trois r\^oles, portée d\'epartement, machine \`a \'etats des templates, workflows d'onboarding et d'offboarding --- test\'e et v\'erifi\'e en conditions r\'eelles.
+  \item Un pipeline RAG \`a quatre phases obligatoires, de bout en bout en ONNX Runtime .NET pur, corpus r\'eel index\'e et interrog\'e avec succ\`es.
+  \item Une orchestration conversationnelle prot\'eg\'ee par un garde-fou anti-hallucination \'ecrit en code, couvert par des tests d\'edi\'es.
+  \item Une interface compl\`ete par r\^ole --- tableau de bord, dossiers, collaborateurs --- au-del\`a du seul agent conversationnel, avec une administration d\'edi\'ee pour la r\'eindexation du corpus.
+  \item Un frontend temps r\'eel (chat et notifications SSE), en mode clair et sombre, avec une identit\'e visuelle propre au produit.
+  \item Un d\'eploiement Docker Compose complet, v\'erifi\'e sur base fra\^iche.
+\end{itemize}
+
+\subsection{Limites assum\'ees}
+
+Le taux de mauvais classement du routeur d'intention (environ 27~\%) reste la limite la plus significative du syst\`eme actuel, document\'ee et mesur\'ee plut\^ot que masqu\'ee (chapitre~3). Trois cas particuliers m\'etier --- mutation inter-p\^ole, annulation ou suspension d'un dossier, p\^ole temporairement vacant --- ont des propositions de comportement r\'edig\'ees mais non encore valid\'ees en pratique. Les endpoints de lecture c\^ot\'e API existent d\'esormais, mais certaines fonctionnalit\'es d'administration (gestion des templates, gestion fine des comptes) restent \`a exposer c\^ot\'e interface.
+
+\subsection{Perspectives}
+
+Le levier le plus prometteur pour am\'eliorer la fiabilit\'e du routeur est le passage \`a des mod\`eles plus capables sur un serveur d\'edi\'e --- une piste d\'ej\`a pr\'epar\'ee techniquement (chapitre~3) et \`a confirmer par une mesure r\'eelle. Les phases restantes de l'interface (mod\`eles de checklist, administration compl\'ementaire, finitions du chat et des notifications) constituent la suite naturelle du travail d\'ej\`a livr\'e sur le frontend. Enfin, les trois cas particuliers m\'etier identifi\'es en cadrage (chapitre~1) restent \`a impl\'ementer une fois leur comportement pr\'ecis valid\'e avec l'entreprise.
+
+\newpage
+% ================================================================ CONCLUSION
+\section*{Conclusion g\'en\'erale}
+\addcontentsline{toc}{section}{Conclusion g\'en\'erale}
+
+Ce stage a permis de concevoir et de r\'ealiser un syst\`eme complet r\'epondant \`a un besoin concret d'AGIRH~: un agent conversationnel d'onboarding et d'offboarding appuy\'e sur un pipeline RAG rigoureux et une orchestration prot\'eg\'ee par un garde-fou anti-hallucination v\'erifiable en code. Plus que n'importe quelle ligne de code produite, ce projet illustre l'approche adopt\'ee tout au long de ce stage~: v\'erifier plut\^ot que supposer, mesurer plut\^ot qu'affirmer, et documenter une limite aussi honn\^etement qu'une r\'eussite.
+
+Le syst\`eme livr\'e reste un prototype~: le taux de classification du routeur conversationnel et la couverture fonctionnelle du frontend d\'efinissent clairement ce qu'il reste \`a faire. Mais chaque brique livr\'ee --- du chunking structurel au circuit de validation qualit\'e, en passant par le garde-fou anti-hallucination --- l'a \'et\'e v\'erifi\'ee en conditions r\'eelles, pas seulement con\c{c}ue sur le papier. C'est, avec le recul, la contribution la plus durable de ce stage~: au-del\`a du code lui-m\^eme, une m\'ethode de travail rigoureuse, transf\'erable \`a tout projet futur.
+
+\newpage
+% ================================================================ BIBLIOGRAPHIE
+\section*{R\'ef\'erences}
+\addcontentsline{toc}{section}{R\'ef\'erences}
+
+\begin{enumerate}[leftmargin=1.8em]
+\item Lewis, P. \textit{et al.} (2020). \textit{Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks}. Concept fondateur du RAG, \`a l'origine de l'architecture d\'ecrite au chapitre~3.
+\item Cockburn, A. \textit{Hexagonal Architecture (Ports and Adapters)}. Concept architectural \`a l'origine de la structure d\'ecrite au chapitre~2.
+\item ISO/IEC 27001 --- \textit{Information security management systems}. Norme encadrant les checklists qualit\'e r\'eelles \`a l'origine du contenu m\'etier (chapitre~1).
+\item Documentation officielle ONNX Runtime --- \url{https://onnxruntime.ai}.
+\item Documentation officielle Qdrant --- \url{https://qdrant.tech}.
+\item Documentation officielle Ollama --- \url{https://ollama.com}.
+\item BAAI. \textit{bge-reranker-v2-m3} --- fiche mod\`ele Hugging Face, mod\`ele de reranking cross-encodeur utilis\'e (chapitre~3).
+\item Documentation officielle Next.js --- \url{https://nextjs.org/docs}.
+\item Documentation officielle ASP.NET Core --- \url{https://learn.microsoft.com/aspnet/core}.
+\item Documentation officielle Microsoft.ML.Tokenizers --- \url{https://learn.microsoft.com/dotnet/api/microsoft.ml.tokenizers}.
+\end{enumerate}
+
+\newpage
+% ================================================================ ANNEXES
+\section*{Annexes}
+\addcontentsline{toc}{section}{Annexes}
+
+\subsection*{Annexe A --- Glossaire}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}l X@{}}
+\toprule
+\textbf{Terme} & \textbf{Sens en une ligne} \\
+\midrule
+Architecture hexagonale & Domain (r\`egles pures) $\to$ Core (use cases + ports) $\to$ Infrastructure (adaptateurs) $\to$ Api. Les d\'ependances pointent toujours vers l'int\'erieur. \\
+RAG & Chercher l'information dans de vrais documents avant de la donner au LLM, plut\^ot que de compter sur sa m\'emoire. \\
+Chunking & D\'ecouper un document en morceaux exploitables --- ici, par structure, pas par taille fixe aveugle. \\
+Embedding & Transformer du texte en vecteur num\'erique (ici 768 dimensions) pour comparer des sens, pas juste des mots. \\
+ANN / HNSW & Recherche \textbf{approximative} des voisins les plus proches --- pas exacte, mais rapide \`a grande \'echelle. \\
+Similarit\'e cosinus & Mesure d'angle entre deux vecteurs, born\'ee entre $-1$ et $1$ gr\^ace \`a la normalisation L2. \\
+Bi-encodeur & Encode requ\^ete et document \textbf{s\'epar\'ement} --- rapide, utilis\'e pour la recherche large. \\
+Cross-encodeur / reranking & Encode requ\^ete \textbf{et} document ensemble, en une passe --- lent, tr\`es pr\'ecis, r\'eserv\'e \`a une courte liste de candidats. \\
+Fail-safe (vs fail-open) & En cas de doute ou de panne, le syst\`eme refuse --- il n'accorde jamais un acc\`es ou une r\'eponse par d\'efaut. \\
+RBAC & Role-Based Access Control --- qui a le droit de faire quoi, par r\^ole. \\
+Scope guard / port\'ee & Restreint une action \`a un p\'erim\`etre pr\'ecis (ici le d\'epartement), v\'erifi\'e s\'epar\'ement du RBAC, toujours apr\`es. \\
+SSE & Server-Sent Events --- flux HTTP unidirectionnel serveur vers client, utilis\'e pour le streaming du chat et des notifications. \\
+BFF & Backend For Frontend --- le frontend sert d'interm\'ediaire, le JWT n'est jamais expos\'e au navigateur. \\
+Few-shot & Donner des exemples dans le prompt pour orienter le comportement du mod\`ele, sans le r\'eentra\^iner. \\
+Garde-fou anti-hallucination & M\'ecanisme en \textbf{code} (pas une consigne de prompt) qui emp\^eche une r\'eponse non fond\'ee. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection*{Annexe B --- Stack technique r\'ecapitulative}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}l X@{}}
+\toprule
+\textbf{Composant} & \textbf{Choix} \\
+\midrule
+Backend & .NET~8, ASP.NET Core, EF~Core \\
+Frontend & Next.js 15 (BFF), TailwindCSS, shadcn/ui, react-markdown \\
+Authentification & JWT + ASP.NET Identity \\
+Temps r\'eel & SSE \\
+Base relationnelle & SQL Server (Docker) \\
+Base vectorielle & Qdrant (Docker, ANN/HNSW, cosinus) \\
+Chunking & Structurel + recouvrement, \code{Microsoft.ML.Tokenizers} \\
+Embedding & ONNX Runtime .NET, multilingue 768d \\
+Reranking & ONNX cross-encodeur \code{BAAI/bge-reranker-v2-m3} (obligatoire) \\
+LLM Router + Generator & Ollama local, \code{phi4-mini:3.8b} \\
+D\'eploiement & Docker Compose local (4 services) \\
+Tests & xUnit + Moq + FluentAssertions (245 tests, 244 verts + 1 flake connu) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\end{document}

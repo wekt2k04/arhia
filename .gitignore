@@ -42,6 +42,16 @@ docs/VERIFICATION_MIGRATION_ANGLAIS.md
 docs/donnees_test/
 docs/presentations/script_orateur.md
 
+# ── Artefacts de compilation LaTeX (regenerables via pdflatex, pas les sources) ──
+docs/rapport_final/*.aux
+docs/rapport_final/*.log
+docs/rapport_final/*.out
+docs/rapport_final/*.toc
+docs/rapport_avancement/*.aux
+docs/rapport_avancement/*.log
+docs/rapport_avancement/*.out
+docs/rapport_avancement/*.toc
+
 # ── HANDOFF interne (continuite entre sessions Claude Code, pas pour le grand public) ──
 .claude/HANDOFF/
 

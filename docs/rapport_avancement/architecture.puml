@@ -1,0 +1,34 @@
+@startuml
+left to right direction
+skinparam dpi 200
+skinparam backgroundColor transparent
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 16
+skinparam roundcorner 10
+skinparam shadowing false
+skinparam rectangle {
+  BorderColor #4F46E5
+  BorderThickness 1.3
+  FontColor #1E1B4B
+  BackgroundColor #EEF2FF
+}
+skinparam ArrowColor #4F46E5
+skinparam ArrowThickness 1.3
+skinparam ArrowFontColor #312E81
+skinparam ArrowFontSize 13
+skinparam nodesep 20
+skinparam ranksep 40
+
+rectangle "**Frontend**\nNext.js 15 (BFF)\ncookie httpOnly" as FE
+rectangle "**Agirh.Api**\nControllers\ncomposition root" as API
+rectangle "**Agirh.Core**\nPorts . Use Cases\nRBAC" as CORE
+rectangle "**Agirh.Infrastructure**\nEF Core . Qdrant\nONNX . Ollama . SSE" as INFRA
+rectangle "**Agirh.Domain**\nEntités pures" as DOM
+
+FE -right-> API : HTTP, puis SSE
+API -right-> CORE
+API -down-> INFRA
+CORE -down-> DOM
+INFRA -right-> DOM
+INFRA -up-> CORE
+@enduml

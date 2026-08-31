@@ -1,0 +1,29 @@
+@startuml
+left to right direction
+skinparam dpi 200
+skinparam backgroundColor transparent
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 15
+skinparam shadowing false
+skinparam state {
+  BorderColor #4F46E5
+  BorderThickness 1.2
+  BackgroundColor #EEF2FF
+  FontColor #1E1B4B
+  ArrowColor #4F46E5
+  ArrowFontColor #312E81
+  StartColor #4F46E5
+  EndColor #4F46E5
+}
+hide empty description
+
+state "Draft" as Draft : proposé par un RH\n(Rédacteur)
+state "InReview" as InReview : vérifié par\nAdmin/Qualité #1\n(Vérificateur)
+state "Approved" as Approved : approuvé par\nAdmin/Qualité #2\n(Approbateur) — figé
+
+[*] --> Draft
+Draft --> InReview : propose()
+InReview --> Approved : verify() puis approve()
+InReview --> Draft : reject()
+Approved --> [*] : instancie un\nWorkflowInstance
+@enduml

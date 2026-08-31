@@ -52,10 +52,11 @@ Détail complet, diagrammes de flux et arborescence cible : [`docs/ARCHITECTURE.
 
 ### Orchestration conversationnelle
 
-`Router (Ollama, phi4-mini:3.8b)` classe l'intention (documentaire / statut de dossier / hors
-périmètre) → `Generator (Ollama)` écrit la réponse, sourcée si le RAG a été utilisé. Toute sortie
-du Router qui ne matche pas exactement l'un des trois cas retombe par défaut sur hors périmètre
-(fail-safe, pas fail-open).
+`Router (Ollama, phi4-mini:3.8b)` classe l'intention (documentaire / statut de dossier /
+salutation / message incertain / hors périmètre) → `Generator (Ollama)` écrit la réponse —
+sourcée si le RAG a été utilisé, conversationnelle et adaptative pour une salutation ou un
+message ambigu, fixe pour le reste hors périmètre. Toute sortie du Router qui ne matche pas
+exactement l'un des cinq cas retombe par défaut sur hors périmètre (fail-safe, pas fail-open).
 
 ## Stack technique
 
@@ -134,9 +135,10 @@ rag/                       données du pipeline RAG, hors du code compilé
   models/                  poids ONNX (embedding + reranking, ~850 Mo, jamais commités)
   eval/                    jeu de questions/réponses de référence (gold_qa.json)
 docs/                      documents de cadrage (LOGIQUE_METIER, STACK_TECHNIQUE, ARCHITECTURE,
-                            CHECKLIST, HISTORIQUE, SUJET_STAGE) — quelques sous-dossiers
-                            supplémentaires existent en local (notes personnelles, synthèses) mais
-                            ne sont pas suivis par git, voir `.gitignore`
+                            CHECKLIST, HISTORIQUE, SUJET_STAGE), le rapport de fin de stage et le
+                            rapport d'avancement (sources LaTeX + PDF) — quelques sous-dossiers
+                            supplémentaires existent en local (notes personnelles, données de
+                            test) mais ne sont pas suivis par git, voir `.gitignore`
 .claude/                   outillage Claude Code : agents, commandes, HANDOFF/ (continuité entre
                             sessions), scripts/ (téléchargement des modèles)
 ```
@@ -150,14 +152,17 @@ docs/                      documents de cadrage (LOGIQUE_METIER, STACK_TECHNIQUE
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Détail hexagonal, arborescence, diagrammes de flux |
 | [`docs/CHECKLIST.md`](docs/CHECKLIST.md) | Suivi milestone par milestone, statut réel |
 | [`docs/HISTORIQUE.md`](docs/HISTORIQUE.md) | Pourquoi le projet a été reconstruit de zéro (V7→V8) |
+| [`docs/rapport_final/`](docs/rapport_final/Rapport_Fin_de_Stage_PFA_arhia_Wilfried_TSETSE.pdf) | Rapport de fin de stage complet (PDF + sources LaTeX) |
 
 ## Statut du projet
 
 Milestones 0-9 et 11 terminés — application fonctionnelle de bout en bout, y compris en Docker
 Compose sur base fraîche : inscription/connexion, chat en streaming réel, notifications en
 direct, tableau de bord/dossiers/collaborateurs par rôle, déclenchement de la réindexation du
-corpus RAG depuis l'interface (Admin/Qualité), mode sombre. 245 tests automatisés (244 verts, 1
-flake pré-existant sans rapport), 0 warning au build. Restent ouverts : l'affinage du routeur conversationnel (~27% de mauvais routage mesuré sur
+corpus RAG depuis l'interface (Admin/Qualité), mode sombre. 251 tests automatisés (249 verts,
+2 flakes documentés sans rapport avec le code — accumulation Qdrant entre exécutions et
+contention de ressources entre deux tests d'intégration Ollama lancés en parallèle), 0 warning
+au build. Restent ouverts : l'affinage du routeur conversationnel (~27% de mauvais routage mesuré sur
 le jeu de test, mis de côté volontairement), la reconfirmation du jeu de questions/réponses de
 référence après les derniers correctifs, les 3 cas particuliers métier (mutation inter-pôle,
 annulation/suspension, pôle vacant), et la suite du frontend (modèles de checklist, administration
