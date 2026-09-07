@@ -105,3 +105,27 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Bande décorative du header — dégradé lent entre les tons de la marque, jamais figé mais
+   volontairement discret (pas d'attention volée à la navigation). */
+@keyframes header-drift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.header-accent-band {
+  background-image: linear-gradient(
+    120deg,
+    transparent 0%,
+    hsl(var(--primary) / 0.10) 25%,
+    hsl(var(--primary) / 0.22) 50%,
+    hsl(var(--primary) / 0.10) 75%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  animation: header-drift 14s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .header-accent-band {
+    animation: none;
+  }
+}

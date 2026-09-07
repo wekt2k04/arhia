@@ -66,8 +66,8 @@ export function ChatWidget() {
   }
 
   return (
-    <Card className="flex h-[70vh] w-full max-w-2xl flex-col overflow-hidden py-0">
-      <ScrollArea className="flex-1">
+    <Card className="flex h-full w-full max-w-3xl flex-col overflow-hidden py-0">
+      <ScrollArea className="min-h-0 flex-1">
         <div className="space-y-4 p-4">
           {messages.length === 0 && (
             <p className="py-8 text-center text-sm text-muted-foreground">
