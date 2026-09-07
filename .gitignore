@@ -57,3 +57,8 @@ docs/rapport_avancement/*.toc
 
 # ── Overrides locaux (jamais partages) ──
 .claude/settings.local.json
+
+# ── Brouillons / doublons personnels (hors depot, jamais commites) ──
+post_linkedin_fin_de_stage.txt
+docs/Rapport_Avancement_PFA_AGIRH_Wilfried_TSETSE*.pdf
+docs/rapport_final/*.mp4
