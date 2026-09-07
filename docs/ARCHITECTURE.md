@@ -256,18 +256,30 @@ sequenceDiagram
     participant Stat as WorkflowInstance (lecture seule)
 
     U->>Api: Question (stream SSE ouvert)
-    Api->>Router: Classifier l'intention
-    alt question documentaire
-        Router->>RAG: Chunking déjà fait à l'ingestion → Embedding requête → Qdrant (top-K) → Reranking ONNX
-        RAG-->>Gen: Chunks rerankés (sourcés)
-    else statut de dossier
-        Router->>Stat: Lecture WorkflowInstance (RBAC : pôle du RH ou dossier de l'Employee)
-        Stat-->>Gen: État du dossier
+    Api->>Router: Classifier l'intention (5 valeurs : DocumentaryQuestion, CaseStatus, Greeting, Unknown, OutOfScope)
+
+    alt DocumentaryQuestion
+        Api->>RAG: Chunking déjà fait à l'ingestion → Embedding requête → Qdrant (top 5) → Reranking ONNX → seuil 0.01 (top 3)
+        alt aucun candidat, ou tous sous le seuil
+            RAG-->>Api: aucun chunk retenu
+            Note over Api: Anti-hallucination (LOGIQUE_METIER.md §9) : Gen jamais appelé —<br/>réponse fixe "je n'ai pas trouvé cette information" (Sourced=false)
+        else chunks retenus
+            RAG-->>Gen: Contexte = chunks rerankés (sourcés)
+            Gen-->>Api: Réponse (streamée frame par frame)
+            Note over Api: Anti-hallucination (LOGIQUE_METIER.md §9) : texte complet relu après coup (IsGeneratorRefusal).<br/>Si le Gen refuse malgré le contexte fourni → Sourced=false quand même. Sinon → Sourced=true + sources
+        end
+    else CaseStatus
+        Api->>Stat: RBAC (pôle du RH, ou dossier propre de l'Employee) puis lecture WorkflowInstance
+        Stat-->>Api: Statut + items restants
+        Note over Api: Gen jamais appelé — texte déterministe assemblé directement par l'orchestration (Sourced=false)
+    else Greeting ou Unknown
+        Api->>Gen: Appel direct, prompt système dédié à l'intention (sans RAG ni WorkflowInstance)
+        Gen-->>Api: Réponse (streamée frame par frame, Sourced=false)
+    else OutOfScope
+        Note over Api: Gen jamais appelé — réponse fixe, sans aucun appel LLM (Sourced=false)
     end
-    Note over Router: Salutation ou message incertain -> appel direct au Generator (reponse chaleureuse ou de clarification, sans RAG ni WorkflowInstance). Hors perimetre -> reponse fixe sans appel LLM.
-    Gen-->>Api: Réponse (streamée frame par frame)
-    Api-->>U: SSE frames + frame terminale
-    Note over Gen: Si aucun chunk pertinent retourné → "je n'ai pas trouvé cette information" (anti-hallucination, LOGIQUE_METIER.md §9)
+
+    Api-->>U: SSE frames "fragment" (texte) + frame terminale "done" (sourced/sources)
 ```
 
 ## 7. RBAC — schéma de portée
